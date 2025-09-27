@@ -8,7 +8,7 @@ CLI orchestrator that routes between deterministic tools and AI agents.
 
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import typer
 from rich.console import Console
@@ -185,6 +185,222 @@ def run_ipt_wt(
             raise typer.Exit(code=1)
     except ImportError:
         console.print("[red]Workflow runner not available[/red]")
+        raise typer.Exit(code=1)
+
+
+# Coordination command group
+coordination_app = typer.Typer(
+    name="coordination", help="Multi-agent workflow coordination commands"
+)
+app.add_typer(coordination_app, name="coordination")
+
+
+def _ensure_state_dir() -> Path:
+    state_dir = Path("state/coordination")
+    state_dir.mkdir(parents=True, exist_ok=True)
+    return state_dir
+
+
+def _json_default(o: Any):
+    try:
+        import enum
+
+        if isinstance(o, enum.Enum):
+            return o.value
+    except Exception:
+        pass
+    try:
+        from dataclasses import asdict, is_dataclass
+
+        if is_dataclass(o):
+            return asdict(o)
+    except Exception:
+        pass
+    if isinstance(o, (Path,)):
+        return str(o)
+    return str(o)
+
+
+@coordination_app.command("run")
+def coordination_run(
+    workflows: List[Path] = typer.Argument(
+        ..., help="Workflow YAML files to coordinate"
+    ),
+    mode: str = typer.Option("parallel", "--mode", help="Coordination mode"),
+    max_parallel: int = typer.Option(3, "--max-parallel", help="Max parallel workflows"),
+    budget: float = typer.Option(50.0, "--budget", help="Total budget in USD"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show plan without executing"),
+):
+    """Run coordinated multi-workflow execution."""
+    console.print("[bold blue]Running coordinated workflows[/bold blue]")
+    console.print(f"[dim]Mode={mode}, MaxParallel={max_parallel}, Budget=${budget:.2f}, DryRun={dry_run}[/dim]")
+
+    try:
+        from .workflow_runner import WorkflowRunner
+
+        runner = WorkflowRunner()
+        result = runner.run_coordinated_workflows(
+            workflow_files=workflows,
+            coordination_mode=mode,
+            max_parallel=max_parallel,
+            total_budget=budget,
+            dry_run=dry_run,
+        )
+
+        state_dir = _ensure_state_dir()
+        summary = {
+            "coordination_id": result.coordination_id,
+            "success": result.success,
+            "total_tokens_used": result.total_tokens_used,
+            "total_execution_time": result.total_execution_time,
+            "parallel_efficiency": result.parallel_efficiency,
+            "conflicts_detected": result.conflicts_detected,
+            "workflows": {
+                name: {
+                    "success": r.success,
+                    "tokens_used": r.tokens_used,
+                    "steps_completed": r.steps_completed,
+                    "execution_time": r.execution_time,
+                    "error": r.error,
+                    "artifacts": r.artifacts,
+                }
+                for name, r in (result.workflow_results or {}).items()
+            },
+            "params": {
+                "mode": mode,
+                "max_parallel": max_parallel,
+                "budget": budget,
+                "dry_run": dry_run,
+                "input_files": [str(p) for p in workflows],
+            },
+        }
+
+        out_path = state_dir / f"{result.coordination_id}.json"
+        try:
+            import json
+
+            with out_path.open("w", encoding="utf-8") as f:
+                json.dump(summary, f, indent=2, default=_json_default)
+            console.print(f"[dim]Saved state: {out_path}[/dim]")
+        except Exception as e:
+            console.print(f"[yellow]Could not persist coordination state: {e}[/yellow]")
+
+        if result.success:
+            console.print(f"[green]{_symbol(True)} Coordination completed: {result.coordination_id}[/green]")
+        else:
+            if result.conflicts_detected:
+                for c in result.conflicts_detected:
+                    console.print(f"[red]- {c}[/red]")
+            console.print(f"[red]{_symbol(False)} Coordination failed: {result.coordination_id}[/red]")
+            raise typer.Exit(code=1)
+
+    except ImportError:
+        console.print("[red]Workflow runner not available[/red]")
+        raise typer.Exit(code=1)
+
+
+@coordination_app.command("plan")
+def coordination_plan(
+    workflows: List[Path] = typer.Argument(..., help="Workflow files to analyze"),
+    output: Path = typer.Option(
+        Path("coordination_plan.json"), "--output", help="Output file"
+    ),
+):
+    """Create coordination plan with conflict detection."""
+    try:
+        import json
+        from dataclasses import asdict
+
+        import yaml
+
+        from .coordination import WorkflowCoordinator
+
+        # Load workflows
+        loaded: List[Dict[str, Any]] = []
+        for wf in workflows:
+            with wf.open("r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+                loaded.append(data)
+
+        coordinator = WorkflowCoordinator()
+        plan = coordinator.create_coordination_plan(loaded)
+
+        # Serialize plan safely (convert Enums)
+        def _enum_safe(obj: Any) -> Any:
+            d = asdict(obj)
+            # Best-effort enum conversion
+            def _fix(v):
+                try:
+                    import enum
+
+                    if isinstance(v, enum.Enum):
+                        return v.value
+                except Exception:
+                    pass
+                return v
+
+            for k, v in list(d.items()):
+                if isinstance(v, list):
+                    d[k] = [(_fix(x) if not isinstance(x, dict) else x) for x in v]
+                else:
+                    d[k] = _fix(v)
+            return d
+
+        plan_dict = _enum_safe(plan)
+        with output.open("w", encoding="utf-8") as f:
+            json.dump(plan_dict, f, indent=2, default=_json_default)
+        console.print(f"[green]{_symbol(True)} Plan written to {output}[/green]")
+    except Exception as e:
+        console.print(f"[red]{_symbol(False)} Failed to create plan: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
+@coordination_app.command("status")
+def coordination_status(
+    coordination_id: str = typer.Argument(..., help="Coordination session ID"),
+):
+    """Show coordination session status from persisted state."""
+    try:
+        import json
+
+        state_file = _ensure_state_dir() / f"{coordination_id}.json"
+        if not state_file.exists():
+            console.print(f"[yellow]No state found for {coordination_id}[/yellow]")
+            raise typer.Exit(code=1)
+
+        with state_file.open("r", encoding="utf-8") as f:
+            state = json.load(f)
+
+        ok = bool(state.get("success"))
+        console.print(
+            f"[bold blue]Coordination {coordination_id}[/bold blue] - {'SUCCESS' if ok else 'FAILED'}"
+        )
+        console.print(
+            f"[dim]tokens={state.get('total_tokens_used', 0)}, time={state.get('total_execution_time', 0.0):.2f}s, efficiency={state.get('parallel_efficiency', 0.0):.2f}[/dim]"
+        )
+
+        conflicts = state.get("conflicts_detected") or []
+        if conflicts:
+            console.print("[red]Conflicts detected:[/red]")
+            for c in conflicts:
+                console.print(f"[red]- {c}[/red]")
+
+    except Exception as e:
+        console.print(f"[red]Error reading status: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
+@coordination_app.command("cancel")
+def coordination_cancel(
+    coordination_id: str = typer.Argument(..., help="Coordination session ID"),
+):
+    """Cancel a running coordination session (cooperative)."""
+    try:
+        cancel_flag = _ensure_state_dir() / f"{coordination_id}.cancel"
+        cancel_flag.touch(exist_ok=True)
+        console.print(f"[yellow]Cancel flag written: {cancel_flag}[/yellow]")
+    except Exception as e:
+        console.print(f"[red]Failed to write cancel flag: {e}[/red]")
         raise typer.Exit(code=1)
 
 

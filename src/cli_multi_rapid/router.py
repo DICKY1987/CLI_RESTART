@@ -7,19 +7,17 @@ configured policies and step requirements.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, List, Tuple
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import time
+from typing import Any, Dict, List, Optional, Tuple
 
 from rich.console import Console
 
 from .adapters import AdapterRegistry
-from .coordination import FileClaim, ScopeConflict, FileScopeManager, ScopeMode
 from .adapters.ai_analyst import AIAnalystAdapter
 from .adapters.ai_editor import AIEditorAdapter
 from .adapters.code_fixers import CodeFixersAdapter
 from .adapters.pytest_runner import PytestRunnerAdapter
 from .adapters.vscode_diagnostics import VSCodeDiagnosticsAdapter
+from .coordination import FileClaim, FileScopeManager, ScopeConflict, ScopeMode
 
 console = Console()
 
@@ -105,11 +103,11 @@ class Router:
         self.registry.register(AIAnalystAdapter())
 
         # Register Codex pipeline adapters
-        from .adapters.contract_validator import ContractValidatorAdapter
-        from .adapters.state_capture import StateCaptureAdapter
         from .adapters.backup_manager import BackupManagerAdapter
         from .adapters.bundle_loader import BundleLoaderAdapter
+        from .adapters.contract_validator import ContractValidatorAdapter
         from .adapters.enhanced_bundle_applier import EnhancedBundleApplierAdapter
+        from .adapters.state_capture import StateCaptureAdapter
 
         self.registry.register(ContractValidatorAdapter())
         self.registry.register(StateCaptureAdapter())
@@ -118,11 +116,11 @@ class Router:
         self.registry.register(EnhancedBundleApplierAdapter())
 
         # Register verification gate adapters
-        from .adapters.syntax_validator import SyntaxValidatorAdapter
-        from .adapters.import_resolver import ImportResolverAdapter
-        from .adapters.type_checker import TypeCheckerAdapter
-        from .adapters.security_scanner import SecurityScannerAdapter
         from .adapters.certificate_generator import CertificateGeneratorAdapter
+        from .adapters.import_resolver import ImportResolverAdapter
+        from .adapters.security_scanner import SecurityScannerAdapter
+        from .adapters.syntax_validator import SyntaxValidatorAdapter
+        from .adapters.type_checker import TypeCheckerAdapter
 
         self.registry.register(SyntaxValidatorAdapter())
         self.registry.register(ImportResolverAdapter())
@@ -130,8 +128,10 @@ class Router:
         self.registry.register(SecurityScannerAdapter())
         self.registry.register(CertificateGeneratorAdapter())
 
-        # TODO: Register additional adapters:
-        # - verifier (quality gates)
+        # Register verifier adapter (quality gates)
+        from .adapters.verifier_adapter import VerifierAdapter
+
+        self.registry.register(VerifierAdapter())
 
         self.console.print(
             f"[dim]Initialized {len(self.registry.list_adapters())} adapters[/dim]"
@@ -207,6 +207,15 @@ class Router:
             # Prefer quick, cheap diagnostics/fixes when possible
             "ai_editor": "code_fixers",
             "ai_analyst": "vscode_diagnostics",
+            # Additional AI tool alternatives for cost optimization
+            "open_interpreter": "pytest_runner",  # Code execution -> test runner
+            "continue_cli": "vscode_diagnostics",  # AI assistance -> diagnostic analysis
+            "opencode": "code_fixers",  # Advanced refactoring -> deterministic fixes
+            "goose": "git_ops",  # Autonomous development -> git operations
+            # Role-based routing alternatives
+            "role.ai.review": "vscode_diagnostics",  # AI review -> diagnostic analysis
+            "role.ai.fix": "code_fixers",  # AI fixes -> deterministic code fixes
+            "role.ai.test": "pytest_runner",  # AI testing -> pytest runner
         }
         return mapping.get(ai_actor)
 

@@ -1,0 +1,116 @@
+{
+  // Python Language Server Configuration
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.autoFormatOnType": true,
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.typeCheckingMode": "strict",
+
+  // Automatic Formatting on Save
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit",
+    "source.fixAll.ruff": "explicit"
+  },
+
+  // Python Formatters and Linters
+  "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+  "python.linting.ruffEnabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.banditEnabled": true,
+  "python.linting.lintOnSave": true,
+  "python.linting.ignorePatterns": [
+    ".vscode/*.py",
+    "**/node_modules/**/*.py"
+  ],
+
+  // Ruff Configuration
+  "ruff.enable": true,
+  "ruff.organizeImports": true,
+  "ruff.fixAll": true,
+  "ruff.lint.run": "onSave",
+  "ruff.format.args": ["--line-length=88"],
+
+  // MyPy Configuration
+  "python.linting.mypyArgs": [
+    "--ignore-missing-imports",
+    "--show-error-codes",
+    "--strict"
+  ],
+
+  // Auto-save Configuration
+  "files.autoSave": "onFocusChange",
+  "files.autoSaveDelay": 1000,
+
+  // JSON Schema Validation
+  "json.validate.enable": true,
+  "yaml.validate": true,
+  "yaml.completion": true,
+  "yaml.hover": true,
+
+  // Git Integration
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "scm.defaultViewMode": "tree",
+
+  // File Associations for CLI Orchestrator
+  "files.associations": {
+    "*.yaml": "yaml",
+    "*.yml": "yaml",
+    ".ai/workflows/*.yaml": "yaml",
+    ".ai/schemas/*.json": "jsonc"
+  },
+
+  // Schema Validation for Workflow Files
+  "yaml.schemas": {
+    ".ai/schemas/workflow.schema.json": ".ai/workflows/*.yaml"
+  },
+
+  // Terminal Configuration
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    },
+    "Command Prompt": {
+      "path": "cmd.exe",
+      "icon": "terminal-cmd"
+    }
+  },
+
+  // Extensions Configuration
+  "extensions.ignoreRecommendations": false,
+  "python.defaultInterpreterPath": "./venv/Scripts/python.exe",
+
+  // Workspace Specific Settings
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.extraPaths": ["./src"],
+  "python.analysis.include": ["src/**"],
+  "python.analysis.exclude": [
+    "**/__pycache__",
+    "**/node_modules",
+    ".git"
+  ],
+
+  // Error Lens Configuration (if installed)
+  "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+  "errorLens.excludeBySource": [],
+
+  // Code Coverage
+  "coverage-gutters.showLineCoverage": true,
+  "coverage-gutters.showRulerCoverage": true,
+
+  // Performance Optimization
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**/__pycache__/**": true,
+    "**/venv/**": true,
+    "**/env/**": true
+  }
+}
