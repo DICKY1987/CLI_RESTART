@@ -84,3 +84,4 @@ If CLI flags are left at their defaults, the loader applies the config values.
 - File-scope claims and conflicts are derived from workflow metadata and phases.
 - State files live under `state/coordination/` (git-ignored).
 - For richer telemetry or a multi-process dashboard, integrate the event bus service.
+
