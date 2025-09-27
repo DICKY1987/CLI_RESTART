@@ -7,12 +7,13 @@ and AI escalation patterns.
 """
 
 import json
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import asyncio
+import time
+from datetime import datetime
 
 import yaml
 from rich.console import Console
@@ -20,8 +21,8 @@ from rich.console import Console
 from .coordination import (
     CoordinationMode,
     CoordinationPlan,
-    FileScopeManager,
     WorkflowCoordinator,
+    FileScopeManager
 )
 
 console = Console()
@@ -84,9 +85,7 @@ class WorkflowRunner:
     def _cancel_file(self, coordination_id: str) -> Path:
         return self._state_dir() / f"{coordination_id}.cancel"
 
-    def _persist_coordination_state(
-        self, coordination_id: str, state: Dict[str, Any]
-    ) -> None:
+    def _persist_coordination_state(self, coordination_id: str, state: Dict[str, Any]) -> None:
         try:
             with self._state_file(coordination_id).open("w", encoding="utf-8") as f:
                 json.dump(state, f, indent=2)
@@ -94,9 +93,7 @@ class WorkflowRunner:
             # Non-fatal if persistence fails
             pass
 
-    def _load_coordination_state(
-        self, coordination_id: str
-    ) -> Optional[Dict[str, Any]]:
+    def _load_coordination_state(self, coordination_id: str) -> Optional[Dict[str, Any]]:
         path = self._state_file(coordination_id)
         if not path.exists():
             return None
@@ -129,7 +126,7 @@ class WorkflowRunner:
                 )
 
             # Validate schema
-            if not self._validate_schema(workflow, workflow_file):
+            if not self._validate_schema(workflow):
                 return WorkflowResult(
                     success=False, error="Workflow schema validation failed"
                 )
@@ -139,28 +136,16 @@ class WorkflowRunner:
 
             if coordination_mode_enum == CoordinationMode.PARALLEL:
                 return self._execute_parallel_workflow(
-                    workflow,
-                    dry_run=dry_run,
-                    files=files,
-                    lane=lane,
-                    max_tokens=max_tokens,
+                    workflow, dry_run=dry_run, files=files, lane=lane, max_tokens=max_tokens
                 )
             elif coordination_mode_enum == CoordinationMode.IPT_WT:
                 return self._execute_ipt_wt_workflow(
-                    workflow,
-                    dry_run=dry_run,
-                    files=files,
-                    lane=lane,
-                    max_tokens=max_tokens,
+                    workflow, dry_run=dry_run, files=files, lane=lane, max_tokens=max_tokens
                 )
             else:
                 # Sequential execution (default)
                 return self._execute_workflow(
-                    workflow,
-                    dry_run=dry_run,
-                    files=files,
-                    lane=lane,
-                    max_tokens=max_tokens,
+                    workflow, dry_run=dry_run, files=files, lane=lane, max_tokens=max_tokens
                 )
 
         except Exception as e:
@@ -175,7 +160,7 @@ class WorkflowRunner:
                 console.print(f"[red]Workflow file not found: {workflow_file}[/red]")
                 return None
 
-            with open(workflow_file, encoding="utf-8") as f:
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 workflow = yaml.safe_load(f)
 
             console.print(
@@ -187,36 +172,21 @@ class WorkflowRunner:
             console.print(f"[red]Error loading workflow: {e}[/red]")
             return None
 
-    def _validate_schema(
-        self, workflow: Dict[str, Any], workflow_path: Optional[Path] = None
-    ) -> bool:
+    def _validate_schema(self, workflow: Dict[str, Any]) -> bool:
         """Validate workflow against JSON schema."""
         try:
             # Import jsonschema only when needed
             import jsonschema
 
-            # Candidate schema paths: relative to workflow file, then repo root
-            candidates: List[Path] = []
-            if workflow_path is not None:
-                candidates.append(
-                    workflow_path.parent / ".ai/schemas/workflow.schema.json"
-                )
-            candidates.append(Path(".ai/schemas/workflow.schema.json"))
-
-            schema = None
-            for p in candidates:
-                try:
-                    if p.exists():
-                        with p.open(encoding="utf-8") as f:
-                            schema = json.load(f)
-                            break
-                except Exception:
-                    continue
-            if schema is None:
+            schema_path = Path(".ai/schemas/workflow.schema.json")
+            if not schema_path.exists():
                 console.print(
                     "[yellow]Schema validation skipped - schema file not found[/yellow]"
                 )
                 return True
+
+            with open(schema_path, "r", encoding="utf-8") as f:
+                schema = json.load(f)
 
             jsonschema.validate(workflow, schema)
             console.print("[green]OK Workflow schema validation passed[/green]")
@@ -231,127 +201,6 @@ class WorkflowRunner:
             console.print(f"[red]Schema validation failed: {e}[/red]")
             return False
 
-    def _execute_simplified_workflow(
-        self,
-        workflow: Dict[str, Any],
-        dry_run: bool = False,
-        max_tokens: Optional[int] = None,
-    ) -> WorkflowResult:
-        """Execute simplified 25-operation workflow using SimplifiedRouter.
-
-        Configuration-driven path that avoids modifying existing adapter routing.
-        Records token estimates via CostTracker for cost reporting.
-        """
-        operations: List[Dict[str, Any]] = list(workflow.get("operations", []) or [])
-        if not operations:
-            return WorkflowResult(success=True, steps_completed=0)
-
-        # Local imports to avoid heavy deps at module import
-        from .cost_tracker import CostTracker
-
-        try:
-            from .routing.simplified_router import SimplifiedRouter
-        except Exception as e:
-            return WorkflowResult(
-                success=False, error=f"simplified router unavailable: {e}"
-            )
-
-        simplified_router = SimplifiedRouter()
-        tracker = CostTracker()
-
-        total_tokens = 0
-        completed = 0
-        artifacts: List[str] = []
-
-        console.print(f"[blue]Executing {len(operations)} simplified operations[/blue]")
-
-        # Optional path: convert operations -> steps and execute via Router
-        execute_via_router = bool(
-            workflow.get("execute", False) or workflow.get("execute_via_router", False)
-        )
-        if execute_via_router:
-            steps: List[Dict[str, Any]] = []
-            for i, op in enumerate(operations):
-                step = self._operation_to_step(op, simplified_router)
-                # Ensure stable id/name
-                step.setdefault("id", op.get("id", f"op-{i+1}"))
-                step.setdefault("name", f"Operation {i+1}: {op.get('type', 'edit')}")
-                steps.append(step)
-
-            # Build a pseudo-workflow to leverage standard execution
-            wf_with_steps = dict(workflow)
-            wf_with_steps["steps"] = steps
-
-            return self._execute_workflow(
-                workflow=wf_with_steps,
-                dry_run=dry_run,
-                files=workflow.get("files"),
-                lane=workflow.get("lane"),
-                max_tokens=max_tokens,
-                use_router=True,
-            )
-        for i, op in enumerate(operations):
-            op_id = op.get("id", f"op-{i+1}")
-            op_type = str(op.get("type", "edit"))
-            console.print(f"[cyan]Operation {op_id}[/cyan] [dim]type={op_type}[/dim]")
-
-            if dry_run:
-                console.print("[yellow]DRY RUN - operation skipped[/yellow]")
-                completed += 1
-                continue
-
-            tool = simplified_router.route_operation(
-                op, complexity_score=int(op.get("complexity", 1) or 1)
-            )
-            est_tokens = int(simplified_router.estimate_operation_cost(op, tool))
-
-            tracker.record_usage(
-                operation=f"simplified:{op_type}",
-                tokens_used=est_tokens,
-                model=str(tool),
-                success=True,
-                workflow_id=workflow.get("name", "simplified"),
-            )
-            total_tokens += est_tokens
-            completed += 1
-
-            if max_tokens and total_tokens > max_tokens:
-                return WorkflowResult(
-                    success=False,
-                    error=f"Token limit exceeded: {total_tokens} > {max_tokens}",
-                    tokens_used=total_tokens,
-                    steps_completed=completed,
-                )
-
-        # Emit a minimal artifact summary
-        try:
-            out_dir = Path("artifacts/simplified")
-            out_dir.mkdir(parents=True, exist_ok=True)
-            out_file = out_dir / "summary.json"
-            with out_file.open("w", encoding="utf-8") as f:
-                json.dump(
-                    {
-                        "name": workflow.get("name"),
-                        "operations": len(operations),
-                        "tokens_used": total_tokens,
-                    },
-                    f,
-                    indent=2,
-                )
-            artifacts.append(str(out_file))
-        except Exception:
-            pass
-
-        console.print(
-            f"[green]OK Simplified workflow completed: {completed} ops[/green]"
-        )
-        return WorkflowResult(
-            success=True,
-            artifacts=artifacts,
-            tokens_used=total_tokens,
-            steps_completed=completed,
-        )
-
     def _execute_workflow(
         self,
         workflow: Dict[str, Any],
@@ -359,23 +208,8 @@ class WorkflowRunner:
         files: Optional[str] = None,
         lane: Optional[str] = None,
         max_tokens: Optional[int] = None,
-        use_router: bool = False,
     ) -> WorkflowResult:
-        """Execute workflow with routing and cost tracking.
-
-        If the workflow declares a simplified operations list, use the simplified
-        execution path, preserving backward compatibility for existing workflows.
-        """
-
-        # Simplified mode detection
-        if workflow.get("simplified", False) or (
-            workflow.get("operations") and not workflow.get("steps")
-        ):
-            return self._execute_simplified_workflow(
-                workflow=workflow,
-                dry_run=dry_run,
-                max_tokens=max_tokens,
-            )
+        """Execute workflow steps with routing and cost tracking."""
 
         steps = workflow.get("steps", [])
         if not steps:
@@ -400,11 +234,8 @@ class WorkflowRunner:
                 completed_steps += 1
                 continue
 
-            # Execute step (router or placeholder)
-            if use_router:
-                step_result = self._execute_step_via_router(step, files=files)
-            else:
-                step_result = self._execute_step(step, files=files)
+            # Execute step (placeholder implementation)
+            step_result = self._execute_step(step, files=files)
 
             total_tokens += step_result.get("tokens_used", 0)
             artifacts.extend(step_result.get("artifacts", []))
@@ -436,200 +267,6 @@ class WorkflowRunner:
             tokens_used=total_tokens,
             steps_completed=completed_steps,
         )
-
-    def _execute_step_via_router(
-        self, step: Dict[str, Any], files: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """Execute a single workflow step via Router and adapters."""
-        try:
-            from .router import Router
-
-            if not hasattr(self, "_router"):
-                self._router = Router()
-
-            router = self._router
-            decision = router.route_step(step)
-            adapter_name = decision.adapter_name
-
-            adapter = router.registry.get_adapter(adapter_name)
-            if adapter is None:
-                return {
-                    "success": False,
-                    "error": f"Adapter not available: {adapter_name}",
-                    "tokens_used": 0,
-                    "artifacts": [],
-                }
-
-            import time as _time
-
-            t0 = _time.perf_counter()
-            result_obj = adapter.execute(step, files=files)
-            dt = _time.perf_counter() - t0
-            router.update_performance_metrics(
-                adapter_name,
-                execution_time=dt,
-                success=result_obj.success,
-                tokens_used=result_obj.tokens_used,
-            )
-            return result_obj.to_dict()
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Router execution error: {e}",
-                "tokens_used": 0,
-                "artifacts": [],
-            }
-
-    def _operation_to_step(
-        self, operation: Dict[str, Any], simplified_router: Optional[Any] = None
-    ) -> Dict[str, Any]:
-        """Map a simplified operation to a router-executable step."""
-        op_type = str(operation.get("type", "edit")).lower()
-
-        # If a tool is provided/decided, map tool->adapter; otherwise derive based on op_type
-        tool = None
-        if simplified_router is not None:
-            try:
-                tool = simplified_router.route_operation(
-                    operation, complexity_score=int(operation.get("complexity", 1) or 1)
-                )
-            except Exception:
-                tool = None
-
-        def tool_to_adapter(t: Optional[str]) -> Optional[str]:
-            t = (t or "").lower()
-            mapping = {
-                # planning
-                "claude_code": "ai_analyst",
-                "gemini_cli": "ai_analyst",
-                "local_llm": "ai_analyst",
-                # work/editing
-                "aider": "ai_editor",
-                "continue_vscode": "ai_editor",
-                "manual_editing": "ai_editor",
-                # validation
-                "vscode": "vscode_diagnostics",
-                "language_servers": "vscode_diagnostics",
-                "static_analyzers": "vscode_diagnostics",
-                # repo
-                "github_cli": "git_ops",
-                "git_commands": "git_ops",
-                "github_api": "git_ops",
-                # orchestrator fallbacks
-                "custom_scripts": "state_capture",
-                "github_actions": "state_capture",
-                "manual_process": "state_capture",
-            }
-            return mapping.get(t)
-
-        actor = tool_to_adapter(tool)
-
-        # Fallback by operation type if tool mapping is absent
-        if not actor:
-            if op_type in {"plan", "analyze", "design"}:
-                actor = "ai_analyst"
-            elif op_type in {"edit", "modify", "refactor"}:
-                actor = "ai_editor"
-            elif op_type in {"format"}:
-                actor = "code_fixers"
-            elif op_type in {"validate", "lint", "typecheck"}:
-                actor = "vscode_diagnostics"
-            elif op_type in {"test"}:
-                actor = "pytest_runner"
-            elif op_type in {"commit", "branch", "pr"}:
-                actor = "git_ops"
-            else:
-                actor = "state_capture"
-
-        # Build minimal with-params tailored to the adapter
-        with_params: Dict[str, Any] = {}
-        emits: List[str] = []
-        if actor == "ai_editor":
-            with_params = {
-                "tool": "aider",
-                "operation": (
-                    op_type if op_type in {"edit", "modify", "refactor"} else "edit"
-                ),
-                "prompt": operation.get(
-                    "prompt",
-                    f"Apply {op_type} to the repository as per operation metadata: {operation}",
-                ),
-                "model": operation.get("model", "claude-3-5-sonnet-20241022"),
-                "max_tokens": int(operation.get("max_tokens", 4000) or 4000),
-            }
-            emits = ["artifacts/ai_edits/diff.json"]
-        elif actor == "ai_analyst":
-            analysis_map = {
-                "plan": "refactor_planning",
-                "analyze": "code_review",
-                "design": "architecture_analysis",
-            }
-            with_params = {
-                "analysis_type": analysis_map.get(op_type, "code_review"),
-                "focus_areas": operation.get(
-                    "focus_areas", ["quality", "bugs", "performance"]
-                ),
-                "detail_level": operation.get("detail_level", "medium"),
-                "model": operation.get("model", "claude-3-5-sonnet-20241022"),
-            }
-            emits = ["artifacts/analysis/report.json"]
-        elif actor == "code_fixers":
-            with_params = {
-                "tools": operation.get("tools", ["ruff", "black", "isort"]),
-                "fix": bool(operation.get("fix", True)),
-            }
-            emits = ["artifacts/formatting/report.json"]
-        elif actor == "vscode_diagnostics":
-            analyzers = ["ruff", "mypy"] if op_type == "typecheck" else ["python"]
-            if op_type == "lint":
-                analyzers = ["ruff"]
-            with_params = {
-                "analyzers": operation.get("analyzers", analyzers),
-                "severity": operation.get("severity", "all"),
-            }
-            emits = ["artifacts/diagnostics/report.json"]
-        elif actor == "pytest_runner":
-            with_params = {
-                "test_path": operation.get("test_path", "tests/"),
-                "coverage": bool(operation.get("coverage", True)),
-                "coverage_threshold": int(operation.get("coverage_threshold", 80)),
-                "args": operation.get("args", []),
-            }
-            emits = ["artifacts/tests/report.json"]
-        elif actor == "git_ops":
-            # Map op type to git operation
-            op_map = {
-                "commit": "commit",
-                "branch": "create_branch",
-                "pr": "open_pr",
-            }
-            with_params = {
-                "operation": op_map.get(op_type, "status"),
-                "message": operation.get("message", "Simplified workflow commit"),
-                "name": (
-                    operation.get("name", f"lane/{operation.get('id', 'change')}")
-                    if op_type == "branch"
-                    else None
-                ),
-                "title": operation.get("title", "Simplified PR"),
-            }
-            # Clean None entries
-            with_params = {k: v for k, v in with_params.items() if v is not None}
-            emits = ["artifacts/git/ops.json"]
-        else:  # state_capture or fallback
-            with_params = {
-                "repository_scan": False,
-                "file_checksums": False,
-                "dependency_lock": False,
-                "test_baseline": False,
-            }
-            emits = ["artifacts/state/marker.json"]
-
-        return {
-            "actor": actor,
-            "with": with_params,
-            "emits": emits,
-        }
 
     def _execute_step(
         self, step: Dict[str, Any], files: Optional[str] = None
@@ -671,47 +308,32 @@ class WorkflowRunner:
             if not workflow:
                 return WorkflowResult(success=False, error="workflow not found")
 
-            roles = workflow.get("roles") or {}
-            phases = workflow.get("phases") or []
+            roles = (workflow.get("roles") or {})
+            phases = (workflow.get("phases") or [])
             if not roles or not phases:
-                return WorkflowResult(
-                    success=False, error="invalid IPT/WT workflow structure"
-                )
+                return WorkflowResult(success=False, error="invalid IPT/WT workflow structure")
 
             # Make a simple routing decision to validate configuration
             from .router import Router
 
             router = Router()
-            sample_step = {
-                "actor": "ai_analyst",
-                "with": {"analysis_type": "code_review", "detail_level": "low"},
-            }
-            decision = router.route_with_budget_awareness(
-                sample_step, role="ipt", budget_remaining=budget or 0
-            )
+            sample_step = {"actor": "ai_analyst", "with": {"analysis_type": "code_review", "detail_level": "low"}}
+            decision = router.route_with_budget_awareness(sample_step, role="ipt", budget_remaining=budget or 0)
 
             artifact_path = Path("artifacts/ipt-wt/decision.json")
             artifact_path.parent.mkdir(parents=True, exist_ok=True)
             with artifact_path.open("w", encoding="utf-8") as f:
-                json.dump(
-                    {
-                        "router_decision": {
-                            "adapter_name": decision.adapter_name,
-                            "adapter_type": decision.adapter_type,
-                            "estimated_tokens": decision.estimated_tokens,
-                            "reasoning": decision.reasoning,
-                        },
-                        "request": request,
+                json.dump({
+                    "router_decision": {
+                        "adapter_name": decision.adapter_name,
+                        "adapter_type": decision.adapter_type,
+                        "estimated_tokens": decision.estimated_tokens,
+                        "reasoning": decision.reasoning,
                     },
-                    f,
-                    indent=2,
-                )
+                    "request": request,
+                }, f, indent=2)
 
-            return WorkflowResult(
-                success=True,
-                artifacts=[str(artifact_path)],
-                steps_completed=len(phases),
-            )
+            return WorkflowResult(success=True, artifacts=[str(artifact_path)], steps_completed=len(phases))
         except Exception as e:
             return WorkflowResult(success=False, error=f"ipt/wt workflow error: {e}")
 
@@ -734,7 +356,7 @@ class WorkflowRunner:
             for workflow_file in workflow_files:
                 workflow = self._load_workflow(workflow_file)
                 if workflow:
-                    workflow["_file_path"] = str(workflow_file)
+                    workflow['_file_path'] = str(workflow_file)
                     workflows.append(workflow)
 
             if not workflows:
@@ -742,7 +364,7 @@ class WorkflowRunner:
                     success=False,
                     coordination_id=coordination_id,
                     workflow_results={},
-                    conflicts_detected=["No valid workflows loaded"],
+                    conflicts_detected=["No valid workflows loaded"]
                 )
 
             # Create coordination plan
@@ -757,7 +379,7 @@ class WorkflowRunner:
                     success=False,
                     coordination_id=coordination_id,
                     workflow_results={},
-                    conflicts_detected=conflict_descriptions,
+                    conflicts_detected=conflict_descriptions
                 )
 
             # Initialize and persist coordination state
@@ -794,9 +416,7 @@ class WorkflowRunner:
                 )
 
             # Calculate summary metrics
-            total_tokens = sum(
-                result.tokens_used for result in workflow_results.values()
-            )
+            total_tokens = sum(result.tokens_used for result in workflow_results.values())
             execution_time = time.time() - start_time
             success = all(result.success for result in workflow_results.values())
 
@@ -806,9 +426,7 @@ class WorkflowRunner:
                 workflow_results=workflow_results,
                 total_tokens_used=total_tokens,
                 total_execution_time=execution_time,
-                parallel_efficiency=self._calculate_parallel_efficiency(
-                    workflow_results, execution_time
-                ),
+                parallel_efficiency=self._calculate_parallel_efficiency(workflow_results, execution_time)
             )
             # Persist final state
             state.update(
@@ -838,7 +456,7 @@ class WorkflowRunner:
                 success=False,
                 coordination_id=coordination_id,
                 workflow_results={},
-                conflicts_detected=[f"Coordination error: {str(e)}"],
+                conflicts_detected=[f"Coordination error: {str(e)}"]
             )
 
     def _execute_parallel_workflow(
@@ -854,8 +472,8 @@ class WorkflowRunner:
         start_time = time.time()
 
         # Check for parallel phases
-        phases = workflow.get("phases", [])
-        parallel_phases = [phase for phase in phases if phase.get("parallel", False)]
+        phases = workflow.get('phases', [])
+        parallel_phases = [phase for phase in phases if phase.get('parallel', False)]
 
         if parallel_phases:
             # Execute with parallel coordination
@@ -865,7 +483,7 @@ class WorkflowRunner:
                 return WorkflowResult(
                     success=False,
                     error=f"File scope conflicts detected: {coordination_plan.conflicts}",
-                    execution_time=time.time() - start_time,
+                    execution_time=time.time() - start_time
                 )
 
             # Execute parallel phases
@@ -884,7 +502,7 @@ class WorkflowRunner:
                 artifacts=total_artifacts,
                 steps_completed=len(results),
                 execution_time=time.time() - start_time,
-                parallel_groups=[str(i) for i in range(len(parallel_phases))],
+                parallel_groups=[str(i) for i in range(len(parallel_phases))]
             )
         else:
             # Fall back to sequential execution
@@ -912,12 +530,12 @@ class WorkflowRunner:
             return WorkflowResult(
                 success=False,
                 error="Invalid IPT-WT workflow structure",
-                execution_time=time.time() - start_time,
+                execution_time=time.time() - start_time
             )
 
         # Execute phases with role-based coordination
-        ipt_phases = [p for p in phases if p.get("role") == "ipt"]
-        wt_phases = [p for p in phases if p.get("role") == "wt"]
+        ipt_phases = [p for p in phases if p.get('role') == 'ipt']
+        wt_phases = [p for p in phases if p.get('role') == 'wt']
 
         results = []
 
@@ -927,11 +545,9 @@ class WorkflowRunner:
             results.append(phase_result)
 
         # Execute WT phases (potentially in parallel)
-        wt_parallel = any(p.get("parallel", False) for p in wt_phases)
+        wt_parallel = any(p.get('parallel', False) for p in wt_phases)
         if wt_parallel and not dry_run:
-            wt_results = self._execute_parallel_phases(
-                wt_phases, dry_run, files, max_tokens
-            )
+            wt_results = self._execute_parallel_phases(wt_phases, dry_run, files, max_tokens)
             results.extend(wt_results)
         else:
             for phase in wt_phases:
@@ -950,7 +566,7 @@ class WorkflowRunner:
             tokens_used=total_tokens,
             artifacts=total_artifacts,
             steps_completed=len(results),
-            execution_time=time.time() - start_time,
+            execution_time=time.time() - start_time
         )
 
     def _execute_parallel_groups(
@@ -971,32 +587,21 @@ class WorkflowRunner:
             if len(group) == 1:
                 # Single workflow, execute normally
                 workflow_name = group[0]
-                workflow = next(
-                    (w for w in workflows if w.get("name") == workflow_name), None
-                )
+                workflow = next((w for w in workflows if w.get('name') == workflow_name), None)
                 if workflow:
                     result = self._execute_workflow(workflow, dry_run=dry_run)
                     workflow_results[workflow_name] = result
                     if coordination_id:
-                        self._update_partial_state(
-                            coordination_id, workflow_name, result
-                        )
+                        self._update_partial_state(coordination_id, workflow_name, result)
             else:
                 # Multiple workflows, execute in parallel
-                with ThreadPoolExecutor(
-                    max_workers=min(max_parallel, len(group))
-                ) as executor:
+                with ThreadPoolExecutor(max_workers=min(max_parallel, len(group))) as executor:
                     future_to_workflow = {}
 
                     for workflow_name in group:
-                        workflow = next(
-                            (w for w in workflows if w.get("name") == workflow_name),
-                            None,
-                        )
+                        workflow = next((w for w in workflows if w.get('name') == workflow_name), None)
                         if workflow:
-                            future = executor.submit(
-                                self._execute_workflow, workflow, dry_run
-                            )
+                            future = executor.submit(self._execute_workflow, workflow, dry_run)
                             future_to_workflow[future] = workflow_name
 
                     for future in as_completed(future_to_workflow):
@@ -1005,20 +610,14 @@ class WorkflowRunner:
                             result = future.result()
                             workflow_results[workflow_name] = result
                             if coordination_id:
-                                self._update_partial_state(
-                                    coordination_id, workflow_name, result
-                                )
+                                self._update_partial_state(coordination_id, workflow_name, result)
                         except Exception as e:
                             workflow_results[workflow_name] = WorkflowResult(
                                 success=False,
-                                error=f"Parallel execution error: {str(e)}",
+                                error=f"Parallel execution error: {str(e)}"
                             )
                             if coordination_id:
-                                self._update_partial_state(
-                                    coordination_id,
-                                    workflow_name,
-                                    workflow_results[workflow_name],
-                                )
+                                self._update_partial_state(coordination_id, workflow_name, workflow_results[workflow_name])
 
         return workflow_results
 
@@ -1035,13 +634,9 @@ class WorkflowRunner:
 
         for workflow_name in coordination_plan.execution_order:
             if coordination_id and self._is_cancelled(coordination_id):
-                self.console.print(
-                    "[yellow]Coordination cancelled â€” stopping sequential execution[/yellow]"
-                )
+                self.console.print("[yellow]Coordination cancelled â€” stopping sequential execution[/yellow]")
                 break
-            workflow = next(
-                (w for w in workflows if w.get("name") == workflow_name), None
-            )
+            workflow = next((w for w in workflows if w.get('name') == workflow_name), None)
             if workflow:
                 result = self._execute_workflow(workflow, dry_run=dry_run)
                 workflow_results[workflow_name] = result
@@ -1050,16 +645,12 @@ class WorkflowRunner:
 
                 # Stop on failure if configured
                 if not result.success:
-                    self.console.print(
-                        f"[red]Workflow {workflow_name} failed, stopping execution[/red]"
-                    )
+                    self.console.print(f"[red]Workflow {workflow_name} failed, stopping execution[/red]")
                     break
 
         return workflow_results
 
-    def _update_partial_state(
-        self, coordination_id: str, workflow_name: str, result: WorkflowResult
-    ) -> None:
+    def _update_partial_state(self, coordination_id: str, workflow_name: str, result: WorkflowResult) -> None:
         state = self._load_coordination_state(coordination_id) or {}
         wf = state.get("workflow_results", {})
         wf[workflow_name] = {
@@ -1108,9 +699,7 @@ class WorkflowRunner:
             plan.execution_order = remaining_order
 
             # Execute remaining sequentially for simplicity
-            results = self._execute_sequential_workflows(
-                workflows, plan, dry_run=False, coordination_id=coordination_id
-            )
+            results = self._execute_sequential_workflows(workflows, plan, dry_run=False, coordination_id=coordination_id)
             # Merge with previous results
             merged: Dict[str, WorkflowResult] = {}
             for name, prev in (state.get("workflow_results") or {}).items():
@@ -1118,11 +707,7 @@ class WorkflowRunner:
                     success=bool(prev.get("success")),
                     tokens_used=int(prev.get("tokens_used", 0)),
                     steps_completed=int(prev.get("steps_completed", 0)),
-                    execution_time=(
-                        float(prev.get("execution_time"))
-                        if prev.get("execution_time") is not None
-                        else 0.0
-                    ),
+                    execution_time=float(prev.get("execution_time")) if prev.get("execution_time") is not None else 0.0,
                     error=prev.get("error"),
                     artifacts=prev.get("artifacts") or [],
                 )
@@ -1173,7 +758,7 @@ class WorkflowRunner:
         phases: List[Dict[str, Any]],
         dry_run: bool,
         files: Optional[str],
-        max_tokens: Optional[int],
+        max_tokens: Optional[int]
     ) -> List[Dict[str, Any]]:
         """Execute phases in parallel."""
 
@@ -1181,14 +766,12 @@ class WorkflowRunner:
             # Simulate parallel execution for dry run
             results = []
             for phase in phases:
-                results.append(
-                    {
-                        "success": True,
-                        "tokens_used": 0,
-                        "artifacts": [],
-                        "output": f"DRY RUN: Phase {phase.get('id', 'unknown')}",
-                    }
-                )
+                results.append({
+                    "success": True,
+                    "tokens_used": 0,
+                    "artifacts": [],
+                    "output": f"DRY RUN: Phase {phase.get('id', 'unknown')}"
+                })
             return results
 
         # Execute phases in parallel
@@ -1204,31 +787,32 @@ class WorkflowRunner:
                     result = future.result()
                     results.append(result)
                 except Exception as e:
-                    results.append(
-                        {
-                            "success": False,
-                            "error": f"Phase execution error: {str(e)}",
-                            "tokens_used": 0,
-                            "artifacts": [],
-                        }
-                    )
+                    results.append({
+                        "success": False,
+                        "error": f"Phase execution error: {str(e)}",
+                        "tokens_used": 0,
+                        "artifacts": []
+                    })
 
         return results
 
     def _execute_phase(
-        self, phase: Dict[str, Any], dry_run: bool, files: Optional[str]
+        self,
+        phase: Dict[str, Any],
+        dry_run: bool,
+        files: Optional[str]
     ) -> Dict[str, Any]:
         """Execute a single workflow phase."""
 
-        phase_id = phase.get("id", "unknown")
-        tasks = phase.get("tasks", [])
+        phase_id = phase.get('id', 'unknown')
+        tasks = phase.get('tasks', [])
 
         if dry_run:
             return {
                 "success": True,
                 "tokens_used": 0,
                 "artifacts": [],
-                "output": f"DRY RUN: Phase {phase_id} with {len(tasks)} tasks",
+                "output": f"DRY RUN: Phase {phase_id} with {len(tasks)} tasks"
             }
 
         # Execute tasks in the phase
@@ -1251,18 +835,20 @@ class WorkflowRunner:
                     "success": False,
                     "error": f"Task {task} failed",
                     "tokens_used": total_tokens,
-                    "artifacts": artifacts,
+                    "artifacts": artifacts
                 }
 
         return {
             "success": True,
             "tokens_used": total_tokens,
             "artifacts": artifacts,
-            "output": f"Phase {phase_id} completed successfully",
+            "output": f"Phase {phase_id} completed successfully"
         }
 
     def _calculate_parallel_efficiency(
-        self, workflow_results: Dict[str, WorkflowResult], total_time: float
+        self,
+        workflow_results: Dict[str, WorkflowResult],
+        total_time: float
     ) -> float:
         """Calculate parallelization efficiency."""
 
@@ -1283,3 +869,4 @@ class WorkflowRunner:
         efficiency = expected_parallel_time / total_time if total_time > 0 else 0.0
 
         return min(efficiency, 1.0)  # Cap at 100% efficiency
+
