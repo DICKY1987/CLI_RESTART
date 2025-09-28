@@ -106,6 +106,56 @@ class WorkflowRunner:
     def _is_cancelled(self, coordination_id: str) -> bool:
         return self._cancel_file(coordination_id).exists()
 
+    # --- 400-atom pipeline integration (scaffolding) ---
+    def execute_400_atom_pipeline(
+        self,
+        atom_catalog_path: str,
+        classification_config: Dict[str, Any],
+        execution_mode: str = "production",
+    ) -> "CoordinatedWorkflowResult":
+        """Execute the 400-atom pipeline with deterministic classification.
+
+        Minimal scaffolding: classifies atoms, maps them into 6 phases, and
+        computes a coordinated summary without invoking external tools.
+        """
+        # Local import to avoid heavy dependencies at import time
+        from .deterministic_engine import AtomClassifier, PipelineOrchestrator
+
+        classifier = AtomClassifier(classification_config)
+        orchestrator = PipelineOrchestrator(self.coordinator, self.scope_manager)
+
+        atoms = self._load_atom_catalog(atom_catalog_path)
+        classification_result = classifier.classify_atoms(atoms)
+
+        coordination_id = f"400atom-{int(time.time())}"
+        result = orchestrator.execute_phases(
+            classification_result,
+            coordination_id=coordination_id,
+            execution_mode=execution_mode,
+        )
+
+        return result
+
+    def _load_atom_catalog(self, catalog_path: str) -> List[Dict[str, Any]]:
+        """Load atom catalog from YAML; return list of atoms.
+
+        Expected minimal structure: { atoms: [ { id, type, files?, deterministic? }, ... ] }
+        """
+        import yaml
+
+        p = Path(catalog_path)
+        if not p.exists():
+            raise FileNotFoundError(f"Atom catalog not found: {catalog_path}")
+        with p.open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        atoms = data.get("atoms") or []
+        # Normalize to list[dict]
+        norm: List[Dict[str, Any]] = []
+        for a in atoms:
+            if isinstance(a, dict):
+                norm.append(a)
+        return norm
+
     def run(
         self,
         workflow_file: Path,
