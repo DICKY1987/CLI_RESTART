@@ -366,6 +366,55 @@ class Verifier:
                 message=f"YAML schema validation failed: {e}",
             )
 
+    def _check_yaml_schema_valid_gate(self, gate_config: Dict[str, Any]) -> GateResult:
+        """Validate a YAML file against a JSON schema.
+
+        Expects:
+          - gate_config['file']: path to the YAML file (repo-relative or absolute)
+          - gate_config['schema']: path to the JSON schema file
+        """
+        try:
+            import json
+            from pathlib import Path
+            import jsonschema  # type: ignore
+            import yaml  # type: ignore
+
+            yaml_path = Path(gate_config.get("file", ""))
+            schema_path = Path(gate_config.get("schema", ""))
+
+            if not yaml_path.exists():
+                return GateResult(
+                    gate_name="yaml_schema_valid",
+                    passed=False,
+                    message=f"YAML file not found: {yaml_path}",
+                )
+            if not schema_path.exists():
+                return GateResult(
+                    gate_name="yaml_schema_valid",
+                    passed=False,
+                    message=f"Schema file not found: {schema_path}",
+                )
+
+            with open(yaml_path, "r", encoding="utf-8") as yf:
+                data = yaml.safe_load(yf)
+            with open(schema_path, "r", encoding="utf-8") as sf:
+                schema = json.load(sf)
+
+            jsonschema.validate(data, schema)
+            return GateResult(
+                gate_name="yaml_schema_valid", passed=True, message="YAML schema validation passed"
+            )
+        except ImportError as e:
+            return GateResult(
+                gate_name="yaml_schema_valid",
+                passed=False,
+                message=f"Missing dependency for YAML/JSON schema validation: {e}",
+            )
+        except Exception as e:
+            return GateResult(
+                gate_name="yaml_schema_valid", passed=False, message=f"YAML schema validation failed: {e}"
+            )
+
     def _check_token_budget_gate(
         self, gate_config: Dict[str, Any], artifacts_dir: Path
     ) -> GateResult:
