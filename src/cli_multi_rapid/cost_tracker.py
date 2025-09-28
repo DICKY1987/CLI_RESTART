@@ -15,6 +15,11 @@ from collections import defaultdict
 
 from rich.console import Console
 
+try:
+    import yaml  # type: ignore
+except Exception:  # pragma: no cover
+    yaml = None  # PyYAML may be unavailable in some minimal environments
+
 console = Console()
 
 
@@ -91,6 +96,8 @@ class WorkflowCostSummary:
 class CostTracker:
     """Tracks and manages AI token usage and costs."""
 
+    _COST_REGISTRY_CACHE: Optional[Dict[str, float]] = None
+
     def __init__(self, logs_dir: str = "logs"):
         self.logs_dir = Path(logs_dir)
         self.logs_dir.mkdir(exist_ok=True)
@@ -110,7 +117,7 @@ class CostTracker:
     ) -> float:
         """Record token usage and return estimated cost."""
 
-        # Estimate cost based on model (rough estimates)
+        # Estimate cost based on model (registry-aware with sensible fallback)
         cost_per_token = self._get_cost_per_token(model)
         estimated_cost = tokens_used * cost_per_token
 
@@ -137,16 +144,73 @@ class CostTracker:
         return estimated_cost
 
     def _get_cost_per_token(self, model: str) -> float:
-        """Get estimated cost per token for different models."""
-        # Rough estimates - actual costs vary by provider and model
+        """Get estimated cost per token for a model.
+
+        Uses config/cost_registry.yaml if available; otherwise falls back to
+        conservative hard-coded defaults. Registry values are per-1k tokens;
+        we convert to per-token. If both input and output are present, we
+        average them.
+        """
+        model_key = (model or "").strip().lower() or "unknown"
+
+        # Try registry first
+        registry = self._load_cost_registry_mapping()
+        if registry and model_key in registry:
+            return registry[model_key]
+
+        # Fallback estimates - actual costs vary by provider and model
         costs = {
             "gpt-4": 0.00006,
             "gpt-3.5-turbo": 0.000002,
             "claude-3": 0.00008,
             "claude-instant": 0.00024,
-            "unknown": 0.00001,  # Conservative fallback
         }
-        return costs.get(model.lower(), costs["unknown"])
+        return costs.get(model_key, 0.00001)  # Conservative fallback
+
+    @classmethod
+    def _load_cost_registry_mapping(cls) -> Optional[Dict[str, float]]:
+        """Load mapping of model name (lowercase) -> per-token cost from registry.
+
+        Returns None if unavailable. Result is cached for the process lifetime.
+        """
+        if cls._COST_REGISTRY_CACHE is not None:
+            return cls._COST_REGISTRY_CACHE
+
+        try:
+            registry_path = Path("config") / "cost_registry.yaml"
+            if not registry_path.exists() or yaml is None:
+                cls._COST_REGISTRY_CACHE = None
+                return cls._COST_REGISTRY_CACHE
+
+            with open(registry_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)  # type: ignore[no-untyped-call]
+
+            result: Dict[str, float] = {}
+            vendors = (data or {}).get("vendors", {})
+            for _vendor, vdata in (vendors or {}).items():
+                models = (vdata or {}).get("models", {})
+                for model_name, mdata in (models or {}).items():
+                    per_1k = None
+                    if isinstance(mdata, dict):
+                        inp = mdata.get("input_per_1k")
+                        out = mdata.get("output_per_1k")
+                        if isinstance(inp, (int, float)) and isinstance(out, (int, float)):
+                            per_1k = (float(inp) + float(out)) / 2.0
+                        elif isinstance(inp, (int, float)):
+                            per_1k = float(inp)
+                        elif isinstance(out, (int, float)):
+                            per_1k = float(out)
+                        elif isinstance(mdata.get("per_1k"), (int, float)):
+                            per_1k = float(mdata["per_1k"]) 
+
+                    if per_1k is not None:
+                        result[str(model_name).lower()] = per_1k / 1000.0
+
+            cls._COST_REGISTRY_CACHE = result or None
+            return cls._COST_REGISTRY_CACHE
+        except Exception:
+            cls._COST_REGISTRY_CACHE = None
+            return cls._COST_REGISTRY_CACHE
 
     def get_daily_usage(self, target_date: Optional[date] = None) -> Dict[str, Any]:
         """Get token usage summary for a specific date."""
@@ -197,7 +261,8 @@ class CostTracker:
         current_cost = daily_usage["total_cost"]
 
         projected_tokens = current_tokens + tokens_to_spend
-        projected_cost = current_cost + (tokens_to_spend * 0.00001)  # Rough estimate
+        # Use a conservative default per-token estimate when model is unknown
+        projected_cost = current_cost + (tokens_to_spend * 0.00001)
 
         return {
             "within_daily_token_limit": projected_tokens <= budget.daily_token_limit,

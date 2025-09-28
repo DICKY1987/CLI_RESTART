@@ -38,6 +38,10 @@ steps:
     actor: verifier
     with:
       checks:
+        - type: "yaml_schema_valid"
+          name: "Cost Registry Schema"
+          file: "config/cost_registry.yaml"
+          schema: ".ai/schemas/cost_registry.schema.json"
         - type: "tests_pass"
           from: "artifacts/test_report.json"
         - type: "diff_limits"

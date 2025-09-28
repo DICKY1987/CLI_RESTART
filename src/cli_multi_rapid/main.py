@@ -8,7 +8,7 @@ CLI orchestrator that routes between deterministic tools and AI agents.
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Optional, List, Dict, Any
 
 import typer
 from rich.console import Console
@@ -90,13 +90,9 @@ def run_workflow(
             max_tokens=max_tokens,
         )
         if result.success:
-            console.print(
-                f"[green]{_symbol(True)} Workflow completed successfully[/green]"
-            )
+            console.print(f"[green]{_symbol(True)} Workflow completed successfully[/green]")
         else:
-            console.print(
-                f"[red]{_symbol(False)} Workflow failed: {result.error}[/red]"
-            )
+            console.print(f"[red]{_symbol(False)} Workflow failed: {result.error}[/red]")
             raise typer.Exit(code=1)
     except ImportError:
         console.print("[red]CLI orchestrator workflow runner not available[/red]")
@@ -179,9 +175,7 @@ def run_ipt_wt(
         from .workflow_runner import WorkflowRunner
 
         runner = WorkflowRunner()
-        result = runner.run_ipt_wt_workflow(
-            workflow_file=workflow_file, request=request, budget=budget
-        )
+        result = runner.run_ipt_wt_workflow(workflow_file=workflow_file, request=request, budget=budget)
         if result.success:
             console.print("[green]IPT/WT workflow completed successfully[/green]")
             if result.artifacts:
@@ -233,19 +227,13 @@ def coordination_run(
         ..., help="Workflow YAML files to coordinate"
     ),
     mode: str = typer.Option("parallel", "--mode", help="Coordination mode"),
-    max_parallel: int = typer.Option(
-        3, "--max-parallel", help="Max parallel workflows"
-    ),
+    max_parallel: int = typer.Option(3, "--max-parallel", help="Max parallel workflows"),
     budget: float = typer.Option(50.0, "--budget", help="Total budget in USD"),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Show plan without executing"
-    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Show plan without executing"),
 ):
     """Run coordinated multi-workflow execution."""
     console.print("[bold blue]Running coordinated workflows[/bold blue]")
-    console.print(
-        f"[dim]Mode={mode}, MaxParallel={max_parallel}, Budget=${budget:.2f}, DryRun={dry_run}[/dim]"
-    )
+    console.print(f"[dim]Mode={mode}, MaxParallel={max_parallel}, Budget=${budget:.2f}, DryRun={dry_run}[/dim]")
 
     try:
         # Load defaults from coordination config (override only if still defaults)
@@ -310,16 +298,12 @@ def coordination_run(
             console.print(f"[yellow]Could not persist coordination state: {e}[/yellow]")
 
         if result.success:
-            console.print(
-                f"[green]{_symbol(True)} Coordination completed: {result.coordination_id}[/green]"
-            )
+            console.print(f"[green]{_symbol(True)} Coordination completed: {result.coordination_id}[/green]")
         else:
             if result.conflicts_detected:
                 for c in result.conflicts_detected:
                     console.print(f"[red]- {c}[/red]")
-            console.print(
-                f"[red]{_symbol(False)} Coordination failed: {result.coordination_id}[/red]"
-            )
+            console.print(f"[red]{_symbol(False)} Coordination failed: {result.coordination_id}[/red]")
             raise typer.Exit(code=1)
 
     except ImportError:
@@ -337,10 +321,8 @@ def coordination_plan(
     """Create coordination plan with conflict detection."""
     try:
         import json
-        from dataclasses import asdict
-
         import yaml
-
+        from dataclasses import asdict
         from .coordination import WorkflowCoordinator
 
         # Load workflows
@@ -356,7 +338,6 @@ def coordination_plan(
         # Serialize plan safely (convert Enums)
         def _enum_safe(obj: Any) -> Any:
             d = asdict(obj)
-
             # Best-effort enum conversion
             def _fix(v):
                 try:
@@ -438,28 +419,19 @@ def coordination_dashboard(
     coordination_id: Optional[str] = typer.Option(
         None, "--id", help="Specific coordination ID"
     ),
-    refresh_seconds: int = typer.Option(
-        5, "--refresh", help="Refresh interval seconds"
-    ),
-    iterations: int = typer.Option(
-        0, "--iterations", help="Stop after N iterations (0=run)"
-    ),
+    refresh_seconds: int = typer.Option(5, "--refresh", help="Refresh interval seconds"),
+    iterations: int = typer.Option(0, "--iterations", help="Stop after N iterations (0=run)"),
 ):
     """Show a simple real-time dashboard from persisted state."""
     try:
         import json
         import time
-
         from rich.live import Live
 
         state_dir = _ensure_state_dir()
 
         def _latest_id() -> Optional[str]:
-            files = sorted(
-                state_dir.glob("coord_*.json"),
-                key=lambda p: p.stat().st_mtime,
-                reverse=True,
-            )
+            files = sorted(state_dir.glob("coord_*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
             return files[0].stem if files else None
 
         coord_id = coordination_id or _latest_id()
@@ -487,7 +459,7 @@ def coordination_dashboard(
             except Exception:
                 state = {}
 
-            workflows = state.get("workflow_results") or {}
+            workflows = (state.get("workflow_results") or {})
             for name, w in workflows.items():
                 table.add_row(
                     name,
@@ -515,17 +487,15 @@ def coordination_dashboard(
 @coordination_app.command("report")
 def coordination_report(
     coordination_id: str = typer.Argument(..., help="Coordination session ID"),
-    format: str = typer.Option(
-        "json", "--format", help="Report format (json/html/csv)"
-    ),
+    format: str = typer.Option("json", "--format", help="Report format (json/html/csv)"),
     output: Optional[Path] = typer.Option(
         None, "--output", help="Output file (defaults to artifacts/reports)"
     ),
 ):
     """Generate a simple coordination report."""
     try:
-        import csv
         import json
+        import csv
 
         state_file = _ensure_state_dir() / f"{coordination_id}.json"
         if not state_file.exists():
@@ -546,27 +516,16 @@ def coordination_report(
         elif fmt == "csv":
             with out_path.open("w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
-                writer.writerow(
-                    [
-                        "workflow",
-                        "success",
-                        "tokens_used",
-                        "steps_completed",
-                        "execution_time",
-                        "error",
-                    ]
-                )
+                writer.writerow(["workflow", "success", "tokens_used", "steps_completed", "execution_time", "error"])
                 for name, w in (state.get("workflow_results") or {}).items():
-                    writer.writerow(
-                        [
-                            name,
-                            w.get("success"),
-                            w.get("tokens_used", 0),
-                            w.get("steps_completed", 0),
-                            w.get("execution_time", 0.0),
-                            (w.get("error") or ""),
-                        ]
-                    )
+                    writer.writerow([
+                        name,
+                        w.get("success"),
+                        w.get("tokens_used", 0),
+                        w.get("steps_completed", 0),
+                        w.get("execution_time", 0.0),
+                        (w.get("error") or ""),
+                    ])
         elif fmt == "html":
             rows = []
             for name, w in (state.get("workflow_results") or {}).items():
@@ -602,9 +561,7 @@ def coordination_report(
 @coordination_app.command("history")
 def coordination_history(
     days: int = typer.Option(7, "--days", help="Days of history to show"),
-    workflow_filter: Optional[str] = typer.Option(
-        None, "--workflow", help="Filter by workflow name contains"
-    ),
+    workflow_filter: Optional[str] = typer.Option(None, "--workflow", help="Filter by workflow name contains"),
 ):
     """Show recent coordination sessions from persisted state."""
     try:
@@ -613,11 +570,7 @@ def coordination_history(
 
         since = time.time() - days * 24 * 3600
         state_dir = _ensure_state_dir()
-        files = sorted(
-            state_dir.glob("coord_*.json"),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True,
-        )
+        files = sorted(state_dir.glob("coord_*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
         shown = 0
         for f in files:
             if f.stat().st_mtime < since:
@@ -627,15 +580,11 @@ def coordination_history(
 
             if workflow_filter:
                 wfs = state.get("workflow_results") or {}
-                if not any(
-                    workflow_filter.lower() in name.lower() for name in wfs.keys()
-                ):
+                if not any(workflow_filter.lower() in name.lower() for name in wfs.keys()):
                     continue
 
             status = "SUCCESS" if state.get("success") else "FAILED"
-            console.print(
-                f"{f.stem}  {status}  tokens={state.get('total_tokens_used',0)} time={state.get('total_execution_time',0.0):.2f}s"
-            )
+            console.print(f"{f.stem}  {status}  tokens={state.get('total_tokens_used',0)} time={state.get('total_execution_time',0.0):.2f}s")
             shown += 1
 
         if shown == 0:
@@ -644,14 +593,9 @@ def coordination_history(
         console.print(f"[red]History error: {e}[/red]")
         raise typer.Exit(code=1)
 
-
 # Tools command group
 tools_app = typer.Typer(name="tools", help="Tool management commands")
 app.add_typer(tools_app, name="tools")
-
-# Setup command group
-setup_app = typer.Typer(name="setup", help="System setup and validation commands")
-app.add_typer(setup_app, name="setup")
 
 
 @tools_app.command("doctor")
@@ -748,255 +692,6 @@ def tools_versions():
         console.print("[red]Tool integration layer not available[/red]")
 
 
-@tools_app.command("discover")
-def tools_discover(
-    scan_paths: Optional[str] = typer.Option(
-        None, "--scan-paths", help="Additional paths to scan (comma-separated)"
-    ),
-    generate_config: bool = typer.Option(
-        True, "--generate-config", help="Generate configuration files"
-    ),
-    platform: str = typer.Option(
-        "auto", "--platform", help="Platform-specific setup (auto/windows/unix)"
-    ),
-):
-    """Discover and configure CLI tools automatically."""
-    console.print("[bold blue]🔍 Starting tool discovery...[/bold blue]")
-
-    try:
-        from .setup import CLIToolDiscovery, PlatformSetup
-
-        # Initialize discovery system
-        discovery = CLIToolDiscovery()
-
-        # Add custom scan paths if provided
-        if scan_paths:
-            custom_paths = [Path(p.strip()) for p in scan_paths.split(",")]
-            discovery.search_directories.extend(custom_paths)
-
-        # Run discovery
-        working_tools = discovery.discover_and_validate_tools()
-
-        # Print summary
-        discovery.print_discovery_summary()
-
-        # Generate configuration if requested
-        if generate_config:
-            console.print(
-                "\n[bold blue]📝 Generating configuration files...[/bold blue]"
-            )
-            config_file = discovery.generate_adapter_config()
-            json_file = discovery.generate_json_report()
-
-            # Generate platform-specific setup
-            platform_setup = PlatformSetup()
-
-            if platform == "auto":
-                if sys.platform == "win32":
-                    script_file = platform_setup.generate_windows_setup_script(
-                        working_tools
-                    )
-                else:
-                    script_file = platform_setup.generate_environment_setup(
-                        working_tools
-                    )
-            elif platform == "windows":
-                script_file = platform_setup.generate_windows_setup_script(
-                    working_tools
-                )
-            elif platform == "unix":
-                script_file = platform_setup.generate_environment_setup(working_tools)
-
-            console.print("\n[green]✅ Configuration complete![/green]")
-            console.print(f"   Config: {config_file}")
-            console.print(f"   Report: {json_file}")
-            console.print(f"   Setup: {script_file}")
-
-        # Exit with status based on discovery results
-        if len(working_tools) == 0:
-            console.print("[red]❌ No working tools discovered[/red]")
-            raise typer.Exit(code=1)
-        elif len(working_tools) < 5:
-            console.print(
-                "[yellow]⚠️  Few tools discovered - some functionality may be limited[/yellow]"
-            )
-
-    except ImportError:
-        console.print("[red]Tool discovery system not available[/red]")
-        raise typer.Exit(code=1)
-
-
-@setup_app.command("validate")
-def setup_validate(
-    comprehensive: bool = typer.Option(
-        False, "--comprehensive", help="Run comprehensive validation suite"
-    ),
-    generate_guide: bool = typer.Option(
-        True, "--generate-guide", help="Generate quick start guide"
-    ),
-):
-    """Validate CLI Orchestrator system setup and configuration."""
-    console.print("[bold blue]🔍 Starting system validation...[/bold blue]")
-
-    try:
-        from .setup import SystemValidator
-
-        validator = SystemValidator()
-
-        if comprehensive:
-            results = validator.run_comprehensive_validation()
-        else:
-            # Run basic validation
-            basic_checks = [
-                validator.check_python_version,
-                validator.check_git_repository,
-                validator.check_file_structure,
-                validator.check_dependencies,
-                validator.check_cli_installation,
-            ]
-
-            results = {}
-            for check_func in basic_checks:
-                check_name = (
-                    check_func.__name__.replace("check_", "").replace("_", " ").title()
-                )
-                console.print(f"[dim]Checking {check_name}...[/dim]")
-                results[check_name] = check_func()
-
-        # Generate guide if requested
-        if generate_guide:
-            guide_file = validator.generate_quick_start_guide()
-            console.print(f"\n[cyan]📖 Quick start guide: {guide_file}[/cyan]")
-
-        # Exit with appropriate code
-        failed_checks = sum(1 for result in results.values() if not result)
-        if failed_checks == 0:
-            console.print("\n[bold green]🎉 All validations passed![/bold green]")
-        elif failed_checks <= 2:
-            console.print(
-                f"\n[yellow]⚠️  {failed_checks} validations failed - system partially ready[/yellow]"
-            )
-            raise typer.Exit(code=1)
-        else:
-            console.print(
-                f"\n[red]❌ {failed_checks} validations failed - setup incomplete[/red]"
-            )
-            raise typer.Exit(code=1)
-
-    except ImportError:
-        console.print("[red]System validation not available[/red]")
-        raise typer.Exit(code=1)
-
-
-@setup_app.command("quick-start")
-def setup_quick_start(
-    create_samples: bool = typer.Option(
-        True, "--create-samples", help="Create sample workflows"
-    ),
-    run_discovery: bool = typer.Option(
-        True, "--run-discovery", help="Run tool discovery"
-    ),
-    test_workflow: bool = typer.Option(
-        True, "--test-workflow", help="Test workflow execution"
-    ),
-):
-    """Quick start setup with sample workflows and validation."""
-    console.print("[bold blue]🚀 CLI Orchestrator Quick Start[/bold blue]")
-
-    try:
-        from .setup import CLIToolDiscovery, SystemValidator
-
-        # Step 1: Basic validation
-        console.print("\n[cyan]1. Running basic validation...[/cyan]")
-        validator = SystemValidator()
-        validator.check_python_version()
-        validator.check_dependencies()
-        validator.check_cli_installation()
-
-        # Step 2: Tool discovery
-        if run_discovery:
-            console.print("\n[cyan]2. Discovering tools...[/cyan]")
-            discovery = CLIToolDiscovery()
-            working_tools = discovery.discover_and_validate_tools()
-            console.print(f"   Found {len(working_tools)} working tools")
-
-        # Step 3: Create sample workflows
-        if create_samples:
-            console.print("\n[cyan]3. Creating sample workflows...[/cyan]")
-            validator.create_sample_workflow()
-
-        # Step 4: Test workflow execution
-        if test_workflow:
-            console.print("\n[cyan]4. Testing workflow execution...[/cyan]")
-            validator.test_workflow_execution()
-
-        # Step 5: Generate guide
-        console.print("\n[cyan]5. Generating documentation...[/cyan]")
-        guide_file = validator.generate_quick_start_guide()
-
-        console.print("\n[bold green]🎉 Quick start setup complete![/bold green]")
-        console.print(f"[cyan]📖 See guide: {guide_file}[/cyan]")
-        console.print("\n[bold]Next steps:[/bold]")
-        console.print("  1. Run: python -m cli_multi_rapid.main tools doctor")
-        console.print(
-            "  2. Test: python -m cli_multi_rapid.main run .ai/workflows/samples/validation_test.yaml --dry-run"
-        )
-
-    except ImportError:
-        console.print("[red]Quick start setup not available[/red]")
-        raise typer.Exit(code=1)
-
-
-@setup_app.command("install")
-def setup_install(
-    platform: str = typer.Option(
-        "auto", "--platform", help="Target platform (auto/windows/unix)"
-    ),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Show what would be done without executing"
-    ),
-    skip_tools: bool = typer.Option(False, "--skip-tools", help="Skip tool discovery"),
-):
-    """Generate platform-specific installation scripts."""
-    console.print("[bold blue]📦 Generating installation scripts...[/bold blue]")
-
-    try:
-        from .setup import PlatformSetup
-
-        platform_setup = PlatformSetup()
-
-        if dry_run:
-            console.print("[yellow]🔍 DRY RUN MODE - No files will be created[/yellow]")
-
-        if not dry_run:
-            installer_path = platform_setup.generate_installer_script()
-            console.print(f"[green]✅ Installer generated: {installer_path}[/green]")
-
-            console.print("\n[bold]Usage:[/bold]")
-            if platform_setup.is_windows:
-                console.print(
-                    f"  PowerShell -ExecutionPolicy Bypass -File {installer_path}"
-                )
-                if dry_run:
-                    console.print("  Add -DryRun for testing")
-                if skip_tools:
-                    console.print("  Add -SkipTools to skip tool discovery")
-            else:
-                console.print(f"  {installer_path}")
-                if dry_run:
-                    console.print(f"  {installer_path} --dry-run")
-                if skip_tools:
-                    console.print(f"  {installer_path} --skip-tools")
-        else:
-            console.print(
-                "[dim]Would generate installation script for current platform[/dim]"
-            )
-
-    except ImportError:
-        console.print("[red]Platform setup not available[/red]")
-        raise typer.Exit(code=1)
-
-
 # Quality command group
 quality_app = typer.Typer(name="quality", help="Python code quality commands")
 app.add_typer(quality_app, name="quality")
@@ -1077,13 +772,9 @@ def containers_up(
         result = containers.compose_up(compose_file=compose_file, detach=detach)
 
         if result.code == 0:
-            console.print(
-                f"[green]{_symbol(True)} Containers started successfully[/green]"
-            )
+            console.print(f"[green]{_symbol(True)} Containers started successfully[/green]")
         else:
-            console.print(
-                f"[red]{_symbol(False)} Failed to start containers: {result.stderr}[/red]"
-            )
+            console.print(f"[red]{_symbol(False)} Failed to start containers: {result.stderr}[/red]")
             raise typer.Exit(code=1)
 
     except ImportError:
@@ -1110,13 +801,9 @@ def containers_down(
         result = containers.compose_down(compose_file=compose_file)
 
         if result.code == 0:
-            console.print(
-                f"[green]{_symbol(True)} Containers stopped successfully[/green]"
-            )
+            console.print(f"[green]{_symbol(True)} Containers stopped successfully[/green]")
         else:
-            console.print(
-                f"[red]{_symbol(False)} Failed to stop containers: {result.stderr}[/red]"
-            )
+            console.print(f"[red]{_symbol(False)} Failed to stop containers: {result.stderr}[/red]")
             raise typer.Exit(code=1)
 
     except ImportError:
@@ -1140,9 +827,7 @@ def containers_ps():
             console.print("[bold blue]Running Containers:[/bold blue]")
             console.print(result.stdout)
         else:
-            console.print(
-                f"[red]{_symbol(False)} Failed to list containers: {result.stderr}[/red]"
-            )
+            console.print(f"[red]{_symbol(False)} Failed to list containers: {result.stderr}[/red]")
             raise typer.Exit(code=1)
 
     except ImportError:
@@ -1174,13 +859,9 @@ def repo_clone(
         result = vcs.clone(url, target_dir)
 
         if result.code == 0:
-            console.print(
-                f"[green]{_symbol(True)} Repository cloned successfully[/green]"
-            )
+            console.print(f"[green]{_symbol(True)} Repository cloned successfully[/green]")
         else:
-            console.print(
-                f"[red]{_symbol(False)} Failed to clone repository: {result.stderr}[/red]"
-            )
+            console.print(f"[red]{_symbol(False)} Failed to clone repository: {result.stderr}[/red]")
             raise typer.Exit(code=1)
 
     except ImportError:
@@ -1206,9 +887,7 @@ def repo_status(
             console.print("[bold blue]Repository Status:[/bold blue]")
             console.print(result.stdout)
         else:
-            console.print(
-                f"[red]{_symbol(False)} Failed to get status: {result.stderr}[/red]"
-            )
+            console.print(f"[red]{_symbol(False)} Failed to get status: {result.stderr}[/red]")
             raise typer.Exit(code=1)
 
     except ImportError:
@@ -1285,14 +964,10 @@ def create_pr(
         result = vcs.pr_create(title, f"Auto-generated PR from artifacts in {from_dir}")
 
         if result.code == 0:
-            console.print(
-                f"[green]{_symbol(True)} Pull request created successfully[/green]"
-            )
+            console.print(f"[green]{_symbol(True)} Pull request created successfully[/green]")
             console.print(result.stdout)
         else:
-            console.print(
-                f"[red]{_symbol(False)} Failed to create PR: {result.stderr}[/red]"
-            )
+            console.print(f"[red]{_symbol(False)} Failed to create PR: {result.stderr}[/red]")
             raise typer.Exit(code=1)
 
     except ImportError:
