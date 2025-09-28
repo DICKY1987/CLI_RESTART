@@ -665,6 +665,61 @@ def pipeline_init(
         raise typer.Exit(code=1)
 
 
+@pipeline_app.command("run-400")
+def pipeline_run_400(
+    catalog: Path = typer.Argument(..., help="Path to atom catalog YAML"),
+    mode: str = typer.Option("production", "--mode", help="Execution mode"),
+    classifier_config: Optional[Path] = typer.Option(
+        None, "--config", help="Classifier config JSON (optional)"
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", help="Write summary JSON to this path"
+    ),
+):
+    """Run the 400-atom deterministic pipeline using a YAML catalog."""
+    try:
+        import json
+
+        from .workflow_runner import WorkflowRunner
+
+        cfg: Dict[str, Any] = {}
+        if classifier_config and classifier_config.exists():
+            try:
+                cfg = json.loads(classifier_config.read_text(encoding="utf-8"))
+            except Exception:
+                console.print("[yellow]Classifier config could not be parsed; using defaults[/yellow]")
+
+        runner = WorkflowRunner()
+        result = runner.execute_400_atom_pipeline(str(catalog), cfg, mode)
+
+        # Print concise summary
+        console.print(f"[bold blue]400-atom pipeline:[/bold blue] {'SUCCESS' if result.success else 'FAILED'}")
+        console.print(
+            f"[dim]tokens={result.total_tokens_used}, time={result.total_execution_time:.2f}s, phases={len(result.workflow_results or {})}[/dim]"
+        )
+
+        # Optionally persist summary
+        if output:
+            summary = {
+                "success": result.success,
+                "total_tokens_used": result.total_tokens_used,
+                "total_execution_time": result.total_execution_time,
+                "phases": list((result.workflow_results or {}).keys()),
+            }
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+            console.print(f"[dim]Wrote summary: {output}[/dim]")
+
+        if not result.success:
+            raise typer.Exit(code=1)
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        console.print(f"[red]Pipeline run-400 error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
 @tools_app.command("doctor")
 def tools_doctor():
     """Check health and availability of all configured tools."""

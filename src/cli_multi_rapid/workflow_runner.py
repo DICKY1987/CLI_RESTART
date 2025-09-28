@@ -140,6 +140,7 @@ class WorkflowRunner:
         """Load atom catalog from YAML; return list of atoms.
 
         Expected minimal structure: { atoms: [ { id, type, files?, deterministic? }, ... ] }
+        Validates against .ai/schemas/atom_catalog.schema.json when available.
         """
         import yaml
 
@@ -148,6 +149,22 @@ class WorkflowRunner:
             raise FileNotFoundError(f"Atom catalog not found: {catalog_path}")
         with p.open("r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
+
+        # Optional schema validation
+        schema_path = Path(".ai/schemas/atom_catalog.schema.json")
+        if schema_path.exists():
+            try:
+                import json, jsonschema
+
+                schema = json.loads(schema_path.read_text(encoding="utf-8"))
+                jsonschema.validate(instance=data, schema=schema)
+            except ImportError:
+                console.print(
+                    "[yellow]Atom catalog schema validation skipped (jsonschema not installed)[/yellow]"
+                )
+            except Exception as e:
+                raise ValueError(f"Atom catalog schema validation failed: {e}")
+
         atoms = data.get("atoms") or []
         # Normalize to list[dict]
         norm: List[Dict[str, Any]] = []
