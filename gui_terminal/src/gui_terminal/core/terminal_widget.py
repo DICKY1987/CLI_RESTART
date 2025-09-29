@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Optional, Callable
+from typing import Callable, Optional
 
-from gui_terminal.core.pty_backend import PtyBackend
 from gui_terminal.core.event_system import EventBus
+from gui_terminal.core.pty_backend import PtyBackend
 
 
 class TerminalWidget:
@@ -69,7 +69,10 @@ class TerminalWidget:
                     try:
                         now = time.time()
                         code = self.backend.get_exit_code()
-                        payload = {"ts": now, "elapsed": round(now - (self._started_ts or now), 3)}
+                        payload = {
+                            "ts": now,
+                            "elapsed": round(now - (self._started_ts or now), 3),
+                        }
                         if code is not None:
                             payload["exit_code"] = int(code)
                         self.bus.publish("run.exited", payload)
@@ -104,4 +107,3 @@ class TerminalWidget:
             self.bus.publish("signal.sent", {"ts": time.time(), "name": "SIGINT"})
         except Exception:
             pass
-

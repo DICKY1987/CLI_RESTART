@@ -2,7 +2,7 @@
 param()
 
 Write-Host "================================" -ForegroundColor Green
-Write-Host "  CLI Multi-Rapid System" -ForegroundColor Green  
+Write-Host "  CLI Multi-Rapid System" -ForegroundColor Green
 Write-Host "  Enterprise Orchestration Platform" -ForegroundColor Green
 Write-Host "================================" -ForegroundColor Green
 Write-Host

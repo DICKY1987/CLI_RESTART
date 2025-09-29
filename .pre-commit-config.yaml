@@ -18,12 +18,17 @@ repos:
     rev: v0.6.9
     hooks:
       - id: ruff
-        args: ["--fix"]
+        args:
+          - "--fix"
+          - "--ignore=UP007,UP035"
 
   - repo: https://github.com/psf/black
     rev: 24.8.0
     hooks:
       - id: black
+        args:
+          - "--extend-exclude"
+          - "(/(\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|build|dist)/)"
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2

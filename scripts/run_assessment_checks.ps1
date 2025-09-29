@@ -23,4 +23,3 @@ Write-Host '== Tests =='
 try { pytest -q --cov=services } catch { Write-Warning $_ }
 
 Write-Host 'All checks executed. Review outputs above.'
-

@@ -29,4 +29,3 @@
 - B: Feature parity documented; >90% critical path tests
 - C: Load & security checks pass; observability live
 - D: 30‑day <1% error rate; runbooks operational
-

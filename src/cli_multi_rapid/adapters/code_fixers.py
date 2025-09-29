@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter
+from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
 
 
 class CodeFixersAdapter(BaseAdapter):
@@ -44,6 +44,22 @@ class CodeFixersAdapter(BaseAdapter):
     def is_available(self) -> bool:
         """Check if at least one code fixing tool is available."""
         return any(self._available_tools.values())
+
+    def get_performance_profile(self) -> AdapterPerformanceProfile:
+        """Get performance profile for code fixing operations."""
+        return AdapterPerformanceProfile(
+            complexity_threshold=0.4,  # Handles low to medium complexity
+            preferred_file_types=[".py", ".pyi"],
+            max_files=200,  # Can handle many files efficiently
+            max_file_size=5000000,  # 5MB total
+            operation_types=["format", "lint", "fix"],
+            avg_execution_time=2.0,
+            success_rate=0.95,  # Very reliable for formatting
+            cost_efficiency=1.0,  # No token cost
+            parallel_capable=True,
+            requires_network=False,
+            requires_api_key=False
+        )
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""

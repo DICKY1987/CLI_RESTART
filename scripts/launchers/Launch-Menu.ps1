@@ -2,7 +2,7 @@
 param()
 
 Write-Host "================================" -ForegroundColor Green
-Write-Host "  CLI Multi-Rapid System" -ForegroundColor Green  
+Write-Host "  CLI Multi-Rapid System" -ForegroundColor Green
 Write-Host "  Enterprise Orchestration Platform" -ForegroundColor Green
 Write-Host "================================" -ForegroundColor Green
 Write-Host
@@ -20,7 +20,7 @@ Write-Host
 $choice = Read-Host "Enter your choice (1-4)"
 
 switch ($choice) {
-    "1" { 
+    "1" {
         Write-Host "Opening VS Code with CLI Multi-Rapid integration..." -ForegroundColor Green
         Start-Process "code.exe" -ArgumentList "`"C:\Users\Richard Wilks\cli_multi_rapid_DEV`"" -NoNewWindow
         Write-Host "VS Code should open with:"
@@ -29,7 +29,7 @@ switch ($choice) {
         Write-Host "  • Debug configurations available"
         Write-Host "  • Press Ctrl+Shift+P and type 'CLI Multi-Rapid'"
     }
-    "2" { 
+    "2" {
         Write-Host "Starting CLI interface..." -ForegroundColor Green
         Write-Host "Available commands:"
         Write-Host "  cli-multi-rapid --help"
@@ -38,7 +38,7 @@ switch ($choice) {
         Write-Host
         & powershell -NoExit -Command "Write-Host 'CLI Multi-Rapid System Ready!' -ForegroundColor Green"
     }
-    "3" { 
+    "3" {
         Write-Host "Running quick system test..." -ForegroundColor Green
         & cli-multi-rapid greet "System Test"
         Write-Host
@@ -46,11 +46,11 @@ switch ($choice) {
         Write-Host "Test completed! Press any key to exit..."
         $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
-    "4" { 
+    "4" {
         Write-Host "Goodbye!" -ForegroundColor Green
         exit
     }
-    default { 
+    default {
         Write-Host "Invalid choice. Opening VS Code by default..." -ForegroundColor Red
         Start-Process "code.exe" -ArgumentList "`"C:\Users\Richard Wilks\cli_multi_rapid_DEV`"" -NoNewWindow
     }

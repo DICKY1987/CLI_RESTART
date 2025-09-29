@@ -42,7 +42,9 @@ class AIAnalystAdapter(BaseAdapter):
 
             # Get analysis type and parameters
             analysis_type = with_params.get("analysis_type", "code_review")
-            focus_areas = with_params.get("focus_areas", ["quality", "bugs", "performance"])
+            focus_areas = with_params.get(
+                "focus_areas", ["quality", "bugs", "performance"]
+            )
             detail_level = with_params.get("detail_level", "medium")
             model = with_params.get("model", "claude-3-5-sonnet-20241022")
 
@@ -116,7 +118,9 @@ class AIAnalystAdapter(BaseAdapter):
             "files_analyzed": file_list,
             "focus_areas": focus_areas,
             "detail_level": detail_level,
-            "findings": self._generate_mock_code_review_findings(file_list, focus_areas),
+            "findings": self._generate_mock_code_review_findings(
+                file_list, focus_areas
+            ),
             "summary": {
                 "total_files": len(file_list),
                 "issues_found": 5,  # Mock value
@@ -175,12 +179,15 @@ class AIAnalystAdapter(BaseAdapter):
 
         return AdapterResult(
             success=True,
-            tokens_used=self._estimate_tokens_for_analysis(file_list, detail_level) * 1.5,
+            tokens_used=self._estimate_tokens_for_analysis(file_list, detail_level)
+            * 1.5,
             artifacts=artifacts,
             output="Architecture analysis completed",
             metadata={
                 "analysis_type": "architecture_analysis",
-                "patterns_found": len(analysis_results["architecture_insights"]["patterns_detected"]),
+                "patterns_found": len(
+                    analysis_results["architecture_insights"]["patterns_detected"]
+                ),
             },
         )
 
@@ -318,24 +325,28 @@ class AIAnalystAdapter(BaseAdapter):
 
         for file_path in files:
             if "quality" in focus_areas:
-                findings.append({
-                    "type": "code_quality",
-                    "severity": "medium",
-                    "file": file_path,
-                    "line": 42,
-                    "message": "Consider extracting complex logic into separate methods",
-                    "suggestion": "Break down large methods for better readability",
-                })
+                findings.append(
+                    {
+                        "type": "code_quality",
+                        "severity": "medium",
+                        "file": file_path,
+                        "line": 42,
+                        "message": "Consider extracting complex logic into separate methods",
+                        "suggestion": "Break down large methods for better readability",
+                    }
+                )
 
             if "bugs" in focus_areas:
-                findings.append({
-                    "type": "potential_bug",
-                    "severity": "high",
-                    "file": file_path,
-                    "line": 85,
-                    "message": "Potential null pointer exception not handled",
-                    "suggestion": "Add null check before accessing object properties",
-                })
+                findings.append(
+                    {
+                        "type": "potential_bug",
+                        "severity": "high",
+                        "file": file_path,
+                        "line": 85,
+                        "message": "Potential null pointer exception not handled",
+                        "suggestion": "Add null check before accessing object properties",
+                    }
+                )
 
         return findings
 
@@ -352,8 +363,9 @@ class AIAnalystAdapter(BaseAdapter):
         """Resolve glob pattern to list of actual files."""
         try:
             from glob import glob
+
             files = glob(pattern, recursive=True)
-            return [f for f in files if f.endswith(('.py', '.ts', '.js'))]
+            return [f for f in files if f.endswith((".py", ".ts", ".js"))]
         except Exception as e:
             logger.warning(f"Failed to resolve file pattern {pattern}: {e}")
             return []
@@ -370,7 +382,7 @@ class AIAnalystAdapter(BaseAdapter):
             try:
                 Path(emit_path).parent.mkdir(parents=True, exist_ok=True)
 
-                with open(emit_path, 'w') as f:
+                with open(emit_path, "w") as f:
                     json.dump(analysis_data, f, indent=2)
 
                 artifacts.append(emit_path)
@@ -398,6 +410,7 @@ class AIAnalystAdapter(BaseAdapter):
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
         from datetime import datetime
+
         return datetime.now().isoformat()
 
     def validate_step(self, step: Dict[str, Any]) -> bool:

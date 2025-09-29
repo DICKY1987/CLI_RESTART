@@ -9,11 +9,12 @@ except Exception:  # pragma: no cover - fallback import error handling
     yaml = None
 
 try:
-    from gui_terminal.security.policy_manager import PolicyManager
     from gui_terminal.plugins.manager import PluginManager
+    from gui_terminal.security.policy_manager import PolicyManager
 except Exception:
     PolicyManager = None  # type: ignore
     PluginManager = None  # type: ignore
+
 
 def load_default_config() -> dict:
     cfg_path = Path(__file__).resolve().parents[2] / "config" / "default_config.yaml"
@@ -47,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
     cfg = _
     try:
         if PluginManager is not None and cfg:
-            plug_cfg = (cfg.get("plugins") or {})
+            plug_cfg = cfg.get("plugins") or {}
             if plug_cfg.get("enabled"):
                 dirs = plug_cfg.get("plugin_directories", []) or []
                 pmgr = PluginManager(dirs)
@@ -60,8 +61,8 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         # Import lazily so this module works without GUI deps installed.
-        from PyQt6 import QtWidgets  # type: ignore
         from gui_terminal.ui.main_window import MainWindow
+        from PyQt6 import QtWidgets  # type: ignore
 
         app = QtWidgets.QApplication([])
         win = MainWindow(_)

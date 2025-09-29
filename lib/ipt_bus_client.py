@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict
 import urllib.request
+from typing import Any, Dict
 
 
 class EventBusClient:
@@ -19,4 +19,3 @@ class EventBusClient:
         )
         with urllib.request.urlopen(req, timeout=2.0) as resp:  # nosec B310
             resp.read()
-

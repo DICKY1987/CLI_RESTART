@@ -5,7 +5,6 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-
 LOCK_DIR = Path(".ai/lock")
 
 
@@ -28,4 +27,3 @@ def file_lock(timeout: float = 10.0, poll: float = 0.1):
             os.rmdir(LOCK_DIR)
         except FileNotFoundError:
             pass
-

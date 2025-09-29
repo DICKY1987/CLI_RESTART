@@ -14,4 +14,3 @@ CLI
 
 CI Integration
 - Mirror the same plugin set in CI (`task ci`).
-

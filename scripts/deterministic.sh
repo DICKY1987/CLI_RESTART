@@ -7,4 +7,3 @@ export TZ=UTC
 export PYTHONHASHSEED=0
 
 exec "$@"
-

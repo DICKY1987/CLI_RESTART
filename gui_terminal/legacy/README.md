@@ -7,4 +7,3 @@ Legacy Sources (Pointers)
   - C:\Users\Richard Wilks\Downloads\CLI_PY_GUI\gui\*
 
 During consolidation, copy or refactor relevant logic into `src/gui_terminal/core`, `src/gui_terminal/security`, and `src/gui_terminal/ui` as per Phase 1 tasks.
-

@@ -6,7 +6,6 @@ import time
 from pathlib import Path
 from typing import Any, Dict
 
-
 AUDIT = Path("state/audit.jsonl")
 
 
@@ -22,7 +21,14 @@ def _sha256_of(obj: Any) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def log_action(task_id: str, phase: str, action: str, details: Dict[str, Any] | None = None, cost_delta: float | None = None, tool: str | None = None) -> None:
+def log_action(
+    task_id: str,
+    phase: str,
+    action: str,
+    details: Dict[str, Any] | None = None,
+    cost_delta: float | None = None,
+    tool: str | None = None,
+) -> None:
     _ensure_dirs()
     details = details or {}
     entry = {
@@ -37,4 +43,3 @@ def log_action(task_id: str, phase: str, action: str, details: Dict[str, Any] | 
     }
     with AUDIT.open("a", encoding="utf-8") as f:
         f.write(json.dumps(entry) + "\n")
-

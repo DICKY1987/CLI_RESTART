@@ -49,7 +49,7 @@ class StateCaptureAdapter(BaseAdapter):
                     "file_checksums": file_checksums,
                     "dependency_lock": dependency_lock,
                     "test_baseline": test_baseline,
-                }
+                },
             }
 
             # Capture git repository information
@@ -81,7 +81,7 @@ class StateCaptureAdapter(BaseAdapter):
                     artifact_path = Path(emit_path)
                     artifact_path.parent.mkdir(parents=True, exist_ok=True)
 
-                    with open(artifact_path, 'w', encoding='utf-8') as f:
+                    with open(artifact_path, "w", encoding="utf-8") as f:
                         json.dump(baseline_state, f, indent=2)
 
                     artifacts.append(str(artifact_path))
@@ -92,7 +92,7 @@ class StateCaptureAdapter(BaseAdapter):
                 tokens_used=0,  # Deterministic operation
                 artifacts=artifacts,
                 output=f"Captured baseline state with {len(baseline_state.get('file_checksums', {}))} file checksums",
-                metadata=baseline_state
+                metadata=baseline_state,
             )
 
             self._log_execution_complete(result)
@@ -104,7 +104,7 @@ class StateCaptureAdapter(BaseAdapter):
             return AdapterResult(
                 success=False,
                 error=error_msg,
-                metadata={"exception_type": type(e).__name__}
+                metadata={"exception_type": type(e).__name__},
             )
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
@@ -120,10 +120,7 @@ class StateCaptureAdapter(BaseAdapter):
         """Check if git is available."""
         try:
             result = subprocess.run(
-                ["git", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["git", "--version"], capture_output=True, text=True, timeout=5
             )
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -136,10 +133,7 @@ class StateCaptureAdapter(BaseAdapter):
         try:
             # Get current commit hash
             result = subprocess.run(
-                ["git", "rev-parse", "HEAD"],
-                capture_output=True,
-                text=True,
-                timeout=10
+                ["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=10
             )
             if result.returncode == 0:
                 git_info["commit_hash"] = result.stdout.strip()
@@ -149,7 +143,7 @@ class StateCaptureAdapter(BaseAdapter):
                 ["git", "branch", "--show-current"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
             if result.returncode == 0:
                 git_info["branch"] = result.stdout.strip()
@@ -159,7 +153,7 @@ class StateCaptureAdapter(BaseAdapter):
                 ["git", "remote", "get-url", "origin"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
             if result.returncode == 0:
                 git_info["remote_url"] = result.stdout.strip()
@@ -169,11 +163,11 @@ class StateCaptureAdapter(BaseAdapter):
                 ["git", "status", "--porcelain"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
             git_info["has_uncommitted_changes"] = len(result.stdout.strip()) > 0
             if git_info["has_uncommitted_changes"]:
-                git_info["uncommitted_files"] = result.stdout.strip().split('\n')
+                git_info["uncommitted_files"] = result.stdout.strip().split("\n")
 
         except Exception as e:
             self.logger.warning(f"Failed to capture some git info: {e}")
@@ -187,21 +181,20 @@ class StateCaptureAdapter(BaseAdapter):
         try:
             # Get list of tracked files
             result = subprocess.run(
-                ["git", "ls-files"],
-                capture_output=True,
-                text=True,
-                timeout=30
+                ["git", "ls-files"], capture_output=True, text=True, timeout=30
             )
 
             if result.returncode == 0:
-                tracked_files = result.stdout.strip().split('\n')
+                tracked_files = result.stdout.strip().split("\n")
 
                 for file_path in tracked_files:
                     if file_path.strip():  # Skip empty lines
                         try:
                             full_path = Path(file_path)
                             if full_path.exists() and full_path.is_file():
-                                checksums[file_path] = self._calculate_file_checksum(full_path)
+                                checksums[file_path] = self._calculate_file_checksum(
+                                    full_path
+                                )
                         except Exception as e:
                             self.logger.warning(f"Failed to checksum {file_path}: {e}")
 
@@ -223,14 +216,19 @@ class StateCaptureAdapter(BaseAdapter):
         dependencies = {}
 
         # Check for Python dependencies
-        for lockfile in ["requirements.txt", "Pipfile.lock", "poetry.lock", "pyproject.toml"]:
+        for lockfile in [
+            "requirements.txt",
+            "Pipfile.lock",
+            "poetry.lock",
+            "pyproject.toml",
+        ]:
             lockfile_path = Path(lockfile)
             if lockfile_path.exists():
                 dependencies[lockfile] = {
                     "exists": True,
                     "checksum": self._calculate_file_checksum(lockfile_path),
                     "size": lockfile_path.stat().st_size,
-                    "modified": lockfile_path.stat().st_mtime
+                    "modified": lockfile_path.stat().st_mtime,
                 }
 
         # Check for Node.js dependencies
@@ -241,7 +239,7 @@ class StateCaptureAdapter(BaseAdapter):
                     "exists": True,
                     "checksum": self._calculate_file_checksum(lockfile_path),
                     "size": lockfile_path.stat().st_size,
-                    "modified": lockfile_path.stat().st_mtime
+                    "modified": lockfile_path.stat().st_mtime,
                 }
 
         return dependencies
@@ -252,8 +250,14 @@ class StateCaptureAdapter(BaseAdapter):
 
         # Look for common test configuration files
         test_configs = [
-            "pytest.ini", "pyproject.toml", "tox.ini", "setup.cfg",
-            "jest.config.js", "package.json", ".eslintrc", "tsconfig.json"
+            "pytest.ini",
+            "pyproject.toml",
+            "tox.ini",
+            "setup.cfg",
+            "jest.config.js",
+            "package.json",
+            ".eslintrc",
+            "tsconfig.json",
         ]
 
         test_baseline["test_config_files"] = {}
@@ -262,7 +266,7 @@ class StateCaptureAdapter(BaseAdapter):
             if config_path.exists():
                 test_baseline["test_config_files"][config_file] = {
                     "exists": True,
-                    "checksum": self._calculate_file_checksum(config_path)
+                    "checksum": self._calculate_file_checksum(config_path),
                 }
 
         # Try to identify test directories
@@ -282,4 +286,5 @@ class StateCaptureAdapter(BaseAdapter):
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"

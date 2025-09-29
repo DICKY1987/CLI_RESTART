@@ -23,4 +23,3 @@ Thanks for your interest in improving `cli_multi_rapid_DEV`!
 - Describe the problem and solution clearly, referencing issues if applicable.
 - Add user-facing notes to `README.md` when behavior changes.
 - For security-sensitive changes, coordinate privately per `SECURITY.md`.
-

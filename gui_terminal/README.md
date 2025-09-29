@@ -18,4 +18,3 @@ Structure
 Notes
 - This scaffold does not integrate with the main CLI yet and does not affect repo test coverage.
 - Follow the implementation plan phases to progressively replace stubs with real functionality.
-

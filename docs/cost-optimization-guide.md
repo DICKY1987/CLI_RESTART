@@ -150,7 +150,7 @@ show-model-warnings: false
   "continue.models": [
     {
       "title": "Code Llama Local",
-      "provider": "ollama", 
+      "provider": "ollama",
       "model": "codellama:7b-instruct"
     },
     {
@@ -229,7 +229,7 @@ pwsh ./orchestrator.ps1 -Command status
 
 # Shows:
 # - Service quotas and usage
-# - Lane initialization status  
+# - Lane initialization status
 # - Local model availability
 # - Git worktree health
 ```
@@ -244,7 +244,7 @@ Add to `.ai/framework-config.json`:
   "lanes": {
     "testing": {
       "worktreePath": ".worktrees/testing",
-      "branch": "lane/testing", 
+      "branch": "lane/testing",
       "tools": {
         "primary": {
           "tool": "pytest",
@@ -286,9 +286,9 @@ jobs:
         run: |
           ruff check .
           eslint .
-          
+
   security:
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Security scan
@@ -350,7 +350,7 @@ pwsh ./orchestrator.ps1 -Command init
 ### Cost Management
 
 - **Track usage** with daily monitoring scripts
-- **Rotate services** before hitting limits  
+- **Rotate services** before hitting limits
 - **Prefer local models** for experimentation
 - **Save API calls** for production-ready code
 

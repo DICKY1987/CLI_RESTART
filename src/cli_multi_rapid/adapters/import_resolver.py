@@ -41,8 +41,7 @@ class ImportResolverAdapter(BaseAdapter):
 
             if not target_files:
                 return AdapterResult(
-                    success=False,
-                    error="Missing required parameter: target_files"
+                    success=False, error="Missing required parameter: target_files"
                 )
 
             resolution_results = {
@@ -58,13 +57,15 @@ class ImportResolverAdapter(BaseAdapter):
                     "total_imports": 0,
                     "resolved_imports": 0,
                     "unresolved_imports": 0,
-                    "missing_dependencies": []
-                }
+                    "missing_dependencies": [],
+                },
             }
 
             # Analyze each file
             for file_path in target_files:
-                file_analysis = self._analyze_file_imports(file_path, languages, check_availability, suggest_fixes)
+                file_analysis = self._analyze_file_imports(
+                    file_path, languages, check_availability, suggest_fixes
+                )
                 resolution_results["file_analyses"].append(file_analysis)
 
                 resolution_results["summary"]["total_files"] += 1
@@ -84,7 +85,9 @@ class ImportResolverAdapter(BaseAdapter):
                 missing_deps = file_analysis.get("missing_dependencies", [])
                 for dep in missing_deps:
                     if dep not in resolution_results["summary"]["missing_dependencies"]:
-                        resolution_results["summary"]["missing_dependencies"].append(dep)
+                        resolution_results["summary"]["missing_dependencies"].append(
+                            dep
+                        )
 
             # Determine overall success (all imports resolved)
             overall_success = resolution_results["summary"]["unresolved_imports"] == 0
@@ -98,19 +101,22 @@ class ImportResolverAdapter(BaseAdapter):
                     artifact_path = Path(emit_path)
                     artifact_path.parent.mkdir(parents=True, exist_ok=True)
 
-                    with open(artifact_path, 'w', encoding='utf-8') as f:
+                    with open(artifact_path, "w", encoding="utf-8") as f:
                         import json
+
                         json.dump(resolution_results, f, indent=2)
 
                     artifacts.append(str(artifact_path))
-                    self.logger.info(f"Import resolution results written to: {artifact_path}")
+                    self.logger.info(
+                        f"Import resolution results written to: {artifact_path}"
+                    )
 
             result = AdapterResult(
                 success=overall_success,
                 tokens_used=0,  # Deterministic operation
                 artifacts=artifacts,
                 output=f"Analyzed {resolution_results['summary']['total_imports']} imports across {resolution_results['summary']['total_files']} files, {resolution_results['summary']['resolved_imports']} resolved, {resolution_results['summary']['unresolved_imports']} unresolved",
-                metadata=resolution_results
+                metadata=resolution_results,
             )
 
             self._log_execution_complete(result)
@@ -122,7 +128,7 @@ class ImportResolverAdapter(BaseAdapter):
             return AdapterResult(
                 success=False,
                 error=error_msg,
-                metadata={"exception_type": type(e).__name__}
+                metadata={"exception_type": type(e).__name__},
             )
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
@@ -138,7 +144,13 @@ class ImportResolverAdapter(BaseAdapter):
         """Check if required tools are available."""
         return True  # Basic import analysis is always available
 
-    def _analyze_file_imports(self, file_path: str, languages: List[str], check_availability: bool, suggest_fixes: bool) -> Dict[str, Any]:
+    def _analyze_file_imports(
+        self,
+        file_path: str,
+        languages: List[str],
+        check_availability: bool,
+        suggest_fixes: bool,
+    ) -> Dict[str, Any]:
         """Analyze imports for a single file."""
         file_analysis = {
             "file_path": file_path,
@@ -146,7 +158,7 @@ class ImportResolverAdapter(BaseAdapter):
             "imports": [],
             "missing_dependencies": [],
             "suggestions": [],
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -162,11 +174,19 @@ class ImportResolverAdapter(BaseAdapter):
 
             # Analyze based on language
             if language == "python" and ("python" in languages or "auto" in languages):
-                self._analyze_python_imports(target_file, file_analysis, check_availability, suggest_fixes)
-            elif language in ["javascript", "typescript"] and (language in languages or "auto" in languages):
-                self._analyze_js_ts_imports(target_file, file_analysis, check_availability, suggest_fixes)
+                self._analyze_python_imports(
+                    target_file, file_analysis, check_availability, suggest_fixes
+                )
+            elif language in ["javascript", "typescript"] and (
+                language in languages or "auto" in languages
+            ):
+                self._analyze_js_ts_imports(
+                    target_file, file_analysis, check_availability, suggest_fixes
+                )
             else:
-                file_analysis["errors"].append(f"Unsupported language for import analysis: {language}")
+                file_analysis["errors"].append(
+                    f"Unsupported language for import analysis: {language}"
+                )
 
         except Exception as e:
             file_analysis["errors"].append(f"Analysis exception: {str(e)}")
@@ -182,15 +202,21 @@ class ImportResolverAdapter(BaseAdapter):
             ".js": "javascript",
             ".jsx": "javascript",
             ".ts": "typescript",
-            ".tsx": "typescript"
+            ".tsx": "typescript",
         }
 
         return language_map.get(extension, "unknown")
 
-    def _analyze_python_imports(self, file_path: Path, analysis: Dict[str, Any], check_availability: bool, suggest_fixes: bool) -> None:
+    def _analyze_python_imports(
+        self,
+        file_path: Path,
+        analysis: Dict[str, Any],
+        check_availability: bool,
+        suggest_fixes: bool,
+    ) -> None:
         """Analyze Python imports using AST."""
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 source_code = f.read()
 
             tree = ast.parse(source_code, filename=str(file_path))
@@ -204,11 +230,13 @@ class ImportResolverAdapter(BaseAdapter):
                             "alias": alias.asname,
                             "line": node.lineno,
                             "resolved": False,
-                            "available": None
+                            "available": None,
                         }
 
                         if check_availability:
-                            import_info["available"] = self._check_python_module_availability(alias.name)
+                            import_info["available"] = (
+                                self._check_python_module_availability(alias.name)
+                            )
                             import_info["resolved"] = import_info["available"]
 
                         analysis["imports"].append(import_info)
@@ -224,14 +252,18 @@ class ImportResolverAdapter(BaseAdapter):
                             "line": node.lineno,
                             "level": node.level,
                             "resolved": False,
-                            "available": None
+                            "available": None,
                         }
 
                         if check_availability:
                             if node.level > 0:  # Relative import
-                                import_info["available"] = self._check_relative_import(file_path, module, node.level)
+                                import_info["available"] = self._check_relative_import(
+                                    file_path, module, node.level
+                                )
                             else:  # Absolute import
-                                import_info["available"] = self._check_python_module_availability(module)
+                                import_info["available"] = (
+                                    self._check_python_module_availability(module)
+                                )
                             import_info["resolved"] = import_info["available"]
 
                         analysis["imports"].append(import_info)
@@ -252,7 +284,9 @@ class ImportResolverAdapter(BaseAdapter):
                     self._suggest_python_fixes(analysis, missing_modules)
 
         except SyntaxError as e:
-            analysis["errors"].append(f"Python syntax error: {e.msg} at line {e.lineno}")
+            analysis["errors"].append(
+                f"Python syntax error: {e.msg} at line {e.lineno}"
+            )
         except Exception as e:
             analysis["errors"].append(f"Python import analysis error: {str(e)}")
 
@@ -270,19 +304,71 @@ class ImportResolverAdapter(BaseAdapter):
         """Check if a module is part of Python standard library."""
         # This is a simplified check - in production, you'd want a more comprehensive list
         stdlib_modules = {
-            'os', 'sys', 'json', 're', 'datetime', 'pathlib', 'subprocess',
-            'collections', 'itertools', 'functools', 'typing', 'asyncio',
-            'urllib', 'http', 'email', 'xml', 'html', 'csv', 'sqlite3',
-            'hashlib', 'hmac', 'secrets', 'uuid', 'random', 'math', 'statistics',
-            'decimal', 'fractions', 'cmath', 'time', 'calendar', 'locale',
-            'gettext', 'logging', 'warnings', 'traceback', 'pdb', 'profile',
-            'timeit', 'doctest', 'unittest', 'test', 'threading', 'multiprocessing',
-            'concurrent', 'queue', 'socket', 'ssl', 'select', 'selectors',
-            'signal', 'mmap', 'ctypes', 'struct', 'codecs', 'io', 'stringprep',
-            'textwrap', 'unicodedata', 'difflib', 'readline', 'rlcompleter'
+            "os",
+            "sys",
+            "json",
+            "re",
+            "datetime",
+            "pathlib",
+            "subprocess",
+            "collections",
+            "itertools",
+            "functools",
+            "typing",
+            "asyncio",
+            "urllib",
+            "http",
+            "email",
+            "xml",
+            "html",
+            "csv",
+            "sqlite3",
+            "hashlib",
+            "hmac",
+            "secrets",
+            "uuid",
+            "random",
+            "math",
+            "statistics",
+            "decimal",
+            "fractions",
+            "cmath",
+            "time",
+            "calendar",
+            "locale",
+            "gettext",
+            "logging",
+            "warnings",
+            "traceback",
+            "pdb",
+            "profile",
+            "timeit",
+            "doctest",
+            "unittest",
+            "test",
+            "threading",
+            "multiprocessing",
+            "concurrent",
+            "queue",
+            "socket",
+            "ssl",
+            "select",
+            "selectors",
+            "signal",
+            "mmap",
+            "ctypes",
+            "struct",
+            "codecs",
+            "io",
+            "stringprep",
+            "textwrap",
+            "unicodedata",
+            "difflib",
+            "readline",
+            "rlcompleter",
         }
 
-        base_module = module_name.split('.')[0]
+        base_module = module_name.split(".")[0]
         return base_module in stdlib_modules
 
     def _check_relative_import(self, file_path: Path, module: str, level: int) -> bool:
@@ -307,10 +393,16 @@ class ImportResolverAdapter(BaseAdapter):
         except Exception:
             return False
 
-    def _analyze_js_ts_imports(self, file_path: Path, analysis: Dict[str, Any], check_availability: bool, suggest_fixes: bool) -> None:
+    def _analyze_js_ts_imports(
+        self,
+        file_path: Path,
+        analysis: Dict[str, Any],
+        check_availability: bool,
+        suggest_fixes: bool,
+    ) -> None:
         """Analyze JavaScript/TypeScript imports (basic regex-based approach)."""
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             import re
@@ -319,11 +411,11 @@ class ImportResolverAdapter(BaseAdapter):
             import_patterns = [
                 r"import\s+(?:{[^}]+}|\w+|\*\s+as\s+\w+)\s+from\s+['\"]([^'\"]+)['\"]",
                 r"import\s+['\"]([^'\"]+)['\"]",
-                r"const\s+(?:{[^}]+}|\w+)\s*=\s*require\s*\(\s*['\"]([^'\"]+)['\"]\s*\)"
+                r"const\s+(?:{[^}]+}|\w+)\s*=\s*require\s*\(\s*['\"]([^'\"]+)['\"]\s*\)",
             ]
 
             line_number = 1
-            for line in content.split('\n'):
+            for line in content.split("\n"):
                 for pattern in import_patterns:
                     matches = re.finditer(pattern, line)
                     for match in matches:
@@ -334,11 +426,15 @@ class ImportResolverAdapter(BaseAdapter):
                             "module": module_path,
                             "line": line_number,
                             "resolved": False,
-                            "available": None
+                            "available": None,
                         }
 
                         if check_availability:
-                            import_info["available"] = self._check_js_module_availability(file_path, module_path)
+                            import_info["available"] = (
+                                self._check_js_module_availability(
+                                    file_path, module_path
+                                )
+                            )
                             import_info["resolved"] = import_info["available"]
 
                         analysis["imports"].append(import_info)
@@ -364,19 +460,19 @@ class ImportResolverAdapter(BaseAdapter):
         """Check if a JavaScript/TypeScript module is available."""
         try:
             # Relative imports
-            if module_path.startswith('.'):
+            if module_path.startswith("."):
                 # Resolve relative path
                 current_dir = file_path.parent
                 resolved_path = (current_dir / module_path).resolve()
 
                 # Check for various file extensions
-                for ext in ['.js', '.ts', '.jsx', '.tsx', '.json']:
+                for ext in [".js", ".ts", ".jsx", ".tsx", ".json"]:
                     if (resolved_path.parent / (resolved_path.name + ext)).exists():
                         return True
 
                 # Check for index files
-                for ext in ['.js', '.ts', '.jsx', '.tsx']:
-                    if (resolved_path / ('index' + ext)).exists():
+                for ext in [".js", ".ts", ".jsx", ".tsx"]:
+                    if (resolved_path / ("index" + ext)).exists():
                         return True
 
                 return False
@@ -384,7 +480,7 @@ class ImportResolverAdapter(BaseAdapter):
             # Check node_modules
             node_modules = file_path.parent
             while node_modules.parent != node_modules:
-                node_modules_dir = node_modules / 'node_modules' / module_path
+                node_modules_dir = node_modules / "node_modules" / module_path
                 if node_modules_dir.exists():
                     return True
                 node_modules = node_modules.parent
@@ -394,53 +490,62 @@ class ImportResolverAdapter(BaseAdapter):
         except Exception:
             return False
 
-    def _suggest_python_fixes(self, analysis: Dict[str, Any], missing_modules: Set[str]) -> None:
+    def _suggest_python_fixes(
+        self, analysis: Dict[str, Any], missing_modules: Set[str]
+    ) -> None:
         """Suggest fixes for missing Python modules."""
         suggestions = []
 
         for module in missing_modules:
             # Common package mappings
             package_mappings = {
-                'cv2': 'opencv-python',
-                'PIL': 'Pillow',
-                'sklearn': 'scikit-learn',
-                'yaml': 'PyYAML',
-                'bs4': 'beautifulsoup4',
-                'requests': 'requests',
-                'numpy': 'numpy',
-                'pandas': 'pandas',
-                'matplotlib': 'matplotlib',
-                'seaborn': 'seaborn',
-                'flask': 'Flask',
-                'django': 'Django'
+                "cv2": "opencv-python",
+                "PIL": "Pillow",
+                "sklearn": "scikit-learn",
+                "yaml": "PyYAML",
+                "bs4": "beautifulsoup4",
+                "requests": "requests",
+                "numpy": "numpy",
+                "pandas": "pandas",
+                "matplotlib": "matplotlib",
+                "seaborn": "seaborn",
+                "flask": "Flask",
+                "django": "Django",
             }
 
             package_name = package_mappings.get(module, module)
-            suggestions.append({
-                "type": "install_package",
-                "module": module,
-                "package": package_name,
-                "command": f"pip install {package_name}"
-            })
+            suggestions.append(
+                {
+                    "type": "install_package",
+                    "module": module,
+                    "package": package_name,
+                    "command": f"pip install {package_name}",
+                }
+            )
 
         analysis["suggestions"] = suggestions
 
-    def _suggest_js_fixes(self, analysis: Dict[str, Any], missing_modules: Set[str]) -> None:
+    def _suggest_js_fixes(
+        self, analysis: Dict[str, Any], missing_modules: Set[str]
+    ) -> None:
         """Suggest fixes for missing JavaScript/TypeScript modules."""
         suggestions = []
 
         for module in missing_modules:
-            if not module.startswith('.'):  # Only suggest for npm packages
-                suggestions.append({
-                    "type": "install_package",
-                    "module": module,
-                    "package": module,
-                    "command": f"npm install {module}"
-                })
+            if not module.startswith("."):  # Only suggest for npm packages
+                suggestions.append(
+                    {
+                        "type": "install_package",
+                        "module": module,
+                        "package": module,
+                        "command": f"npm install {module}",
+                    }
+                )
 
         analysis["suggestions"] = suggestions
 
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"

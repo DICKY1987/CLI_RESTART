@@ -489,7 +489,7 @@
       "type": "shell",
       "command": "cli-multi-rapid --help",
       "group": "build",
-      "presentation": { 
+      "presentation": {
         "panel": "new",
         "showReuseMessage": false,
         "clear": true
@@ -500,7 +500,7 @@
       "type": "shell",
       "command": "cli-multi-rapid phase stream list",
       "group": "build",
-      "presentation": { 
+      "presentation": {
         "panel": "new",
         "showReuseMessage": false,
         "clear": true
@@ -511,7 +511,7 @@
       "type": "shell",
       "command": "cli-multi-rapid phase stream run stream-a --dry",
       "group": "build",
-      "presentation": { 
+      "presentation": {
         "panel": "new",
         "showReuseMessage": false,
         "clear": true
@@ -522,7 +522,7 @@
       "type": "shell",
       "command": "cli-multi-rapid workflow-status",
       "group": "build",
-      "presentation": { 
+      "presentation": {
         "panel": "new",
         "showReuseMessage": false,
         "clear": true
@@ -533,7 +533,7 @@
       "type": "shell",
       "command": "cli-multi-rapid compliance check",
       "group": "test",
-      "presentation": { 
+      "presentation": {
         "panel": "new",
         "showReuseMessage": false,
         "clear": true
@@ -544,7 +544,7 @@
       "type": "shell",
       "command": "cli-multi-rapid greet \"VS Code User\"",
       "group": "test",
-      "presentation": { 
+      "presentation": {
         "panel": "new",
         "showReuseMessage": false,
         "clear": true
@@ -568,8 +568,8 @@
       "command": "gemini -p \"${input:geminiPrompt}\"",
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": [],
-      "presentation": { 
-        "reveal": "always", 
+      "presentation": {
+        "reveal": "always",
         "panel": "dedicated",
         "showReuseMessage": false,
         "clear": true

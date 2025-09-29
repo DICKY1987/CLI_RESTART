@@ -39,4 +39,3 @@
 - P95 latency < 300ms for core CLI API.
 - <1% error rate over rolling 30 days.
 - 99.5% availability once in prod.
-

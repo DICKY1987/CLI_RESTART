@@ -6,7 +6,6 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-
 _line_comment_re = re.compile(r"//.*$")
 _block_comment_re = re.compile(r"/\*.*?\*/", re.DOTALL)
 
@@ -72,7 +71,9 @@ def merge_tasks(src: dict, dst: dict) -> dict:
                 out[key] = src[key]
             # If present in both, keep destination and ignore source
     # Merge tasks by label
-    out["tasks"] = merge_list_by_key(dst.get("tasks", []), src.get("tasks", []), key="label")
+    out["tasks"] = merge_list_by_key(
+        dst.get("tasks", []), src.get("tasks", []), key="label"
+    )
     return out
 
 
@@ -103,7 +104,9 @@ def copy_mode(src_path: Path, dst_path: Path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Merge or install VS Code configs from CODEX package")
+    parser = argparse.ArgumentParser(
+        description="Merge or install VS Code configs from CODEX package"
+    )
     parser.add_argument(
         "--source",
         default=str(Path("CODEX_IMPLEMENTATION") / "vscode_configuration"),

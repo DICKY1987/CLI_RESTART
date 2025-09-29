@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
-from typing import Iterable, Tuple, Optional
+from typing import Iterable, Tuple
 
 try:
     import yaml  # type: ignore

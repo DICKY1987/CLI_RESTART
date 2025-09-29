@@ -32,4 +32,3 @@ WebSocket payload example:
 Related code:
 - `lib/ipt_bus_client.py` – minimal HTTP publisher
 - `src/websocket/event_broadcaster.py` – in-process broadcasting helpers
-

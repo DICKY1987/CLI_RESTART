@@ -58,7 +58,12 @@ class StructuredLogger:
         ch.setFormatter(logging.Formatter("%(levelname)s %(name)s: %(message)s"))
         self.logger.addHandler(ch)
 
-    def audit(self, action: str, context: Dict[str, Any] | None = None, result: str | None = None) -> None:
+    def audit(
+        self,
+        action: str,
+        context: Dict[str, Any] | None = None,
+        result: str | None = None,
+    ) -> None:
         payload = {
             "event": "audit",
             "action": action,
@@ -66,4 +71,3 @@ class StructuredLogger:
             "result": result,
         }
         self.logger.info(json.dumps(payload))
-

@@ -4,17 +4,25 @@ Action toolbar with terminal operations and quick access buttons
 """
 
 import logging
-from typing import Optional
 
 try:
-    from PyQt6.QtWidgets import QToolBar, QAction, QPushButton, QComboBox, QLabel, QSeparator
     from PyQt6.QtCore import Qt, pyqtSignal
     from PyQt6.QtGui import QIcon, QKeySequence
+    from PyQt6.QtWidgets import (
+        QAction,
+        QComboBox,
+        QLabel,
+        QPushButton,
+        QSeparator,
+        QToolBar,
+    )
+
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtWidgets import QToolBar, QAction, QPushButton, QComboBox, QLabel, QSeparator
-    from PyQt5.QtCore import Qt, pyqtSignal
-    from PyQt5.QtGui import QIcon, QKeySequence
+    from PyQt5.QtCore import pyqtSignal
+    from PyQt5.QtGui import QKeySequence
+    from PyQt5.QtWidgets import QAction, QComboBox, QLabel, QPushButton, QToolBar
+
     PYQT_VERSION = 5
 
 logger = logging.getLogger(__name__)
@@ -82,9 +90,9 @@ class Toolbar(QToolBar):
         # Shell selector
         self.addWidget(QLabel("Shell:"))
         self.shell_combo = QComboBox()
-        self.shell_combo.addItems([
-            "auto", "bash", "zsh", "fish", "cmd", "powershell", "pwsh"
-        ])
+        self.shell_combo.addItems(
+            ["auto", "bash", "zsh", "fish", "cmd", "powershell", "pwsh"]
+        )
         self.shell_combo.setToolTip("Select shell type")
         self.shell_combo.currentTextChanged.connect(self.shell_changed.emit)
         self.addWidget(self.shell_combo)
@@ -94,9 +102,9 @@ class Toolbar(QToolBar):
         # Font size control
         self.addWidget(QLabel("Font Size:"))
         self.font_size_combo = QComboBox()
-        self.font_size_combo.addItems([
-            "8", "9", "10", "11", "12", "13", "14", "16", "18", "20", "24"
-        ])
+        self.font_size_combo.addItems(
+            ["8", "9", "10", "11", "12", "13", "14", "16", "18", "20", "24"]
+        )
         self.font_size_combo.setCurrentText("12")
         self.font_size_combo.setToolTip("Select font size")
         self.font_size_combo.currentTextChanged.connect(

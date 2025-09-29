@@ -188,7 +188,7 @@ json{
         "warningThreshold": 0.6
       },
       "aider_local": {
-        "dailyLimit": "unlimited", 
+        "dailyLimit": "unlimited",
         "priority": 3,
         "cost": "free",
         "useCase": "development"
@@ -196,7 +196,7 @@ json{
       "ollama_local": {
         "dailyLimit": "unlimited",
         "priority": 4,
-        "cost": "free", 
+        "cost": "free",
         "useCase": "fallback"
       }
     }
@@ -213,7 +213,7 @@ json{
       "maxTokens": 2000
     },
     "moderate": {
-      "description": "Multi-file changes, feature implementation, code reviews", 
+      "description": "Multi-file changes, feature implementation, code reviews",
       "recommendedService": "aider_local",
       "examples": ["implement API endpoint", "add tests", "refactor class"],
       "maxTokens": 8000
@@ -239,7 +239,7 @@ json{
       "enabled": true,
       "agents": {
         "researcher": {"service": "gemini_cli", "purpose": "information gathering"},
-        "architect": {"service": "claude_code", "purpose": "system design"}, 
+        "architect": {"service": "claude_code", "purpose": "system design"},
         "implementer": {"service": "aider_local", "purpose": "code generation"},
         "reviewer": {"service": "local", "purpose": "quality checks"}
       }
@@ -255,35 +255,35 @@ json{
 Add complexity assessment function:
 powershellfunction Get-TaskComplexity {
     param([string]$TaskDescription)
-    
+
     $complexKeywords = @(
-        "architecture", "redesign", "refactor large", "performance", 
-        "security audit", "database migration", "infrastructure", 
+        "architecture", "redesign", "refactor large", "performance",
+        "security audit", "database migration", "infrastructure",
         "multi-service", "microservices", "research", "optimize"
     )
-    
+
     $moderateKeywords = @(
         "feature", "implement", "add component", "API", "integration",
         "tests", "validation", "configuration", "multi-file"
     )
-    
+
     $simpleKeywords = @(
         "fix", "typo", "format", "logging", "comment", "documentation",
         "variable rename", "import", "style"
     )
-    
+
     foreach ($keyword in $complexKeywords) {
         if ($TaskDescription -like "*$keyword*") {
             return "complex"
         }
     }
-    
+
     foreach ($keyword in $moderateKeywords) {
         if ($TaskDescription -like "*$keyword*") {
-            return "moderate" 
+            return "moderate"
         }
     }
-    
+
     return "simple"
 }
 
@@ -292,26 +292,26 @@ function Get-OptimalService {
         [string]$TaskDescription,
         [string]$Complexity = $null
     )
-    
+
     if (-not $Complexity) {
         $Complexity = Get-TaskComplexity $TaskDescription
     }
-    
+
     $config = Get-FrameworkConfig
     $tracker = Get-QuotaTracker
-    
+
     $recommendedService = $config.taskClassification.$Complexity.recommendedService
-    
+
     # Check if Claude Code usage requires approval
     if ($recommendedService -eq "claude_code") {
         $currentUsage = $tracker.services.claude_code ?? 0
         $warningThreshold = $config.quotaManagement.services.claude_code.warningThreshold
         $dailyLimit = $config.quotaManagement.services.claude_code.dailyLimit
-        
+
         if (($currentUsage / $dailyLimit) -gt $warningThreshold) {
             Write-Host "⚠️  Claude Code usage at $([math]::Round(($currentUsage / $dailyLimit) * 100, 1))%" -ForegroundColor Yellow
             Write-Host "💰 Estimated cost today: $([math]::Round($currentUsage * 0.15, 2))" -ForegroundColor Red
-            
+
             $confirm = Read-Host "Continue with Claude Code? (y/N)"
             if ($confirm -ne "y") {
                 Write-Host "🔄 Falling back to local agentic tools" -ForegroundColor Cyan
@@ -319,7 +319,7 @@ function Get-OptimalService {
             }
         }
     }
-    
+
     return $recommendedService
 }
 5. Agentic Lane Configurations
@@ -327,7 +327,7 @@ Update lane definitions:
 json{
   "lanes": {
     "complex_design": {
-      "name": "Complex System Design", 
+      "name": "Complex System Design",
       "worktreePath": ".worktrees/complex-design",
       "branch": "lane/complex-design",
       "tools": {
@@ -340,7 +340,7 @@ json{
           }
         },
         "research": {
-          "tool": "gemini_cli", 
+          "tool": "gemini_cli",
           "config": {"model": "gemini-1.5-pro"}
         },
         "implementation": {
@@ -352,10 +352,10 @@ json{
       "requiresApproval": true,
       "costBudget": "$10/day"
     },
-    
+
     "ai_coding": {
       "name": "AI Code Generation",
-      "worktreePath": ".worktrees/ai-coding", 
+      "worktreePath": ".worktrees/ai-coding",
       "branch": "lane/ai-coding",
       "tools": {
         "primary": {
@@ -387,26 +387,26 @@ powershellswitch ($Command) {
         $service = Get-OptimalService $Message $complexity
         Write-Host "🎯 Task Complexity: $complexity" -ForegroundColor Cyan
         Write-Host "🤖 Recommended Service: $service" -ForegroundColor Green
-        
+
         if ($service -eq "claude_code") {
             Write-Host "💡 Consider breaking into smaller tasks for cost optimization" -ForegroundColor Yellow
         }
     }
-    
+
     "cost-report" {
         $tracker = Get-QuotaTracker
         $claudeUsage = $tracker.services.claude_code ?? 0
         $estimatedCost = $claudeUsage * 0.15
-        
+
         Write-Host "💰 Today's Claude Code Cost: $([math]::Round($estimatedCost, 2))" -ForegroundColor Red
         Write-Host "🎯 Requests: $claudeUsage/50" -ForegroundColor Cyan
         Write-Host "💡 Monthly projection: $([math]::Round($estimatedCost * 30, 2))" -ForegroundColor Yellow
     }
-    
+
     "suggest-optimization" {
         Write-Host "💡 Cost Optimization Suggestions:" -ForegroundColor Blue
         Write-Host "1. Use Gemini CLI for research tasks" -ForegroundColor Green
-        Write-Host "2. Use Aider + local models for implementation" -ForegroundColor Green  
+        Write-Host "2. Use Aider + local models for implementation" -ForegroundColor Green
         Write-Host "3. Reserve Claude Code for architecture decisions" -ForegroundColor Green
         Write-Host "4. Break complex tasks into simple + moderate parts" -ForegroundColor Green
     }
@@ -416,19 +416,19 @@ Add agentic tool installation:
 bash# Install agentic coding tools
 install_agentic_tools() {
     log_info "Installing agentic AI tools..."
-    
+
     # Claude Code (requires API key)
     npm install -g @anthropic-ai/claude-code
-    
-    # Aider - AI pair programmer  
+
+    # Aider - AI pair programmer
     pip3 install aider-chat
-    
+
     # Continue CLI
     npm install -g @continuedev/cli
-    
+
     # Local model optimization
     pip3 install llama-cpp-python
-    
+
     log_success "Agentic tools installed"
 }
 8. Enhanced Usage Guide
@@ -453,7 +453,7 @@ bash# Phase 1: Research (Free tier)
 pwsh ./orchestrator.ps1 -Command start-lane -Lane research
 gemini "research OAuth2 implementation patterns for Node.js"
 
-# Phase 2: Planning (Claude Code for architecture)  
+# Phase 2: Planning (Claude Code for architecture)
 pwsh ./orchestrator.ps1 -Command start-lane -Lane complex_design
 claude "ultrathink about OAuth2 architecture for our system"
 
@@ -484,7 +484,7 @@ claude "ultrathink about database schema optimization"
 
 **Smart Usage Pattern:**
 - Morning: Research with Gemini (free)
-- Midday: Plan with Claude Code (premium) 
+- Midday: Plan with Claude Code (premium)
 - Afternoon: Implement with Aider + Local (free)
 - Evening: Review and integrate (free)
 

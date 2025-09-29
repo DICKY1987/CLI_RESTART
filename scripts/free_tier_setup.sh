@@ -44,14 +44,14 @@ detect_system() {
         OS="unknown"
         PKG_MANAGER="manual"
     fi
-    
+
     log_info "Detected OS: $OS, Package Manager: $PKG_MANAGER"
 }
 
 # Install prerequisites
 install_prerequisites() {
     log_info "Installing prerequisites..."
-    
+
     case $PKG_MANAGER in
         "brew")
             brew update
@@ -71,26 +71,26 @@ install_prerequisites() {
             log_warning "Manual installation required for prerequisites"
             ;;
     esac
-    
+
     log_success "Prerequisites installed"
 }
 
 # Install Ollama for local models
 install_ollama() {
     log_info "Installing Ollama..."
-    
+
     if command -v ollama >/dev/null 2>&1; then
         log_success "Ollama already installed"
         return
     fi
-    
+
     if [[ "$OS" == "windows" ]]; then
         log_warning "Please install Ollama manually from https://ollama.ai/download/windows"
         return
     fi
-    
+
     curl -fsSL https://ollama.ai/install.sh | sh
-    
+
     # Start Ollama service
     if [[ "$OS" == "macos" ]]; then
         ollama serve &
@@ -98,60 +98,60 @@ install_ollama() {
         systemctl --user enable ollama
         systemctl --user start ollama
     fi
-    
+
     log_success "Ollama installed"
 }
 
 # Pull essential local models
 setup_local_models() {
     log_info "Setting up local models..."
-    
+
     if ! command -v ollama >/dev/null 2>&1; then
         log_error "Ollama not found. Please install Ollama first."
         return
     fi
-    
+
     # Essential models for coding
     models=(
         "codellama:7b-instruct"  # Primary coding model
         "codegemma:2b"           # Fast lightweight model
         "llama3.1:8b"            # General purpose
     )
-    
+
     for model in "${models[@]}"; do
         log_info "Pulling model: $model"
         ollama pull "$model"
     done
-    
+
     log_success "Local models setup complete"
 }
 
 # Install AI coding tools
 install_ai_tools() {
     log_info "Installing AI coding tools..."
-    
+
     # Aider - AI pair programmer
     pip3 install aider-chat
-    
+
     # Continue CLI (if available)
     npm install -g @continuedev/cli || log_warning "Continue CLI not available via npm"
-    
+
     log_success "AI tools installed"
 }
 
 # Install code quality tools
 install_quality_tools() {
     log_info "Installing code quality tools..."
-    
+
     # Python tools
     pip3 install ruff black pylint bandit safety
-    
+
     # JavaScript tools
     npm install -g eslint prettier @eslint/config eslint-plugin-security
-    
+
     # SQL tools
     pip3 install sqlfluff
-    
+
     # General tools
     case $PKG_MANAGER in
         "brew")
@@ -168,14 +168,14 @@ install_quality_tools() {
             log_warning "Some quality tools require manual installation"
             ;;
     esac
-    
+
     log_success "Quality tools installed"
 }
 
 # Install security tools
 install_security_tools() {
     log_info "Installing security scanning tools..."
-    
+
     # OWASP Dependency Check
     case $PKG_MANAGER in
         "brew")
@@ -190,7 +190,7 @@ install_security_tools() {
             ln -sf ~/.local/dependency-check/bin/dependency-check.sh ~/.local/bin/dependency-check
             ;;
     esac
-    
+
     # Trivy scanner
     case $PKG_MANAGER in
         "brew")
@@ -209,10 +209,10 @@ install_security_tools() {
             curl -L "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" | tar xz -C ~/.local/bin/
             ;;
     esac
-    
+
     # Semgrep
     pip3 install semgrep
-    
+
     # GitLeaks
     case $PKG_MANAGER in
         "brew")
@@ -223,14 +223,14 @@ install_security_tools() {
             curl -L "https://github.com/zricethezav/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar xz -C ~/.local/bin/
             ;;
     esac
-    
+
     log_success "Security tools installed"
 }
 
 # Install infrastructure tools
 install_infrastructure_tools() {
     log_info "Installing infrastructure tools..."
-    
+
     # OpenTofu (open-source Terraform alternative)
     case $PKG_MANAGER in
         "brew")
@@ -250,20 +250,20 @@ install_infrastructure_tools() {
             unzip /tmp/tofu.zip -d ~/.local/bin/
             ;;
     esac
-    
+
     # Ansible
     pip3 install ansible
-    
+
     # Checkov for IaC security
     pip3 install checkov
-    
+
     log_success "Infrastructure tools installed"
 }
 
 # Install documentation tools
 install_documentation_tools() {
     log_info "Installing documentation tools..."
-    
+
     # OpenAPI Generator
     case $PKG_MANAGER in
         "brew")
@@ -273,23 +273,23 @@ install_documentation_tools() {
             npm install -g @openapitools/openapi-generator-cli
             ;;
     esac
-    
+
     # MkDocs
     pip3 install mkdocs mkdocs-material
-    
+
     # Markdown tools
     npm install -g markdownlint-cli
-    
+
     log_success "Documentation tools installed"
 }
 
 # Install monitoring tools
 install_monitoring_tools() {
     log_info "Installing monitoring tools..."
-    
+
     # Prometheus and Grafana require manual setup or Docker
     log_warning "Prometheus and Grafana setup requires manual configuration"
-    
+
     # Basic monitoring tools
     case $PKG_MANAGER in
         "brew")
@@ -302,16 +302,16 @@ install_monitoring_tools() {
             sudo pacman -S htop btop
             ;;
     esac
-    
+
     log_success "Basic monitoring tools installed"
 }
 
 # Setup framework configuration
 setup_framework_config() {
     log_info "Setting up framework configuration..."
-    
+
     mkdir -p .ai
-    
+
     # Copy configuration if it doesn't exist
     if [[ ! -f ".ai/framework-config.json" ]]; then
         log_info "Creating default framework configuration..."
@@ -369,7 +369,7 @@ setup_framework_config() {
 }
 EOF
     fi
-    
+
     # Create quota tracker
     if [[ ! -f ".ai/quota-tracker.json" ]]; then
         cat > .ai/quota-tracker.json << 'EOF'
@@ -379,16 +379,16 @@ EOF
 }
 EOF
     fi
-    
+
     log_success "Framework configuration created"
 }
 
 # Create helper scripts
 create_helper_scripts() {
     log_info "Creating helper scripts..."
-    
+
     mkdir -p .ai/scripts
-    
+
     # Quick lane starter
     cat > .ai/scripts/quick-start.sh << 'EOF'
 #!/bin/bash
@@ -412,9 +412,9 @@ case "$1" in
         ;;
 esac
 EOF
-    
+
     chmod +x .ai/scripts/quick-start.sh
-    
+
     # Cost monitoring script
     cat > .ai/scripts/cost-monitor.py << 'EOF'
 #!/usr/bin/env python3
@@ -425,38 +425,38 @@ def check_quotas():
     try:
         with open('.ai/quota-tracker.json', 'r') as f:
             tracker = json.load(f)
-        
+
         with open('.ai/framework-config.json', 'r') as f:
             config = json.load(f)
-        
+
         print("🎯 Quota Status:")
         total_savings = 0
-        
+
         for service_name, service_config in config['quotaManagement']['services'].items():
             usage = tracker['services'].get(service_name, 0)
             limit = service_config.get('dailyLimit', 'unlimited')
-            
+
             if limit == 'unlimited':
                 print(f"  {service_name}: {usage} requests (unlimited)")
             else:
                 percentage = (usage / limit) * 100
                 print(f"  {service_name}: {usage}/{limit} ({percentage:.1f}%)")
-                
+
                 # Estimate savings (assuming $0.01 per request if paid)
                 estimated_cost = usage * 0.01
                 total_savings += estimated_cost
-        
+
         print(f"\n💰 Estimated savings today: ${total_savings:.2f}")
-        
+
     except FileNotFoundError:
         print("❌ Configuration files not found. Run setup first.")
 
 if __name__ == "__main__":
     check_quotas()
 EOF
-    
+
     chmod +x .ai/scripts/cost-monitor.py
-    
+
     log_success "Helper scripts created"
 }
 
@@ -466,13 +466,13 @@ main() {
     echo "🚀 Free-Tier Multi-Agent Framework Setup"
     echo "========================================"
     echo -e "${NC}"
-    
+
     detect_system
-    
+
     # Create .local/bin if it doesn't exist
     mkdir -p ~/.local/bin
     export PATH="$HOME/.local/bin:$PATH"
-    
+
     # Install components
     install_prerequisites
     install_ollama
@@ -482,11 +482,11 @@ main() {
     install_infrastructure_tools
     install_documentation_tools
     install_monitoring_tools
-    
+
     # Setup framework
     setup_framework_config
     create_helper_scripts
-    
+
     # Setup local models (optional, takes time)
     read -p "Setup local models now? This will download several GB of data. (y/N): " -n 1 -r
     echo
@@ -495,7 +495,7 @@ main() {
     else
         log_info "Skipping local models setup. Run 'ollama pull codellama:7b-instruct' later."
     fi
-    
+
     echo -e "${GREEN}"
     echo "✅ Setup Complete!"
     echo "=================="

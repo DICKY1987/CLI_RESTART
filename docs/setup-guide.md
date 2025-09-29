@@ -18,14 +18,14 @@ npm install -g @anthropic-ai/claude-code  # If you have API access
 ```bash
 # Add to your .env file
 export ANTHROPIC_API_KEY="your-claude-key"
-export GOOGLE_API_KEY="your-gemini-key"  
+export GOOGLE_API_KEY="your-gemini-key"
 export LANGSMITH_API_KEY="your-langsmith-key"  # Optional but recommended for observability
 ```
 
 ### 2. Migrate Your Existing Config
 Your existing `.ai/framework-config.json` works as-is! The LangGraph version will read your:
 - Lane definitions
-- Cost settings  
+- Cost settings
 - Quota limits
 - Agent preferences
 
@@ -61,7 +61,7 @@ os.environ["LANGSMITH_TRACING"] = "true"
 
 # Now you get:
 # - Automatic cost tracking
-# - Agent performance metrics  
+# - Agent performance metrics
 # - Detailed execution traces
 # - Error debugging tools
 ```
@@ -73,7 +73,7 @@ langchain app deploy
 
 # Get:
 # - Scalable infrastructure
-# - Built-in monitoring  
+# - Built-in monitoring
 # - Team collaboration
 # - Version control
 ```
@@ -94,11 +94,11 @@ agent = create_react_agent(
 
 ### Week 1: Core Replacement
 - [x] Replace PowerShell orchestrator with Python CLI ✅
-- [x] Migrate git worktree management ✅  
+- [x] Migrate git worktree management ✅
 - [x] Port cost optimization logic ✅
 - [ ] Test with your existing tasks
 
-### Week 2: Enhanced Features  
+### Week 2: Enhanced Features
 - [ ] Add your specific tools (Aider, local models)
 - [ ] Implement your workflow patterns
 - [ ] Set up LangSmith observability
@@ -112,7 +112,7 @@ agent = create_react_agent(
 ```
 your-project/
 ├── cli.py                 # Main CLI (replaces orchestrator.ps1)
-├── git_integration.py     # Git lanes (replaces worktree management)  
+├── git_integration.py     # Git lanes (replaces worktree management)
 ├── .ai/
 │   ├── framework-config.json  # Your existing config (keep as-is)
 │   └── quota-tracker.json     # Usage tracking
@@ -124,7 +124,7 @@ your-project/
 ### 1. Cost-Optimized Task Execution
 ```bash
 # Your complex PowerShell workflow:
-# 1. Analyze task complexity  
+# 1. Analyze task complexity
 # 2. Check quotas
 # 3. Route to appropriate service
 # 4. Execute with cost tracking
@@ -138,12 +138,12 @@ python cli.py execute "implement user authentication"
 ```bash
 # Automatically uses:
 # - Gemini for research (free)
-# - Claude for architecture (premium, with approval)  
+# - Claude for architecture (premium, with approval)
 # - Local models for implementation (free)
 python cli.py execute "design a microservices architecture for user management"
 ```
 
-### 3. Git Worktree Development  
+### 3. Git Worktree Development
 ```bash
 # Open specific development lane
 python cli.py open-lane agentic_architecture
@@ -162,7 +162,7 @@ python cli.py analyze "fix typo in README"          # Should → simple → Gemi
 python cli.py analyze "implement OAuth2 system"     # Should → complex → Claude (with approval)
 python cli.py analyze "add API endpoint"            # Should → moderate → Aider
 
-# 2. Test cost management  
+# 2. Test cost management
 python cli.py status  # Compare with PowerShell cost-report
 
 # 3. Test git integration
@@ -172,18 +172,18 @@ python cli.py lane-status  # Compare with PowerShell lane status
 ## Next Steps
 
 1. **Week 1**: Replace PowerShell scripts with LangGraph CLI
-2. **Week 2**: Add your custom tools and workflows  
+2. **Week 2**: Add your custom tools and workflows
 3. **Month 2**: Consider LangGraph Platform for team deployment
 4. **Ongoing**: Use LangSmith for optimization and monitoring
 
 ## Benefits Over Custom PowerShell Framework
 
 | Aspect | Your Custom System | LangGraph |
-|--------|-------------------|-----------|  
+|--------|-------------------|-----------|
 | **Development Time** | 8+ weeks | 1-2 weeks |
 | **Code Maintenance** | 3000+ lines | <500 lines |
 | **Observability** | Custom SQLite + JSON | Built-in LangSmith |
-| **Deployment** | Manual PowerShell | LangGraph Platform |  
+| **Deployment** | Manual PowerShell | LangGraph Platform |
 | **Team Collaboration** | Git-based | Professional tooling |
 | **Error Handling** | Custom PowerShell | Battle-tested framework |
 | **Community Support** | None | Large LangChain ecosystem |

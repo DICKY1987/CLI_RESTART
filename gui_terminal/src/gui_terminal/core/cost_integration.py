@@ -9,6 +9,7 @@ def _import_cost_tracker():
     try:
         # Try relative import if repo root is on sys.path
         from lib import cost_tracker  # type: ignore
+
         return cost_tracker
     except Exception:
         # Attempt to add repo root next to this file (two levels up from gui_terminal/src)
@@ -19,6 +20,7 @@ def _import_cost_tracker():
             sys.path.append(str(root))
         try:
             from lib import cost_tracker  # type: ignore
+
             return cost_tracker
         except Exception:
             return None
@@ -57,4 +59,3 @@ class CostTrackerBridge:
             return float(self._impl.get_total_cost(task_id))
         except Exception:
             return 0.0
-

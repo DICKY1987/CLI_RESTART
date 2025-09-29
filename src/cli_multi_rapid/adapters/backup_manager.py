@@ -57,8 +57,7 @@ class BackupManagerAdapter(BaseAdapter):
                 backup_result = self._create_git_commit_backup(include_untracked)
             else:
                 return AdapterResult(
-                    success=False,
-                    error=f"Unsupported snapshot type: {snapshot_type}"
+                    success=False, error=f"Unsupported snapshot type: {snapshot_type}"
                 )
 
             recovery_info.update(backup_result)
@@ -72,7 +71,7 @@ class BackupManagerAdapter(BaseAdapter):
                     return AdapterResult(
                         success=False,
                         error="Backup verification failed",
-                        metadata=recovery_info
+                        metadata=recovery_info,
                     )
 
             # Write recovery information
@@ -84,18 +83,20 @@ class BackupManagerAdapter(BaseAdapter):
                     artifact_path = Path(emit_path)
                     artifact_path.parent.mkdir(parents=True, exist_ok=True)
 
-                    with open(artifact_path, 'w', encoding='utf-8') as f:
+                    with open(artifact_path, "w", encoding="utf-8") as f:
                         json.dump(recovery_info, f, indent=2)
 
                     artifacts.append(str(artifact_path))
-                    self.logger.info(f"Recovery snapshot info written to: {artifact_path}")
+                    self.logger.info(
+                        f"Recovery snapshot info written to: {artifact_path}"
+                    )
 
             result = AdapterResult(
                 success=True,
                 tokens_used=0,  # Deterministic operation
                 artifacts=artifacts,
                 output=f"Created {snapshot_type} backup with verification: {verify_backup}",
-                metadata=recovery_info
+                metadata=recovery_info,
             )
 
             self._log_execution_complete(result)
@@ -107,7 +108,7 @@ class BackupManagerAdapter(BaseAdapter):
             return AdapterResult(
                 success=False,
                 error=error_msg,
-                metadata={"exception_type": type(e).__name__}
+                metadata={"exception_type": type(e).__name__},
             )
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
@@ -123,10 +124,7 @@ class BackupManagerAdapter(BaseAdapter):
         """Check if git is available for backup operations."""
         try:
             result = subprocess.run(
-                ["git", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["git", "--version"], capture_output=True, text=True, timeout=5
             )
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -142,7 +140,7 @@ class BackupManagerAdapter(BaseAdapter):
                 ["git", "status", "--porcelain"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
 
             has_changes = len(result.stdout.strip()) > 0
@@ -158,10 +156,7 @@ class BackupManagerAdapter(BaseAdapter):
                     stash_cmd = ["git", "stash", "push", "-m", stash_message]
 
                 result = subprocess.run(
-                    stash_cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=30
+                    stash_cmd, capture_output=True, text=True, timeout=30
                 )
 
                 if result.returncode != 0:
@@ -176,7 +171,7 @@ class BackupManagerAdapter(BaseAdapter):
                     ["git", "stash", "list", "-1", "--format=%H"],
                     capture_output=True,
                     text=True,
-                    timeout=10
+                    timeout=10,
                 )
 
                 if result.returncode == 0:
@@ -188,10 +183,7 @@ class BackupManagerAdapter(BaseAdapter):
 
             # Also capture current commit as fallback
             result = subprocess.run(
-                ["git", "rev-parse", "HEAD"],
-                capture_output=True,
-                text=True,
-                timeout=10
+                ["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=10
             )
 
             if result.returncode == 0:
@@ -226,14 +218,11 @@ class BackupManagerAdapter(BaseAdapter):
 
             # Get tracked files
             result = subprocess.run(
-                ["git", "ls-files"],
-                capture_output=True,
-                text=True,
-                timeout=30
+                ["git", "ls-files"], capture_output=True, text=True, timeout=30
             )
 
             if result.returncode == 0:
-                files_to_backup.extend(result.stdout.strip().split('\n'))
+                files_to_backup.extend(result.stdout.strip().split("\n"))
 
             # Get untracked files if requested
             if include_untracked:
@@ -241,11 +230,11 @@ class BackupManagerAdapter(BaseAdapter):
                     ["git", "ls-files", "--others", "--exclude-standard"],
                     capture_output=True,
                     text=True,
-                    timeout=30
+                    timeout=30,
                 )
 
                 if result.returncode == 0:
-                    untracked_files = result.stdout.strip().split('\n')
+                    untracked_files = result.stdout.strip().split("\n")
                     files_to_backup.extend([f for f in untracked_files if f.strip()])
 
             # Copy files
@@ -278,7 +267,7 @@ class BackupManagerAdapter(BaseAdapter):
                 ["git", "status", "--porcelain"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
 
             has_changes = len(result.stdout.strip()) > 0
@@ -291,18 +280,22 @@ class BackupManagerAdapter(BaseAdapter):
                 else:
                     add_cmd = ["git", "add", "-u"]
 
-                result = subprocess.run(add_cmd, capture_output=True, text=True, timeout=30)
+                result = subprocess.run(
+                    add_cmd, capture_output=True, text=True, timeout=30
+                )
                 if result.returncode != 0:
                     backup_info["error"] = f"Git add failed: {result.stderr}"
                     return backup_info
 
                 # Create backup commit
-                commit_message = f"[BACKUP] CLI Orchestrator backup - {self._get_timestamp()}"
+                commit_message = (
+                    f"[BACKUP] CLI Orchestrator backup - {self._get_timestamp()}"
+                )
                 result = subprocess.run(
                     ["git", "commit", "-m", commit_message],
                     capture_output=True,
                     text=True,
-                    timeout=30
+                    timeout=30,
                 )
 
                 if result.returncode != 0:
@@ -317,7 +310,7 @@ class BackupManagerAdapter(BaseAdapter):
                     ["git", "rev-parse", "HEAD"],
                     capture_output=True,
                     text=True,
-                    timeout=10
+                    timeout=10,
                 )
 
                 if result.returncode == 0:
@@ -349,7 +342,7 @@ class BackupManagerAdapter(BaseAdapter):
                         ["git", "stash", "list"],
                         capture_output=True,
                         text=True,
-                        timeout=10
+                        timeout=10,
                     )
                     stash_exists = backup_info.get("stash_message", "") in result.stdout
                     verification["checks"].append({"stash_exists": stash_exists})
@@ -377,10 +370,12 @@ class BackupManagerAdapter(BaseAdapter):
                             ["git", "show", "--name-only", commit_hash],
                             capture_output=True,
                             text=True,
-                            timeout=10
+                            timeout=10,
                         )
                         commit_exists = result.returncode == 0
-                        verification["checks"].append({"backup_commit_exists": commit_exists})
+                        verification["checks"].append(
+                            {"backup_commit_exists": commit_exists}
+                        )
                         verification["verified"] = commit_exists
                 else:
                     verification["verified"] = True  # No changes to commit is valid
@@ -394,4 +389,5 @@ class BackupManagerAdapter(BaseAdapter):
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"

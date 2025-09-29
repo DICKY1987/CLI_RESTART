@@ -74,19 +74,19 @@ async def handle_interactive_cli(command, responses={}):
     responses: dict mapping expected prompts to responses
     """
     process = pexpect.spawn(command, timeout=30)
-    
+
     # Set up logging of all interactions
     process.logfile = open('cli_session.log', 'wb')
-    
+
     try:
         for prompt, response in responses.items():
             process.expect(prompt)
             process.sendline(response)
-        
+
         # Wait for completion
         process.expect(pexpect.EOF)
         return process.before.decode()
-        
+
     except pexpect.TIMEOUT:
         # Surface timeout to GUI for user intervention
         return {"status": "needs_input", "prompt": process.before.decode()}
@@ -108,7 +108,7 @@ When a tool needs input, surface it in your GUI:
 pythonclass InteractiveHandler:
     def __init__(self, gui_callback):
         self.gui_callback = gui_callback
-        
+
     async def handle_prompt(self, process, prompt_text):
         # Show prompt in GUI
         user_input = await self.gui_callback({
@@ -116,7 +116,7 @@ pythonclass InteractiveHandler:
             "prompt": prompt_text,
             "timeout": 60
         })
-        
+
         process.sendline(user_input)
 Complex Subprocess Trees
 Problem: Tools that spawn child processes, background jobs, or long-running services.
@@ -129,7 +129,7 @@ import signal
 class ProcessTreeManager:
     def __init__(self):
         self.process_groups = {}
-        
+
     def start_with_tree_tracking(self, cmd, job_id):
         # Start in new process group
         process = subprocess.Popen(
@@ -139,10 +139,10 @@ class ProcessTreeManager:
             preexec_fn=os.setsid,  # Create new process group
             text=True
         )
-        
+
         self.process_groups[job_id] = process.pid
         return process
-        
+
     def kill_tree(self, job_id):
         if job_id in self.process_groups:
             # Kill entire process group
@@ -155,7 +155,7 @@ def monitor_process_tree(parent_pid):
     try:
         parent = psutil.Process(parent_pid)
         children = parent.children(recursive=True)
-        
+
         return {
             "parent": {"pid": parent.pid, "status": parent.status()},
             "children": [
@@ -170,13 +170,13 @@ For really complex tools, consider containerizing:
 pythonasync def run_in_container(tool_config):
     """Run complex CLI tools in isolated containers"""
     docker_cmd = [
-        "docker", "run", "--rm", 
+        "docker", "run", "--rm",
         "-v", f"{os.getcwd()}:/workspace",
         "-w", "/workspace",
         tool_config["image"],
         *tool_config["command"]
     ]
-    
+
     # Container provides clean process isolation
     return await asyncio.create_subprocess_exec(*docker_cmd)
 Specific Patterns for Your Architecture
@@ -200,12 +200,12 @@ pythonclass CLIFlowState:
         self.state = "starting"
         self.substeps = []
         self.user_inputs_needed = []
-        
+
     async def advance(self, process_output):
         if "Please confirm" in process_output:
             self.state = "waiting_for_confirmation"
             return {"action": "prompt_user", "message": process_output}
-            
+
         elif "spawning background job" in process_output:
             self.state = "monitoring_children"
             return {"action": "track_subprocesses"}
@@ -253,7 +253,7 @@ pythonclass TaskManager:
             "Git": ["Status and Diff", "Diff Watch"],
             "Monitoring": ["System Health"]
         }
-    
+
     def execute_task(self, task_name, presentation_options=None):
         # Execute shell command with proper panel management
         pass
@@ -301,11 +301,11 @@ class TerminalManager(QTabWidget):
         super().__init__()
         self.terminals = {}
         self.setup_profiles()
-    
+
     def create_terminal(self, profile_name="default"):
         # Create new terminal with profile settings
         pass
-    
+
     async def execute_command(self, command, terminal_id):
         # Execute command with async subprocess
         pass
@@ -351,11 +351,11 @@ class CommandPalette(QWidget):
         self.search_box = QLineEdit()
         self.results_list = QListWidget()
         self.commands = self.load_all_commands()
-    
+
     def filter_commands(self, search_text):
         # Fuzzy search through available commands
         pass
-    
+
     def execute_selected_command(self):
         # Execute the selected command/task
         pass
@@ -378,13 +378,13 @@ pythonclass ProblemsManager:
     def __init__(self):
         self.problems = []
         self.severity_levels = ["Error", "Warning", "Info"]
-    
+
     def add_problem(self, file_path, line, column, message, severity):
         pass
-    
+
     def clear_problems_for_file(self, file_path):
         pass
-    
+
     def navigate_to_problem(self, problem_id):
         # Jump to file location
         pass
@@ -408,7 +408,7 @@ pythonclass WorkspaceManager:
             "extensions": {
                 "recommendations": [
                     "ms-python.python",
-                    "ms-python.black-formatter", 
+                    "ms-python.black-formatter",
                     "charliermarsh.ruff"
                 ]
             }
@@ -419,20 +419,20 @@ python# Main application structure
 class CLIMultiRapidGUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        
+
         # Core panels
         self.file_explorer = FileExplorer()
-        self.terminal_manager = TerminalManager() 
+        self.terminal_manager = TerminalManager()
         self.task_manager = TaskManager()
         self.debug_manager = DebugManager()
         self.problems_panel = ProblemsManager()
         self.command_palette = CommandPalette()
-        
+
         # Layout management
         self.setup_dockable_panels()
         self.setup_menu_bar()
         self.setup_status_bar()
-        
+
     def setup_dockable_panels(self):
         # Create dockable windows like VS Code
         pass
@@ -470,7 +470,7 @@ class TerminalWidget(QTextEdit):
         self.setup_terminal_appearance()
         self.command_history = []
         self.history_index = -1
-        
+
     def setup_terminal_appearance(self):
         # Make it look like a real terminal
         font = QFont("Consolas", 10)  # or "Courier New"
@@ -485,12 +485,12 @@ class TerminalWidget(QTextEdit):
 2. Command Input Handler
 pythonclass CommandInput(QLineEdit):
     command_entered = pyqtSignal(str)
-    
+
     def __init__(self):
         super().__init__()
         self.command_history = []
         self.history_index = -1
-        
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Return:
             command = self.text()
@@ -508,12 +508,12 @@ pythonclass CLIExecutor(QThread):
     output_ready = pyqtSignal(str)
     error_ready = pyqtSignal(str)
     finished = pyqtSignal(int)
-    
+
     def __init__(self, command):
         super().__init__()
         self.command = command
         self.process = None
-        
+
     def run(self):
         try:
             # This keeps your CLI tools exactly as they are
@@ -526,15 +526,15 @@ pythonclass CLIExecutor(QThread):
                 bufsize=1,
                 universal_newlines=True
             )
-            
+
             # Stream output in real-time
             for line in iter(self.process.stdout.readline, ''):
                 if line:
                     self.output_ready.emit(line.rstrip())
-                    
+
             self.process.wait()
             self.finished.emit(self.process.returncode)
-            
+
         except Exception as e:
             self.error_ready.emit(f"Error: {str(e)}")
 4. Main Terminal GUI
@@ -542,11 +542,11 @@ pythonclass TerminalGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CLI Multi-Rapid Terminal")
-        
+
         # Terminal display
         self.terminal_output = TerminalWidget()
         self.command_input = CommandInput()
-        
+
         # Layout
         central_widget = QWidget()
         layout = QVBoxLayout()
@@ -554,36 +554,36 @@ pythonclass TerminalGUI(QMainWindow):
         layout.addWidget(self.command_input)
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
-        
+
         # Connect signals
         self.command_input.command_entered.connect(self.execute_command)
-        
+
         # Show initial prompt
         self.show_prompt()
-        
+
     def show_prompt(self):
         import os
         cwd = os.getcwd()
         prompt = f"{cwd}> "
         self.terminal_output.append(prompt)
-        
+
     def execute_command(self, command):
         # Display the command
         self.terminal_output.append(command)
-        
+
         # Execute it (your CLI tools run unchanged)
         self.executor = CLIExecutor(command)
         self.executor.output_ready.connect(self.append_output)
         self.executor.error_ready.connect(self.append_error)
         self.executor.finished.connect(self.command_finished)
         self.executor.start()
-        
+
     def append_output(self, text):
         self.terminal_output.append(text)
-        
+
     def append_error(self, text):
         self.terminal_output.append(f"<span style='color: red;'>{text}</span>")
-        
+
     def command_finished(self, return_code):
         self.show_prompt()
 What This Achieves
@@ -614,14 +614,14 @@ Quick Command Buttons
 python# Add toolbar with common commands
 def add_quick_commands(self):
     toolbar = QToolBar()
-    
+
     # Common CLI commands as buttons
     help_btn = toolbar.addAction("Help")
     help_btn.triggered.connect(lambda: self.execute_command("cli-multi-rapid --help"))
-    
-    status_btn = toolbar.addAction("Status")  
+
+    status_btn = toolbar.addAction("Status")
     status_btn.triggered.connect(lambda: self.execute_command("cli-multi-rapid phase stream list"))
-    
+
     self.addToolBar(toolbar)
 Working Directory Display
 pythondef update_prompt(self):
@@ -716,17 +716,17 @@ from typing import Dict, List, Any
 
 
 class VSCodeMigrator:
-    """Migrate VS Code configuration to PythoRetryDContinueEditVS Code to GUI Migration ScriptsCode ∙ Version 2     "5" { 
+    """Migrate VS Code configuration to PythoRetryDContinueEditVS Code to GUI Migration ScriptsCode ∙ Version 2     "5" {
         Write-Host "Goodbye!" -ForegroundColor Green
         exit
     }
-    default { 
+    default {
         Write-Host "Invalid choice. Starting GUI by default..." -ForegroundColor Red
         python gui/cli_terminal_gui.py
     }
 }
 '''
-        
+
        Step 3: Create Installation and Setup ScriptsGUI Setup and Installation ScriptsCode # Setup-GUI-Interface.ps1
 # Complete setup script for Python GUI terminal interface
 
@@ -770,7 +770,7 @@ Your current launch system will be updated:
 Before (VS Code focused):
 Launch-Menu.ps1 choices:
 1. Open in VS Code ← Primary option
-2. Command Line Interface  
+2. Command Line Interface
 3. Quick system test
 4. Exit
 After (GUI focused):
@@ -799,7 +799,7 @@ Script: python scripts/restore_vscode.py
 Directory Structure After Migration:
 cli_multi_rapid_DEV/
 ├── gui/
-│   ├── cli_terminal_gui.py      # Main GUI application  
+│   ├── cli_terminal_gui.py      # Main GUI application
 │   ├── requirements.txt         # GUI dependencies
 │   └── test_gui_setup.py       # Setup validation
 ├── .vscode_backup/             # Your original VS Code config

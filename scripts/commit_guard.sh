@@ -60,7 +60,7 @@ fi
 if [ $TOTAL_LINES_CHANGED -gt $REQUIRE_MANUAL_REVIEW_SIZE ]; then
     echo "⚠️  Large change detected ($TOTAL_LINES_CHANGED lines)"
     echo "   This requires manual review before commit"
-    
+
     if [ -t 0 ]; then  # Interactive terminal
         read -p "   Have you manually reviewed these changes? (y/N): " -r
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -78,7 +78,7 @@ echo "🔍 Scanning for dangerous patterns..."
 
 DANGEROUS_PATTERNS=(
     "api_key"
-    "secret_key" 
+    "secret_key"
     "password"
     "token"
     "private_key"
@@ -115,7 +115,7 @@ JS_FILES=$(echo "$STAGED_FILES" | grep "\.js$\|\.ts$" || true)
 # Safety Check 5: Test Requirements
 if [ "$REQUIRED_TESTS" = true ]; then
     echo "🧪 Checking test requirements..."
-    
+
     # Check if tests exist for Python files
     if [ -n "$PYTHON_FILES" ] && [ -d "tests" ]; then
         echo "   Running Python tests..."
@@ -129,7 +129,7 @@ if [ "$REQUIRED_TESTS" = true ]; then
             echo "   ⚠️  pytest not found, skipping Python tests"
         fi
     fi
-    
+
     # Check if tests exist for JavaScript files
     if [ -n "$JS_FILES" ] && [ -f "package.json" ]; then
         echo "   Checking JavaScript tests..."
@@ -155,7 +155,7 @@ if [ -n "$PYTHON_FILES" ]; then
         fi
         echo "   ✅ Python code quality passed"
     fi
-    
+
     if command -v mypy &> /dev/null; then
         echo "   Running type checks..."
         if ! mypy $PYTHON_FILES --ignore-missing-imports > /dev/null 2>&1; then
@@ -177,7 +177,7 @@ if echo "$STAGED_FILES" | grep -q "agentic_framework"; then
             if ! grep -q "structlog\|logging" "$file"; then
                 echo "⚠️  Warning: $file missing logging import"
             fi
-            
+
             # Check for async/await consistency
             if grep -q "async def" "$file" && ! grep -q "await" "$file"; then
                 echo "⚠️  Warning: $file has async def but no await calls"

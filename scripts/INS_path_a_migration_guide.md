@@ -34,7 +34,7 @@ Start-Process -FilePath 'pwsh' -ArgumentList @('-NoProfile','-ExecutionPolicy','
 ### What is Boxstarter?
 Microsoft-endorsed PowerShell framework that provides:
 - ✅ Reboot-resilient installations
-- ✅ Unattended setup with proper admin handling  
+- ✅ Unattended setup with proper admin handling
 - ✅ Chocolatey integration with dependency resolution
 - ✅ Remote machine provisioning
 - ✅ Configuration sharing via GitHub Gists
@@ -69,7 +69,7 @@ Install-WindowsUpdate -AcceptEula
 #region Core Development Tools
 # Version control and CLI tools
 cinst git.install -y
-cinst github-desktop -y  
+cinst github-desktop -y
 cinst gh -y
 
 # Runtimes (replaces your Python/Node setup)
@@ -101,7 +101,7 @@ $profilePath = $PROFILE.CurrentUserAllHosts
 $aliasContent = @"
 # AI Development Aliases
 function aider-auto { aider --yes @args }
-function claude-auto { claude @args }  
+function claude-auto { claude @args }
 function codex { gh copilot @args }
 function ghs { gh copilot suggest @args }
 function ghe { gh copilot explain @args }
@@ -116,7 +116,7 @@ git config --global user.email "dev@company.com"
 git config --global init.defaultBranch main
 #endregion
 
-#region Windows Configuration  
+#region Windows Configuration
 # Explorer settings
 Set-WindowsExplorerOptions -EnableShowHiddenFilesFoldersDrives -EnableShowFileExtensions -EnableShowFullPathInTitleBar
 
@@ -184,14 +184,14 @@ Replace your `.ai/` directory structure with standard `.devcontainer/` configura
 {
   "name": "AI Development Environment",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
-  
+
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker": {},
     "ghcr.io/devcontainers/features/node": {"version": "lts"},
     "ghcr.io/devcontainers/features/github-cli": {},
     "ghcr.io/devcontainers/features/git": {}
   },
-  
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -206,19 +206,19 @@ Replace your `.ai/` directory structure with standard `.devcontainer/` configura
       }
     }
   },
-  
+
   "postCreateCommand": [
     "pip install --user pipx && pipx install aider-chat",
     "npm install -g @anthropic-ai/claude-code",
     "gh extension install github/gh-copilot"
   ],
-  
+
   "forwardPorts": [8000, 8080, 6379, 11434],
-  
+
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
   ],
-  
+
   "remoteUser": "vscode"
 }
 ```
@@ -234,7 +234,7 @@ Replace your Docker Compose setup with dev container service orchestration:
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
-  
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -244,7 +244,7 @@ Replace your Docker Compose setup with dev container service orchestration:
       ]
     }
   },
-  
+
   "postCreateCommand": "pip install -r requirements.txt",
   "forwardPorts": [8000, 6379, 11434]
 }
@@ -255,7 +255,7 @@ Replace your Docker Compose setup with dev container service orchestration:
 version: '3.8'
 services:
   app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     volumes:
@@ -305,7 +305,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - \
 RUN pip install --user pipx && \
     pipx install aider-chat
 
-# Install Node CLI tools  
+# Install Node CLI tools
 RUN npm install -g @anthropic-ai/claude-code
 
 # Install GitHub CLI and extensions
@@ -342,7 +342,7 @@ RUN echo 'alias aider-auto="aider --yes"' >> /home/vscode/.bashrc && \
 ### Step 1: Backup Current Setup
 ```powershell
 # Export current configuration for reference
-Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | 
+Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" |
     Where-Object {$_.DisplayName -like "*Python*" -or $_.DisplayName -like "*Node*" -or $_.DisplayName -like "*Docker*"} |
     Export-Csv -Path "current-installs.csv"
 ```
@@ -394,7 +394,7 @@ Remove-Item "ai_toolchain_installer_complete.ps1" -ErrorAction SilentlyContinue
 - ✅ Container isolation prevents system pollution
 - ✅ Official Microsoft/GitHub support and security updates
 
-### 2. **Productivity** 
+### 2. **Productivity**
 - ✅ Faster onboarding (minutes vs hours)
 - ✅ "Works on my machine" problems eliminated
 - ✅ Instant environment switching between projects
@@ -417,7 +417,7 @@ Remove-Item "ai_toolchain_installer_complete.ps1" -ErrorAction SilentlyContinue
 **Problem:** Attempting to recreate every configuration option from your custom installer.
 **Solution:** Start with minimal configuration. Add complexity only when needed.
 
-### ❌ Pitfall 2: Ignoring Container Best Practices  
+### ❌ Pitfall 2: Ignoring Container Best Practices
 **Problem:** Treating containers like VMs with persistent state.
 **Solution:** Design for immutable, disposable environments.
 
@@ -441,7 +441,7 @@ Remove-Item "ai_toolchain_installer_complete.ps1" -ErrorAction SilentlyContinue
 
 ### Week 2: Team Rollout
 - [ ] Share Boxstarter configuration via GitHub Gist
-- [ ] Convert 2-3 active projects to Dev Containers  
+- [ ] Convert 2-3 active projects to Dev Containers
 - [ ] Document migration process for team
 - [ ] Train team on VS Code Dev Container usage
 

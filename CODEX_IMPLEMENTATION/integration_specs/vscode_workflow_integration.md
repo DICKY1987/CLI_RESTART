@@ -9,14 +9,14 @@ Technical specification for integrating all enterprise improvements into the exi
 ```
 .vscode/
 ├── settings.json          # Python dev environment settings
-├── tasks.json            # 22+ development tasks  
+├── tasks.json            # 22+ development tasks
 ├── launch.json           # 12+ debug configurations
 └── extensions.json       # 20+ recommended extensions
 ```
 
 ### Current Task Categories
 - **CLI Multi-Rapid Platform Tasks** (7 tasks)
-- **Development Tasks** (8 tasks)  
+- **Development Tasks** (8 tasks)
 - **Legacy Agent Tasks** (3 tasks)
 - **Git and Monitoring Tasks** (4 tasks)
 
@@ -37,7 +37,7 @@ Add to `.vscode/tasks.json`:
       "description": "Select recovery runbook",
       "options": [
         "database_connection_failure",
-        "high_cpu_usage", 
+        "high_cpu_usage",
         "memory_exhaustion",
         "service_failure",
         "position_limit_exceeded"
@@ -61,7 +61,7 @@ Add to `.vscode/tasks.json`:
     },
     {
       "label": "Recovery: Show Statistics",
-      "type": "shell", 
+      "type": "shell",
       "command": "python -c \"from src.eafix.recovery.automated_recovery_system import AutomatedRecoverySystem; rs = AutomatedRecoverySystem(); stats = rs.get_recovery_statistics(); print(f'Recovery Statistics:\\n- Total Runbooks: {stats[\\\"total_runbooks\\\"]}\\n- Total Executions: {stats[\\\"total_executions\\\"]}\\n- Success Rate: {stats[\\\"success_rate\\\"]:.2%}\\n- Active Executions: {stats[\\\"active_executions\\\"]}')\"",
       "group": "test",
       "presentation": { "panel": "new" }
@@ -97,13 +97,13 @@ Add to `.vscode/tasks.json`:
     },
     {
       "label": "Services: Health Dashboard",
-      "type": "shell", 
+      "type": "shell",
       "command": "cd eafix-modular && python -c \"import requests; import json; try: resp = requests.get('http://localhost:8090/services/status'); print(json.dumps(resp.json(), indent=2)); except: print('Service manager not running. Start with: Services: Start Self-Healing Manager')\"",
       "group": "test",
       "presentation": { "panel": "new", "showReuseMessage": false }
     },
     {
-      "label": "Services: Restart All Services", 
+      "label": "Services: Restart All Services",
       "type": "shell",
       "command": "cd eafix-modular && python -c \"import requests; resp = requests.post('http://localhost:8090/services/restart-all'); print(f'Restart initiated: {resp.status_code}')\"",
       "group": "build"
@@ -131,7 +131,7 @@ Add to `.vscode/tasks.json`:
       "presentation": { "panel": "new" }
     },
     {
-      "label": "Prediction: Generate Forecasts", 
+      "label": "Prediction: Generate Forecasts",
       "type": "shell",
       "command": "python -c \"from src.eafix.monitoring.predictive.predictive_failure_detector import PredictiveFailureDetector; import asyncio; detector = PredictiveFailureDetector(); predictions = asyncio.run(detector.predict_failures()); print(f'Generated {len(predictions)} predictions:'); [print(f'- {p.prediction_type.value}: {p.description} (confidence: {p.confidence:.2f})') for p in predictions[:5]]\"",
       "group": "test",
@@ -153,7 +153,7 @@ Add to `.vscode/tasks.json`:
 }
 ```
 
-#### Pipeline Orchestration Tasks  
+#### Pipeline Orchestration Tasks
 ```json
 {
   "tasks": [
@@ -167,7 +167,7 @@ Add to `.vscode/tasks.json`:
     },
     {
       "label": "Pipeline: Resume Orchestrator",
-      "type": "shell", 
+      "type": "shell",
       "command": "python orchestrator.py --resume",
       "group": "build"
     },
@@ -218,16 +218,16 @@ Add to `.vscode/launch.json`:
     {
       "name": "Debug: Recovery Runbook Execution",
       "type": "python",
-      "request": "launch", 
+      "request": "launch",
       "program": "scripts/test_recovery_runbook.py",
       "console": "integratedTerminal",
       "args": ["--runbook-id", "${input:recoveryRunbookId}"]
     },
-    
+
     // Service Manager Debugging
     {
       "name": "Debug: Self-Healing Service Manager",
-      "type": "python", 
+      "type": "python",
       "request": "launch",
       "program": "eafix-modular/services/service-manager/src/main.py",
       "console": "integratedTerminal",
@@ -237,18 +237,18 @@ Add to `.vscode/launch.json`:
       "name": "Debug: Service Health Checks",
       "type": "python",
       "request": "launch",
-      "program": "eafix-modular/services/service-manager/src/health_checks.py", 
+      "program": "eafix-modular/services/service-manager/src/health_checks.py",
       "console": "integratedTerminal",
       "args": ["--service", "${input:serviceNameInput}"]
     },
-    
+
     // Predictive System Debugging
     {
       "name": "Debug: Predictive Failure Detector",
       "type": "python",
       "request": "launch",
       "program": "src/eafix/monitoring/predictive/predictive_failure_detector.py",
-      "console": "integratedTerminal", 
+      "console": "integratedTerminal",
       "env": {
         "PYTHONPATH": "${workspaceFolder}/src"
       }
@@ -257,11 +257,11 @@ Add to `.vscode/launch.json`:
       "name": "Debug: Model Training",
       "type": "python",
       "request": "launch",
-      "program": "scripts/train_prediction_models.py", 
+      "program": "scripts/train_prediction_models.py",
       "console": "integratedTerminal",
       "args": ["--force-retrain", "--verbose"]
     },
-    
+
     // Pipeline Orchestration Debugging
     {
       "name": "Debug: Pipeline Orchestrator",
@@ -274,7 +274,7 @@ Add to `.vscode/launch.json`:
     {
       "name": "Debug: Manifest Validation",
       "type": "python",
-      "request": "launch", 
+      "request": "launch",
       "program": "tools/validate_manifests.py",
       "console": "integratedTerminal",
       "args": ["--verbose", "--fix"]
@@ -291,7 +291,7 @@ Add to inputs section in `.vscode/tasks.json`:
 {
   "inputs": [
     {
-      "id": "replicaCount", 
+      "id": "replicaCount",
       "type": "promptString",
       "description": "Number of service replicas",
       "default": "2"
@@ -303,7 +303,7 @@ Add to inputs section in `.vscode/tasks.json`:
       "options": [
         "resource_exhaustion",
         "performance_degradation",
-        "service_failure", 
+        "service_failure",
         "memory_leak",
         "error_spike"
       ]
@@ -314,7 +314,7 @@ Add to inputs section in `.vscode/tasks.json`:
       "description": "Select pipeline phase",
       "options": [
         "precheck",
-        "plan", 
+        "plan",
         "critique",
         "generate",
         "validate",
@@ -337,45 +337,45 @@ Add to `.vscode/settings.json`:
 ```json
 {
   "python.defaultInterpreterPath": "./venv/Scripts/python.exe",
-  
+
   // Enterprise Recovery Settings
   "files.associations": {
     "**/recovery_runbooks/*.json": "jsonc",
     "**/schemas/*.json": "jsonc",
     ".ai/*.json": "jsonc"
   },
-  
+
   // Prediction Data Exclusions
   "files.exclude": {
     "**/prediction_data/models/**": true,
     "**/prediction_data/metrics.db": true,
     "**/.ai/state.json": false
   },
-  
+
   // Task Auto-Discovery
   "typescript.preferences.includePackageJsonAutoImports": "auto",
-  
+
   // Enterprise Debugging
   "python.debugging.console": "integratedTerminal",
   "python.testing.autoTestDiscoverOnSaveEnabled": true,
-  
-  // Pipeline State Monitoring  
+
+  // Pipeline State Monitoring
   "files.watcherExclude": {
     "**/prediction_data/**": true,
     "**/recovery_runbooks/**": false,
     "**/.ai/**": false
   },
-  
+
   // Enterprise Extension Settings
   "python.analysis.extraPaths": [
     "./src",
     "./eafix-modular/services",
     "./eafix-modular/shared"
   ],
-  
+
   "python.testing.pytestArgs": [
     "tests/",
-    "tests/integration/", 
+    "tests/integration/",
     "eafix-modular/tests/"
   ]
 }
@@ -394,34 +394,34 @@ export class EnterpriseStatusBar {
     private recoveryStatusItem: vscode.StatusBarItem;
     private servicesStatusItem: vscode.StatusBarItem;
     private pipelineStatusItem: vscode.StatusBarItem;
-    
+
     constructor() {
         // Recovery System Status
         this.recoveryStatusItem = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Left, 100
         );
         this.recoveryStatusItem.command = 'enterprise.showRecoveryDashboard';
-        
-        // Services Status  
+
+        // Services Status
         this.servicesStatusItem = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Left, 99
         );
         this.servicesStatusItem.command = 'enterprise.showServicesDashboard';
-        
+
         // Pipeline Status
         this.pipelineStatusItem = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Left, 98
         );
         this.pipelineStatusItem.command = 'enterprise.showPipelineStatus';
     }
-    
+
     public updateRecoveryStatus() {
         // Read recovery statistics and update status bar
         try {
             const stats = this.getRecoveryStatistics();
             const activeRecoveries = stats.active_executions || 0;
             const successRate = ((stats.success_rate || 0) * 100).toFixed(0);
-            
+
             if (activeRecoveries > 0) {
                 this.recoveryStatusItem.text = `$(sync~spin) Recovery: ${activeRecoveries} active`;
                 this.recoveryStatusItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
@@ -433,10 +433,10 @@ export class EnterpriseStatusBar {
             this.recoveryStatusItem.text = "$(alert) Recovery: Error";
             this.recoveryStatusItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
         }
-        
+
         this.recoveryStatusItem.show();
     }
-    
+
     public updateServicesStatus() {
         // Read service health and update status bar
         try {
@@ -444,12 +444,12 @@ export class EnterpriseStatusBar {
             const runningServices = health.running_services || 0;
             const totalServices = health.total_services || 0;
             const healthStatus = health.overall_health || 'unknown';
-            
-            const icon = healthStatus === 'healthy' ? '$(check)' : 
+
+            const icon = healthStatus === 'healthy' ? '$(check)' :
                         healthStatus === 'degraded' ? '$(warning)' : '$(error)';
-                        
+
             this.servicesStatusItem.text = `${icon} Services: ${runningServices}/${totalServices}`;
-            
+
             if (healthStatus !== 'healthy') {
                 this.servicesStatusItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
             } else {
@@ -459,10 +459,10 @@ export class EnterpriseStatusBar {
             this.servicesStatusItem.text = "$(alert) Services: Error";
             this.servicesStatusItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
         }
-        
+
         this.servicesStatusItem.show();
     }
-    
+
     public updatePipelineStatus() {
         // Read pipeline state and update status bar
         try {
@@ -471,11 +471,11 @@ export class EnterpriseStatusBar {
                 const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
                 const currentPhase = state.current_phase || 'unknown';
                 const status = state.status || 'idle';
-                
-                const icon = status === 'running' ? '$(sync~spin)' : 
-                           status === 'completed' ? '$(check)' : 
+
+                const icon = status === 'running' ? '$(sync~spin)' :
+                           status === 'completed' ? '$(check)' :
                            status === 'failed' ? '$(error)' : '$(circle-outline)';
-                           
+
                 this.pipelineStatusItem.text = `${icon} Pipeline: ${currentPhase}`;
             } else {
                 this.pipelineStatusItem.text = "$(circle-outline) Pipeline: Ready";
@@ -483,24 +483,24 @@ export class EnterpriseStatusBar {
         } catch (error) {
             this.pipelineStatusItem.text = "$(alert) Pipeline: Error";
         }
-        
+
         this.pipelineStatusItem.show();
     }
-    
+
     private getRecoveryStatistics(): any {
         // Execute Python script to get recovery statistics
         const { execSync } = require('child_process');
         const result = execSync('python -c "from src.eafix.recovery.automated_recovery_system import AutomatedRecoverySystem; rs = AutomatedRecoverySystem(); import json; print(json.dumps(rs.get_recovery_statistics()))"');
         return JSON.parse(result.toString());
     }
-    
+
     private getServicesHealth(): any {
         // Execute request to service manager
         const { execSync } = require('child_process');
         const result = execSync('python -c "import requests, json; resp = requests.get(\'http://localhost:8090/health/summary\'); print(json.dumps(resp.json()))"');
         return JSON.parse(result.toString());
     }
-    
+
     public dispose() {
         this.recoveryStatusItem.dispose();
         this.servicesStatusItem.dispose();
@@ -517,49 +517,49 @@ export class EnterpriseStatusBar {
 import * as vscode from 'vscode';
 
 export class EnterpriseCommands {
-    
+
     public static registerCommands(context: vscode.ExtensionContext) {
-        
+
         // Recovery System Commands
         context.subscriptions.push(
             vscode.commands.registerCommand('enterprise.showRecoveryDashboard', () => {
                 this.showRecoveryDashboard();
             })
         );
-        
+
         context.subscriptions.push(
             vscode.commands.registerCommand('enterprise.executeRecoveryRunbook', () => {
                 this.executeRecoveryRunbook();
             })
         );
-        
+
         // Service Management Commands
         context.subscriptions.push(
             vscode.commands.registerCommand('enterprise.showServicesDashboard', () => {
-                this.showServicesDashboard(); 
+                this.showServicesDashboard();
             })
         );
-        
+
         context.subscriptions.push(
             vscode.commands.registerCommand('enterprise.restartService', () => {
                 this.restartService();
             })
         );
-        
+
         // Pipeline Commands
         context.subscriptions.push(
             vscode.commands.registerCommand('enterprise.showPipelineStatus', () => {
                 this.showPipelineStatus();
             })
         );
-        
+
         context.subscriptions.push(
             vscode.commands.registerCommand('enterprise.startPipeline', () => {
                 this.startPipeline();
             })
         );
     }
-    
+
     private static async showRecoveryDashboard() {
         const panel = vscode.window.createWebviewPanel(
             'recoveryDashboard',
@@ -567,24 +567,24 @@ export class EnterpriseCommands {
             vscode.ViewColumn.One,
             { enableScripts: true }
         );
-        
+
         panel.webview.html = this.getRecoveryDashboardHtml();
     }
-    
+
     private static async executeRecoveryRunbook() {
         const runbooks = ['database_connection_failure', 'high_cpu_usage', 'memory_exhaustion', 'service_failure'];
-        
+
         const selected = await vscode.window.showQuickPick(runbooks, {
             placeHolder: 'Select recovery runbook to execute'
         });
-        
+
         if (selected) {
             const terminal = vscode.window.createTerminal('Recovery Execution');
             terminal.sendText(`python -c "from src.eafix.recovery.automated_recovery_system import AutomatedRecoverySystem; import asyncio; rs = AutomatedRecoverySystem(); asyncio.run(rs.execute_recovery('test_${selected}', {'error_message': 'Manual execution', 'system': 'manual'}))" `);
             terminal.show();
         }
     }
-    
+
     private static getRecoveryDashboardHtml(): string {
         return `
         <!DOCTYPE html>
@@ -674,7 +674,7 @@ export class EnterpriseCommands {
     "extensions": {
         "recommendations": [
             "ms-python.python",
-            "ms-python.vscode-pylance", 
+            "ms-python.vscode-pylance",
             "charliermarsh.ruff",
             "ms-vscode.vscode-json",
             "redhat.vscode-yaml",
@@ -700,22 +700,22 @@ export class EnterpriseCommands {
 
 ### Phase 1: Basic Integration
 - [ ] Add recovery system tasks to `.vscode/tasks.json`
-- [ ] Add service management tasks  
+- [ ] Add service management tasks
 - [ ] Add predictive monitoring tasks
 - [ ] Update debug configurations in `.vscode/launch.json`
 - [ ] Test all new VS Code tasks work correctly
 
-### Phase 2: Status Bar Integration  
+### Phase 2: Status Bar Integration
 - [ ] Create VS Code extension with status bar items
 - [ ] Implement recovery status monitoring
-- [ ] Implement services health monitoring  
+- [ ] Implement services health monitoring
 - [ ] Implement pipeline status monitoring
 - [ ] Test status updates work in real-time
 
 ### Phase 3: Dashboard Integration
 - [ ] Create recovery dashboard webview
 - [ ] Create services dashboard webview
-- [ ] Create pipeline status webview  
+- [ ] Create pipeline status webview
 - [ ] Add command palette integration
 - [ ] Test all dashboards display correctly
 
@@ -732,7 +732,7 @@ export class EnterpriseCommands {
 code .
 # Ctrl+Shift+P > "Tasks: Run Task" > "Recovery: Show Statistics"
 
-# Test debug configurations  
+# Test debug configurations
 # F5 > "Debug: Recovery System"
 
 # Test status bar integration

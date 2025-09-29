@@ -35,12 +35,17 @@ class CostEstimatorAdapter(BaseAdapter):
         try:
             params = self._extract_with_params(step)
             emit_paths = self._extract_emit_paths(step)
-            workflow_path = Path(params.get("workflow", ".ai/workflows/AI_WORKFLOW_DEMO.yaml"))
+            workflow_path = Path(
+                params.get("workflow", ".ai/workflows/AI_WORKFLOW_DEMO.yaml")
+            )
 
             if not workflow_path.exists():
-                return AdapterResult(success=False, error=f"Workflow not found: {workflow_path}")
+                return AdapterResult(
+                    success=False, error=f"Workflow not found: {workflow_path}"
+                )
 
             import yaml
+
             with open(workflow_path, encoding="utf-8") as f:
                 workflow = yaml.safe_load(f) or {}
 
@@ -54,7 +59,8 @@ class CostEstimatorAdapter(BaseAdapter):
             }
 
             written = self._write_artifacts(emit_paths, artifact_obj)
-            return AdapterResult(success=True, tokens_used=0, artifacts=written, metadata=estimate)
+            return AdapterResult(
+                success=True, tokens_used=0, artifacts=written, metadata=estimate
+            )
         except Exception as e:
             return AdapterResult(success=False, error=f"cost_estimator failed: {e}")
-

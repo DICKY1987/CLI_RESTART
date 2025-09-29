@@ -3,12 +3,12 @@
 Installation Script for CLI Multi-Rapid GUI Terminal
 """
 
-import os
-import sys
-import subprocess
-import shutil
-from pathlib import Path
 import argparse
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
 
 
 class Installer:
@@ -32,15 +32,17 @@ class Installer:
         # Check PyQt6 availability
         try:
             import PyQt6
+
             print("✅ PyQt6 found")
         except ImportError:
             print("❌ PyQt6 not found. Install with: pip install PyQt6")
             return False
 
         # Check platform-specific requirements
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             try:
                 import winpty
+
                 print("✅ winpty found")
             except ImportError:
                 print("❌ winpty not found. Install with: pip install pywinpty")
@@ -48,6 +50,7 @@ class Installer:
         else:
             try:
                 import ptyprocess
+
                 print("✅ ptyprocess found")
             except ImportError:
                 print("❌ ptyprocess not found. Install with: pip install ptyprocess")
@@ -64,7 +67,7 @@ class Installer:
             self.install_root,
             self.config_dir,
             self.plugins_dir,
-            self.logs_dir
+            self.logs_dir,
         ]
 
         for directory in directories:
@@ -77,10 +80,7 @@ class Installer:
 
         config_source = Path(__file__).parent.parent / "config"
 
-        config_files = [
-            "default_config.yaml",
-            "security_policies.yaml"
-        ]
+        config_files = ["default_config.yaml", "security_policies.yaml"]
 
         for config_file in config_files:
             source = config_source / config_file
@@ -97,7 +97,7 @@ class Installer:
 
     def create_desktop_entry(self):
         """Create desktop entry (Linux/macOS)"""
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             return
 
         desktop_dir = Path.home() / ".local/share/applications"
@@ -105,7 +105,7 @@ class Installer:
 
         desktop_entry = desktop_dir / "gui-terminal.desktop"
 
-        content = f"""[Desktop Entry]
+        content = """[Desktop Entry]
 Name=CLI Multi-Rapid GUI Terminal
 Comment=Enterprise-grade GUI terminal
 Exec=gui-terminal
@@ -116,7 +116,7 @@ Categories=System;TerminalEmulator;
 Keywords=terminal;shell;command;
 """
 
-        with open(desktop_entry, 'w') as f:
+        with open(desktop_entry, "w") as f:
             f.write(content)
 
         os.chmod(desktop_entry, 0o755)
@@ -124,28 +124,28 @@ Keywords=terminal;shell;command;
 
     def create_startup_script(self):
         """Create startup script"""
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             script_path = self.install_root / "gui-terminal.bat"
-            content = f"""@echo off
+            content = """@echo off
 python -m gui_terminal.main %*
 """
         else:
             script_path = self.install_root / "gui-terminal.sh"
-            content = f"""#!/bin/bash
+            content = """#!/bin/bash
 python -m gui_terminal.main "$@"
 """
 
-        with open(script_path, 'w') as f:
+        with open(script_path, "w") as f:
             f.write(content)
 
-        if not sys.platform == 'win32':
+        if sys.platform != "win32":
             os.chmod(script_path, 0o755)
 
         print(f"✅ Created startup script: {script_path}")
 
     def install_systemd_service(self):
         """Install systemd service (Linux only)"""
-        if sys.platform != 'linux':
+        if sys.platform != "linux":
             return
 
         service_dir = Path.home() / ".config/systemd/user"
@@ -153,7 +153,7 @@ python -m gui_terminal.main "$@"
 
         service_file = service_dir / "gui-terminal.service"
 
-        content = f"""[Unit]
+        content = """[Unit]
 Description=CLI Multi-Rapid GUI Terminal
 After=graphical-session.target
 
@@ -167,7 +167,7 @@ Environment=DISPLAY=:0
 WantedBy=default.target
 """
 
-        with open(service_file, 'w') as f:
+        with open(service_file, "w") as f:
             f.write(content)
 
         print(f"✅ Created systemd service: {service_file}")
@@ -178,21 +178,21 @@ WantedBy=default.target
         print("Setting up shell integration...")
 
         shell_configs = {
-            '.bashrc': 'alias gt="gui-terminal"',
-            '.zshrc': 'alias gt="gui-terminal"',
-            '.fishrc': 'alias gt gui-terminal'
+            ".bashrc": 'alias gt="gui-terminal"',
+            ".zshrc": 'alias gt="gui-terminal"',
+            ".fishrc": "alias gt gui-terminal",
         }
 
         for config_file, alias_line in shell_configs.items():
             config_path = Path.home() / config_file
 
             if config_path.exists():
-                with open(config_path, 'r') as f:
+                with open(config_path) as f:
                     content = f.read()
 
-                if 'gui-terminal' not in content:
-                    with open(config_path, 'a') as f:
-                        f.write(f'\n# CLI Multi-Rapid GUI Terminal\n{alias_line}\n')
+                if "gui-terminal" not in content:
+                    with open(config_path, "a") as f:
+                        f.write(f"\n# CLI Multi-Rapid GUI Terminal\n{alias_line}\n")
                     print(f"✅ Added alias to: {config_file}")
                 else:
                     print(f"⚠️  Alias exists in: {config_file}")
@@ -203,8 +203,9 @@ WantedBy=default.target
 
         # Check if gui-terminal command is available
         try:
-            result = subprocess.run(['gui-terminal', '--help'],
-                                 capture_output=True, text=True, timeout=10)
+            result = subprocess.run(
+                ["gui-terminal", "--help"], capture_output=True, text=True, timeout=10
+            )
             if result.returncode == 0:
                 print("✅ gui-terminal command available")
             else:
@@ -217,7 +218,7 @@ WantedBy=default.target
         # Check configuration files
         required_configs = [
             self.config_dir / "default_config.yaml",
-            self.config_dir / "security_policies.yaml"
+            self.config_dir / "security_policies.yaml",
         ]
 
         for config_file in required_configs:
@@ -274,13 +275,13 @@ WantedBy=default.target
         desktop_entry = Path.home() / ".local/share/applications/gui-terminal.desktop"
         if desktop_entry.exists():
             desktop_entry.unlink()
-            print(f"✅ Removed desktop entry")
+            print("✅ Removed desktop entry")
 
         # Remove systemd service
         service_file = Path.home() / ".config/systemd/user/gui-terminal.service"
         if service_file.exists():
             service_file.unlink()
-            print(f"✅ Removed systemd service")
+            print("✅ Removed systemd service")
 
         print("✅ Uninstallation completed")
 
@@ -288,10 +289,12 @@ WantedBy=default.target
 def main():
     """Main installation script"""
     parser = argparse.ArgumentParser(description="GUI Terminal Installer")
-    parser.add_argument('--uninstall', action='store_true',
-                       help='Uninstall GUI Terminal')
-    parser.add_argument('--skip-checks', action='store_true',
-                       help='Skip requirement checks')
+    parser.add_argument(
+        "--uninstall", action="store_true", help="Uninstall GUI Terminal"
+    )
+    parser.add_argument(
+        "--skip-checks", action="store_true", help="Skip requirement checks"
+    )
 
     args = parser.parse_args()
 

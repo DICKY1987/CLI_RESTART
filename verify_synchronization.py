@@ -24,7 +24,7 @@ def check_file_content(
     """Check if file contains expected content."""
     try:
         if os.path.exists(filepath):
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 content = f.read()
                 if expected_content in content:
                     return True, f"[OK] {description}: Correct"

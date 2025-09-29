@@ -65,4 +65,3 @@ plugin = _Plugin()
         if lr and lr.name == "sample_plugin":
             loaded = True
     assert loaded
-

@@ -27,4 +27,3 @@ phases:
   - id: integration
     role: ipt
     tasks: ["final_merge_check", "update_main_branch"]
-

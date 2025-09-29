@@ -8,7 +8,7 @@ Enterprise-grade local development environment with comprehensive services for t
 
 ### **Core Application Stack**
 - **FastAPI API** (`localhost:8000`) - Main application with health checks and metrics
-- **PostgreSQL + pgvector** (`localhost:5432`) - Database with vector search capabilities  
+- **PostgreSQL + pgvector** (`localhost:5432`) - Database with vector search capabilities
 - **Redis** (`localhost:6379`) - Caching and quota tracking
 - **MinIO** (`localhost:9000`) - S3-compatible artifact storage
 
@@ -51,7 +51,7 @@ curl http://localhost:8000/system-status
 # Database connectivity
 curl http://localhost:8000/db-ping
 
-# Redis connectivity  
+# Redis connectivity
 curl http://localhost:8000/redis-ping
 ```
 
@@ -71,7 +71,7 @@ curl http://localhost:8000/redis-ping
 
 ### Database (PostgreSQL)
 - **User**: `postgres`
-- **Password**: `postgres` 
+- **Password**: `postgres`
 - **Database**: `cli_multi_rapid`
 
 ### MinIO
@@ -88,7 +88,7 @@ curl http://localhost:8000/redis-ping
 ```bash
 # Via Command Palette (Ctrl+Shift+P) → "Tasks: Run Task"
 - "Local Stack: Start Services"
-- "Local Stack: Stop Services" 
+- "Local Stack: Stop Services"
 - "Local Stack: View Logs"
 - "Local Stack: Health Check"
 ```
@@ -157,7 +157,7 @@ docker compose -f local/docker-compose.yml up -d
 
 The local stack integrates seamlessly with:
 - **Agentic Framework v3** - API endpoints for task execution
-- **Workflow Orchestrator** - Artifact storage and retrieval  
+- **Workflow Orchestrator** - Artifact storage and retrieval
 - **Cross-language Bridge** - Health monitoring and status
 - **VS Code Workflow System** - Debug and development tasks
 

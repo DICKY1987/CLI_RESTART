@@ -6,16 +6,17 @@ multiple parallel workflows while maintaining quality gates and preventing confl
 """
 
 import json
-from dataclasses import dataclass, asdict
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-from enum import Enum
-from datetime import datetime
 import time
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 class MergeStatus(Enum):
     """Status of items in the merge queue."""
+
     QUEUED = "queued"
     VERIFYING = "verifying"
     READY = "ready"
@@ -28,6 +29,7 @@ class MergeStatus(Enum):
 
 class VerificationLevel(Enum):
     """Verification levels for merge queue items."""
+
     MINIMAL = "minimal"
     STANDARD = "standard"
     COMPREHENSIVE = "comprehensive"
@@ -36,6 +38,7 @@ class VerificationLevel(Enum):
 @dataclass
 class MergeQueueItem:
     """Represents an item in the merge queue."""
+
     branch: str
     workflow_id: str
     priority: int = 1
@@ -68,9 +71,11 @@ class MergeQueueItem:
         gates_map = {
             VerificationLevel.MINIMAL: ["lint"],
             VerificationLevel.STANDARD: ["lint", "test"],
-            VerificationLevel.COMPREHENSIVE: ["lint", "test", "typecheck", "security"]
+            VerificationLevel.COMPREHENSIVE: ["lint", "test", "typecheck", "security"],
         }
-        return gates_map.get(self.verification_level, gates_map[VerificationLevel.STANDARD])
+        return gates_map.get(
+            self.verification_level, gates_map[VerificationLevel.STANDARD]
+        )
 
     def update_status(self, status: MergeStatus, error: Optional[str] = None):
         """Update the status of this queue item."""
@@ -83,20 +88,20 @@ class MergeQueueItem:
     def is_eligible_for_retry(self) -> bool:
         """Check if this item is eligible for retry."""
         return (
-            self.status in [MergeStatus.FAILED, MergeStatus.CONFLICT] and
-            self.attempts < self.max_attempts
+            self.status in [MergeStatus.FAILED, MergeStatus.CONFLICT]
+            and self.attempts < self.max_attempts
         )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         data = asdict(self)
         # Convert enums to strings for JSON serialization
-        data['status'] = self.status.value
-        data['verification_level'] = self.verification_level.value
+        data["status"] = self.status.value
+        data["verification_level"] = self.verification_level.value
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'MergeQueueItem':
+    def from_dict(cls, data: Dict[str, Any]) -> "MergeQueueItem":
         """Create from dictionary."""
         return cls(**data)
 
@@ -110,9 +115,14 @@ class MergeQueueManager:
         self.processing_history: List[Dict[str, Any]] = []
         self._load_queue()
 
-    def add_to_queue(self, branch: str, workflow_id: str,
-                    priority: int = 1, verification_level: str = "standard",
-                    quality_gates: Optional[List[str]] = None) -> bool:
+    def add_to_queue(
+        self,
+        branch: str,
+        workflow_id: str,
+        priority: int = 1,
+        verification_level: str = "standard",
+        quality_gates: Optional[List[str]] = None,
+    ) -> bool:
         """Add branch to merge queue."""
 
         # Check if already in queue
@@ -124,7 +134,7 @@ class MergeQueueManager:
             workflow_id=workflow_id,
             priority=priority,
             verification_level=VerificationLevel(verification_level),
-            quality_gates=quality_gates
+            quality_gates=quality_gates,
         )
 
         self.queue.append(item)
@@ -140,8 +150,13 @@ class MergeQueueManager:
                 return item
         return None
 
-    def update_item_status(self, branch: str, status: MergeStatus,
-                          error: Optional[str] = None, merge_commit: Optional[str] = None):
+    def update_item_status(
+        self,
+        branch: str,
+        status: MergeStatus,
+        error: Optional[str] = None,
+        merge_commit: Optional[str] = None,
+    ):
         """Update status of queue item."""
 
         for item in self.queue:
@@ -156,14 +171,15 @@ class MergeQueueManager:
     def remove_completed(self):
         """Remove successfully merged items from queue."""
 
-        completed_items = [item for item in self.queue if item.status == MergeStatus.MERGED]
+        completed_items = [
+            item for item in self.queue if item.status == MergeStatus.MERGED
+        ]
 
         # Archive completed items to history
         for item in completed_items:
-            self.processing_history.append({
-                "item": item.to_dict(),
-                "completed_at": datetime.now().isoformat()
-            })
+            self.processing_history.append(
+                {"item": item.to_dict(), "completed_at": datetime.now().isoformat()}
+            )
 
         # Remove from active queue
         self.queue = [item for item in self.queue if item.status != MergeStatus.MERGED]
@@ -174,16 +190,28 @@ class MergeQueueManager:
 
         status_counts = {}
         for status in MergeStatus:
-            status_counts[status.value] = len([item for item in self.queue if item.status == status])
+            status_counts[status.value] = len(
+                [item for item in self.queue if item.status == status]
+            )
 
         return {
             "total_items": len(self.queue),
             "status_breakdown": status_counts,
             "next_item": self.get_next_item().branch if self.get_next_item() else None,
-            "queue_length": len([item for item in self.queue if item.status == MergeStatus.QUEUED]),
-            "processing_items": len([item for item in self.queue if item.status in [MergeStatus.VERIFYING, MergeStatus.MERGING]]),
-            "failed_items": len([item for item in self.queue if item.status == MergeStatus.FAILED]),
-            "last_updated": datetime.now().isoformat()
+            "queue_length": len(
+                [item for item in self.queue if item.status == MergeStatus.QUEUED]
+            ),
+            "processing_items": len(
+                [
+                    item
+                    for item in self.queue
+                    if item.status in [MergeStatus.VERIFYING, MergeStatus.MERGING]
+                ]
+            ),
+            "failed_items": len(
+                [item for item in self.queue if item.status == MergeStatus.FAILED]
+            ),
+            "last_updated": datetime.now().isoformat(),
         }
 
     def retry_failed_items(self) -> List[str]:
@@ -263,11 +291,14 @@ class MergeQueueManager:
 
         if self.queue_file.exists():
             try:
-                with open(self.queue_file, 'r') as f:
+                with open(self.queue_file) as f:
                     data = json.load(f)
 
                     # Load queue items
-                    self.queue = [MergeQueueItem.from_dict(item_data) for item_data in data.get("queue", [])]
+                    self.queue = [
+                        MergeQueueItem.from_dict(item_data)
+                        for item_data in data.get("queue", [])
+                    ]
 
                     # Load processing history
                     self.processing_history = data.get("processing_history", [])
@@ -285,10 +316,10 @@ class MergeQueueManager:
         queue_data = {
             "queue": [item.to_dict() for item in self.queue],
             "processing_history": self.processing_history,
-            "last_updated": datetime.now().isoformat()
+            "last_updated": datetime.now().isoformat(),
         }
 
-        with open(self.queue_file, 'w') as f:
+        with open(self.queue_file, "w") as f:
             json.dump(queue_data, f, indent=2)
 
 
@@ -325,23 +356,21 @@ class MergeQueueProcessor:
                     self.manager.update_item_status(
                         item.branch,
                         MergeStatus.MERGED,
-                        merge_commit=result.get("merge_commit")
+                        merge_commit=result.get("merge_commit"),
                     )
                 else:
                     self.manager.update_item_status(
-                        item.branch,
-                        MergeStatus.FAILED,
-                        error=result.get("error")
+                        item.branch, MergeStatus.FAILED, error=result.get("error")
                     )
 
             except Exception as e:
                 error_msg = f"Processing exception: {str(e)}"
-                self.manager.update_item_status(item.branch, MergeStatus.FAILED, error=error_msg)
-                results.append({
-                    "branch": item.branch,
-                    "success": False,
-                    "error": error_msg
-                })
+                self.manager.update_item_status(
+                    item.branch, MergeStatus.FAILED, error=error_msg
+                )
+                results.append(
+                    {"branch": item.branch, "success": False, "error": error_msg}
+                )
 
             processed_count += 1
 
@@ -358,7 +387,7 @@ class MergeQueueProcessor:
             queue_config = {
                 "branches": [item.branch],
                 "verification_level": item.verification_level.value,
-                "quality_gates": item.quality_gates
+                "quality_gates": item.quality_gates,
             }
 
             merge_results = self.git_ops.execute_merge_queue(queue_config)
@@ -371,7 +400,7 @@ class MergeQueueProcessor:
                     "merge_commit": result.get("merge_commit"),
                     "error": result.get("error"),
                     "gates": result.get("gates", []),
-                    "timestamp": result.get("timestamp")
+                    "timestamp": result.get("timestamp"),
                 }
 
         # Mock processing for testing
@@ -380,15 +409,15 @@ class MergeQueueProcessor:
             "success": True,
             "merge_commit": f"mock_commit_{int(time.time())}",
             "gates": [{"gate": gate, "success": True} for gate in item.quality_gates],
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 
 # Export main classes
 __all__ = [
-    'MergeStatus',
-    'VerificationLevel',
-    'MergeQueueItem',
-    'MergeQueueManager',
-    'MergeQueueProcessor'
+    "MergeStatus",
+    "VerificationLevel",
+    "MergeQueueItem",
+    "MergeQueueManager",
+    "MergeQueueProcessor",
 ]

@@ -6,7 +6,9 @@ from typing import Any, Dict, Optional
 from .cost_tracker import record_gdw_cost
 
 
-def run_gdw(spec_path: Path, inputs: Optional[Dict[str, Any]] = None, dry_run: bool = True) -> Dict[str, Any]:
+def run_gdw(
+    spec_path: Path, inputs: Optional[Dict[str, Any]] = None, dry_run: bool = True
+) -> Dict[str, Any]:
     """Run a minimal GDW workflow.
 
     This is a lightweight stub to satisfy benchmark and integration tests.
@@ -29,4 +31,3 @@ def run_gdw(spec_path: Path, inputs: Optional[Dict[str, Any]] = None, dry_run: b
         "dry_run": bool(dry_run),
         "inputs": inputs,
     }
-

@@ -3,21 +3,23 @@ Security Policy Manager
 Enterprise-grade security policy enforcement and compliance monitoring
 """
 
+import logging
 import os
 import re
 import time
-import yaml
-import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any, Set
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import yaml
 
 logger = logging.getLogger(__name__)
 
 
 class ThreatLevel(Enum):
     """Security threat level classification"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -26,6 +28,7 @@ class ThreatLevel(Enum):
 
 class ViolationType(Enum):
     """Security violation types"""
+
     COMMAND_BLOCKED = "command_blocked"
     PATTERN_DETECTED = "pattern_detected"
     PATH_TRAVERSAL = "path_traversal"
@@ -38,6 +41,7 @@ class ViolationType(Enum):
 @dataclass
 class SecurityViolation:
     """Security violation record"""
+
     violation_type: ViolationType
     threat_level: ThreatLevel
     command: str
@@ -52,6 +56,7 @@ class SecurityViolation:
 @dataclass
 class ComplianceRule:
     """Compliance rule definition"""
+
     rule_id: str
     name: str
     description: str
@@ -65,6 +70,7 @@ class ComplianceRule:
 @dataclass
 class ProcessLimits:
     """Process resource limits"""
+
     max_memory_mb: int = 512
     max_cpu_percent: float = 50.0
     max_execution_time: int = 300
@@ -110,14 +116,37 @@ class SecurityPolicyManager:
             "command_filtering": {
                 "mode": "whitelist",
                 "allowed_commands": [
-                    "ls", "dir", "pwd", "cd", "echo", "cat", "type", "grep", "find",
-                    "python", "pip", "git", "node", "npm", "docker", "kubectl",
-                    "cli-multi-rapid"
+                    "ls",
+                    "dir",
+                    "pwd",
+                    "cd",
+                    "echo",
+                    "cat",
+                    "type",
+                    "grep",
+                    "find",
+                    "python",
+                    "pip",
+                    "git",
+                    "node",
+                    "npm",
+                    "docker",
+                    "kubectl",
+                    "cli-multi-rapid",
                 ],
                 "blocked_commands": [
-                    "rm", "del", "format", "fdisk", "dd", "mkfs", "sudo", "su",
-                    "chmod 777", "chown", "passwd"
-                ]
+                    "rm",
+                    "del",
+                    "format",
+                    "fdisk",
+                    "dd",
+                    "mkfs",
+                    "sudo",
+                    "su",
+                    "chmod 777",
+                    "chown",
+                    "passwd",
+                ],
             },
             "resource_limits": {
                 "enforce": True,
@@ -125,48 +154,46 @@ class SecurityPolicyManager:
                 "max_memory_mb": 512,
                 "max_cpu_percent": 50,
                 "max_execution_time": 300,
-                "max_file_size_mb": 100
+                "max_file_size_mb": 100,
             },
             "audit_logging": {
                 "enabled": True,
                 "log_commands": True,
                 "log_file_access": True,
                 "log_network_access": True,
-                "integrity_check": True
+                "integrity_check": True,
             },
             "network_access": {
-                "allowed_domains": [
-                    "github.com", "pypi.org", "npmjs.com"
-                ],
+                "allowed_domains": ["github.com", "pypi.org", "npmjs.com"],
                 "blocked_domains": [],
-                "allow_localhost": True
+                "allow_localhost": True,
             },
             "file_system": {
                 "restricted_paths": [
-                    "/etc/passwd", "/etc/shadow", "C:\\Windows\\System32"
+                    "/etc/passwd",
+                    "/etc/shadow",
+                    "C:\\Windows\\System32",
                 ],
-                "allowed_paths": [
-                    "/home", "/tmp", "C:\\Users"
-                ]
+                "allowed_paths": ["/home", "/tmp", "C:\\Users"],
             },
             "compliance_rules": {
                 "prevent_privilege_escalation": {
                     "enabled": True,
                     "patterns": ["sudo", "su", "runas"],
                     "severity": "critical",
-                    "action": "block"
+                    "action": "block",
                 },
                 "prevent_destructive_commands": {
                     "enabled": True,
                     "patterns": ["rm -rf", "del /f /s /q", "format", "fdisk"],
                     "severity": "high",
-                    "action": "block"
-                }
-            }
+                    "action": "block",
+                },
+            },
         }
 
         try:
-            with open(policy_file, 'w') as f:
+            with open(policy_file, "w") as f:
                 yaml.dump(default_policy, f, default_flow_style=False, indent=2)
             logger.info(f"Created default security policy: {policy_file}")
         except Exception as e:
@@ -179,45 +206,45 @@ class SecurityPolicyManager:
                 logger.warning(f"Policy file not found: {self.policy_path}")
                 return
 
-            with open(self.policy_path, 'r') as f:
+            with open(self.policy_path) as f:
                 policies = yaml.safe_load(f)
 
             # Load command filtering
-            cmd_filter = policies.get('command_filtering', {})
-            self.command_mode = cmd_filter.get('mode', 'whitelist')
-            self.allowed_commands = set(cmd_filter.get('allowed_commands', []))
-            self.blocked_commands = set(cmd_filter.get('blocked_commands', []))
+            cmd_filter = policies.get("command_filtering", {})
+            self.command_mode = cmd_filter.get("mode", "whitelist")
+            self.allowed_commands = set(cmd_filter.get("allowed_commands", []))
+            self.blocked_commands = set(cmd_filter.get("blocked_commands", []))
 
             # Load resource limits
-            limits = policies.get('resource_limits', {})
+            limits = policies.get("resource_limits", {})
             self.process_limits = ProcessLimits(
-                max_memory_mb=limits.get('max_memory_mb', 512),
-                max_cpu_percent=limits.get('max_cpu_percent', 50),
-                max_execution_time=limits.get('max_execution_time', 300),
-                max_processes=limits.get('max_processes', 10)
+                max_memory_mb=limits.get("max_memory_mb", 512),
+                max_cpu_percent=limits.get("max_cpu_percent", 50),
+                max_execution_time=limits.get("max_execution_time", 300),
+                max_processes=limits.get("max_processes", 10),
             )
 
             # Load compliance rules
-            rules = policies.get('compliance_rules', {})
+            rules = policies.get("compliance_rules", {})
             for rule_id, rule_data in rules.items():
                 self.compliance_rules[rule_id] = ComplianceRule(
                     rule_id=rule_id,
-                    name=rule_data.get('name', rule_id),
-                    description=rule_data.get('description', ''),
-                    enabled=rule_data.get('enabled', True),
-                    violation_patterns=rule_data.get('patterns', []),
-                    severity=ThreatLevel(rule_data.get('severity', 'medium')),
-                    action=rule_data.get('action', 'block')
+                    name=rule_data.get("name", rule_id),
+                    description=rule_data.get("description", ""),
+                    enabled=rule_data.get("enabled", True),
+                    violation_patterns=rule_data.get("patterns", []),
+                    severity=ThreatLevel(rule_data.get("severity", "medium")),
+                    action=rule_data.get("action", "block"),
                 )
 
             # Setup dangerous patterns
             self.dangerous_patterns = [
-                r'[;&|`$()]',  # Shell metacharacters
-                r'\.\./.*',    # Directory traversal
-                r'--?password', # Password arguments
-                r'sudo|su|runas',    # Privilege escalation
-                r'rm\s+-rf',   # Dangerous rm
-                r'del\s+/[fqsr]',  # Dangerous del
+                r"[;&|`$()]",  # Shell metacharacters
+                r"\.\./.*",  # Directory traversal
+                r"--?password",  # Password arguments
+                r"sudo|su|runas",  # Privilege escalation
+                r"rm\s+-rf",  # Dangerous rm
+                r"del\s+/[fqsr]",  # Dangerous del
             ]
 
             logger.info(f"Security policies loaded from: {self.policy_path}")
@@ -225,8 +252,14 @@ class SecurityPolicyManager:
         except Exception as e:
             logger.error(f"Failed to load security policies: {e}")
 
-    def validate_command(self, command: str, args: List[str], cwd: str,
-                        user_id: str = "default", session_id: str = "default") -> Tuple[bool, List[str]]:
+    def validate_command(
+        self,
+        command: str,
+        args: List[str],
+        cwd: str,
+        user_id: str = "default",
+        session_id: str = "default",
+    ) -> Tuple[bool, List[str]]:
         """Validate command against security policies"""
         violations = []
         full_command = f"{command} {' '.join(args)}".strip()
@@ -240,7 +273,7 @@ class SecurityPolicyManager:
                     command=full_command,
                     description=f"Command '{command}' not in allowed list",
                     user_id=user_id,
-                    session_id=session_id
+                    session_id=session_id,
                 )
                 self.violations_log.append(violation)
                 violations.append(violation.description)
@@ -252,7 +285,7 @@ class SecurityPolicyManager:
                 command=full_command,
                 description=f"Command '{command}' is blocked",
                 user_id=user_id,
-                session_id=session_id
+                session_id=session_id,
             )
             self.violations_log.append(violation)
             violations.append(violation.description)
@@ -266,7 +299,7 @@ class SecurityPolicyManager:
                     command=full_command,
                     description=f"Dangerous pattern detected: {pattern}",
                     user_id=user_id,
-                    session_id=session_id
+                    session_id=session_id,
                 )
                 self.violations_log.append(violation)
                 violations.append(violation.description)
@@ -283,7 +316,7 @@ class SecurityPolicyManager:
                             description=f"Compliance violation ({rule_id}): {rule.description}",
                             user_id=user_id,
                             session_id=session_id,
-                            blocked=rule.action == "block"
+                            blocked=rule.action == "block",
                         )
                         self.violations_log.append(violation)
                         if rule.action == "block":
@@ -298,7 +331,7 @@ class SecurityPolicyManager:
                     command=full_command,
                     description=f"Working directory does not exist: {cwd}",
                     user_id=user_id,
-                    session_id=session_id
+                    session_id=session_id,
                 )
                 self.violations_log.append(violation)
                 violations.append(violation.description)
@@ -310,34 +343,41 @@ class SecurityPolicyManager:
 
         return len(violations) == 0, violations
 
-    def validate_resource_usage(self, memory_mb: float, cpu_percent: float,
-                              execution_time: float) -> Tuple[bool, List[str]]:
+    def validate_resource_usage(
+        self, memory_mb: float, cpu_percent: float, execution_time: float
+    ) -> Tuple[bool, List[str]]:
         """Validate resource usage against limits"""
         violations = []
 
         if memory_mb > self.process_limits.max_memory_mb:
-            violations.append(f"Memory usage ({memory_mb:.1f}MB) exceeds limit ({self.process_limits.max_memory_mb}MB)")
+            violations.append(
+                f"Memory usage ({memory_mb:.1f}MB) exceeds limit ({self.process_limits.max_memory_mb}MB)"
+            )
 
         if cpu_percent > self.process_limits.max_cpu_percent:
-            violations.append(f"CPU usage ({cpu_percent:.1f}%) exceeds limit ({self.process_limits.max_cpu_percent}%)")
+            violations.append(
+                f"CPU usage ({cpu_percent:.1f}%) exceeds limit ({self.process_limits.max_cpu_percent}%)"
+            )
 
         if execution_time > self.process_limits.max_execution_time:
-            violations.append(f"Execution time ({execution_time:.1f}s) exceeds limit ({self.process_limits.max_execution_time}s)")
+            violations.append(
+                f"Execution time ({execution_time:.1f}s) exceeds limit ({self.process_limits.max_execution_time}s)"
+            )
 
         return len(violations) == 0, violations
 
     def sanitize_command(self, command: str, args: List[str]) -> Tuple[str, List[str]]:
         """Sanitize command arguments"""
         # Remove dangerous characters from command
-        sanitized_command = re.sub(r'[;\|\&`$()]', '', command)
+        sanitized_command = re.sub(r"[;\|\&`$()]", "", command)
 
         # Remove dangerous characters from arguments
         sanitized_args = []
         for arg in args:
             # Remove null bytes and control characters
-            sanitized_arg = re.sub(r'[\x00-\x1f\x7f]', '', arg)
+            sanitized_arg = re.sub(r"[\x00-\x1f\x7f]", "", arg)
             # Remove dangerous shell metacharacters
-            sanitized_arg = re.sub(r'[;\|\&`$()]', '', sanitized_arg)
+            sanitized_arg = re.sub(r"[;\|\&`$()]", "", sanitized_arg)
             sanitized_args.append(sanitized_arg)
 
         return sanitized_command, sanitized_args
@@ -350,8 +390,10 @@ class SecurityPolicyManager:
             # Check against restricted paths
             # This would be loaded from policy file
             restricted_paths = [
-                "/etc/passwd", "/etc/shadow",
-                "C:\\Windows\\System32", "C:\\Windows\\SysWOW64"
+                "/etc/passwd",
+                "/etc/shadow",
+                "C:\\Windows\\System32",
+                "C:\\Windows\\SysWOW64",
             ]
 
             for restricted in restricted_paths:
@@ -376,22 +418,26 @@ class SecurityPolicyManager:
         # Get recent violations (last 10)
         recent = []
         for violation in self.violations_log[-10:]:
-            recent.append({
-                "type": violation.violation_type.value,
-                "command": violation.command,
-                "description": violation.description,
-                "timestamp": violation.timestamp,
-                "blocked": violation.blocked
-            })
+            recent.append(
+                {
+                    "type": violation.violation_type.value,
+                    "command": violation.command,
+                    "description": violation.description,
+                    "timestamp": violation.timestamp,
+                    "blocked": violation.blocked,
+                }
+            )
 
-        return {
-            "total": len(self.violations_log),
-            "by_type": by_type,
-            "recent": recent
-        }
+        return {"total": len(self.violations_log), "by_type": by_type, "recent": recent}
 
-    def _log_audit_event(self, command: str, cwd: str, user_id: str,
-                        session_id: str, violations: List[str]):
+    def _log_audit_event(
+        self,
+        command: str,
+        cwd: str,
+        user_id: str,
+        session_id: str,
+        violations: List[str],
+    ):
         """Log audit event for compliance"""
         audit_entry = {
             "timestamp": time.time(),
@@ -402,7 +448,7 @@ class SecurityPolicyManager:
             "working_directory": cwd,
             "violations_count": len(violations),
             "violations": violations,
-            "allowed": len(violations) == 0
+            "allowed": len(violations) == 0,
         }
 
         # Log to audit logger (would be handled by AuditLogger class)
@@ -441,18 +487,20 @@ class SecurityPolicyManager:
         try:
             violations_data = []
             for violation in self.violations_log:
-                violations_data.append({
-                    "violation_type": violation.violation_type.value,
-                    "threat_level": violation.threat_level.value,
-                    "command": violation.command,
-                    "description": violation.description,
-                    "timestamp": violation.timestamp,
-                    "user_id": violation.user_id,
-                    "session_id": violation.session_id,
-                    "blocked": violation.blocked
-                })
+                violations_data.append(
+                    {
+                        "violation_type": violation.violation_type.value,
+                        "threat_level": violation.threat_level.value,
+                        "command": violation.command,
+                        "description": violation.description,
+                        "timestamp": violation.timestamp,
+                        "user_id": violation.user_id,
+                        "session_id": violation.session_id,
+                        "blocked": violation.blocked,
+                    }
+                )
 
-            with open(export_path, 'w') as f:
+            with open(export_path, "w") as f:
                 yaml.dump(violations_data, f, default_flow_style=False, indent=2)
 
             logger.info(f"Violations exported to: {export_path}")
@@ -472,6 +520,6 @@ class SecurityPolicyManager:
             "resource_limits": {
                 "max_memory_mb": self.process_limits.max_memory_mb,
                 "max_cpu_percent": self.process_limits.max_cpu_percent,
-                "max_execution_time": self.process_limits.max_execution_time
-            }
+                "max_execution_time": self.process_limits.max_execution_time,
+            },
         }

@@ -11,4 +11,3 @@ labels: incident
 **Timeline**
 
 **Mitigation**
-

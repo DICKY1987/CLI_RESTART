@@ -9,7 +9,7 @@ import json
 import secrets
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 try:
     import jwt

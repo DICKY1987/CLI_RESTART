@@ -14,7 +14,7 @@
     "terminal.integrated.env.windows": {
       "WORKFLOW_SESSION": "active",
       "CLI_MULTI_RAPID_MODE": "workflow",
-      "PYTHONPATH": "${workspaceFolder}/src;${workspaceFolder};${workspaceFolder}/eafix-modular"
+      "PYTHONPATH": "${workspaceFolder}/src;${workspaceFolder}"
     },
     "workbench.colorCustomizations": {
       "statusBar.background": "#0066cc",
@@ -32,7 +32,7 @@
       {
         "text": "Stream Operations",
         "tooltip": "Execute workflow streams",
-        "command": "workbench.action.tasks.runTask", 
+        "command": "workbench.action.tasks.runTask",
         "arguments": "🏗️ CLI: Run Stream A (Foundation)"
       }
     ],
@@ -61,7 +61,7 @@
         "args": [
           "-NoProfile",
           "-Command",
-          "cd '${workspaceFolder}'; Write-Host '🚀 PowerShell Workflow Terminal Ready!' -ForegroundColor Green; Write-Host 'Use: .\\Launch-Workflow-VSCode.ps1 for additional instances' -ForegroundColor Cyan"
+          "cd '${workspaceFolder}'; Write-Host '🚀 PowerShell Workflow Terminal Ready!' -ForegroundColor Green; Write-Host 'Use: .\Launch-Workflow-VSCode.ps1 for additional instances' -ForegroundColor Cyan"
         ]
       }
     }
@@ -85,7 +85,7 @@
       },
       {
         "label": "📋 List All Workflow Streams",
-        "type": "shell", 
+        "type": "shell",
         "command": "cli-multi-rapid phase stream list",
         "group": "build",
         "presentation": {
@@ -154,7 +154,7 @@
       },
       {
         "name": "📋 Debug Stream Execution",
-        "type": "python", 
+        "type": "python",
         "request": "launch",
         "program": "src/cli_multi_rapid/cli.py",
         "args": ["phase", "stream", "run", "stream-a", "--dry", "--verbose"],

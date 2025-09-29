@@ -9,4 +9,3 @@ if (Test-Path .githooks\pre-push) {
 }
 
 Write-Host "Done. Hooks path set to .githooks"
-

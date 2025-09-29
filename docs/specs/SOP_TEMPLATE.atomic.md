@@ -47,4 +47,3 @@ Brief description of what happens.
 ## Flows
 - **happy_path:** [{STEP.ID}, ...]
 - **alternate:** [...]
-

@@ -1,9 +1,9 @@
-import os
-import sys
-import time
 import json
+import os
 import socket
 import subprocess
+import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -13,7 +13,9 @@ def _spawn_server(env):
     repo = Path(__file__).resolve().parents[1]
     py = sys.executable
     server = repo / "gui_terminal" / "tools" / "gui_test_server.py"
-    return subprocess.Popen([py, str(server)], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return subprocess.Popen(
+        [py, str(server)], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
 
 
 def _rpc(obj):
@@ -26,7 +28,10 @@ def _rpc(obj):
     return json.loads(data.decode("utf-8"))
 
 
-@pytest.mark.skipif(os.environ.get("GUI_PARITY") != "1", reason="GUI parity tests disabled; set GUI_PARITY=1 to enable")
+@pytest.mark.skipif(
+    os.environ.get("GUI_PARITY") != "1",
+    reason="GUI parity tests disabled; set GUI_PARITY=1 to enable",
+)
 def test_exit_code_posix_only():
     if os.name == "nt":
         pytest.skip("Exit code verification limited to POSIX for now")
@@ -37,7 +42,9 @@ def test_exit_code_posix_only():
 
     repo = Path(__file__).resolve().parents[1]
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(repo / "gui_terminal" / "src") + os.pathsep + env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = (
+        str(repo / "gui_terminal" / "src") + os.pathsep + env.get("PYTHONPATH", "")
+    )
     env.setdefault("QT_QPA_PLATFORM", "offscreen")
 
     p = _spawn_server(env)
@@ -56,4 +63,3 @@ def test_exit_code_posix_only():
         assert found, evs
     finally:
         p.kill()
-

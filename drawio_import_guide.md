@@ -32,7 +32,7 @@ I've created draw.io compatible XML files for your trading system architecture d
 ### Complete Architecture (`trading_system_drawio.xml`)
 - **Color-coded components** by function:
   - 🔵 **Blue**: Main applications (GUI, CLI)
-  - 🟣 **Purple**: Core business logic 
+  - 🟣 **Purple**: Core business logic
   - 🔴 **Red**: Guardian protection system
   - 🟢 **Green**: Signal processing
   - 🟠 **Orange**: Technical indicators

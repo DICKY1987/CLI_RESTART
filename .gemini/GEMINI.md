@@ -39,7 +39,7 @@ You are operating inside the **CLI Multi-Rapid Enterprise Orchestration Platform
 
 ### **AI Service Routing Logic**
 - **Simple tasks** → Gemini CLI (free tier, 1000 daily requests)
-- **Moderate tasks** → Aider Local or Gemini based on availability  
+- **Moderate tasks** → Aider Local or Gemini based on availability
 - **Complex tasks** → Claude Code (premium, 25 daily requests with cost warnings)
 - **Fallback** → Ollama local for unlimited usage when quotas exceeded
 

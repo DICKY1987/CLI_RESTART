@@ -25,4 +25,3 @@ Configuration Tips
 Deployment Notes
 - For packaging as a standalone tool, create a separate `pyproject.toml` in `gui_terminal/` and publish to your package index; not included here to avoid impacting the main build.
 - Containerization: install requirements and run the module with `PYTHONPATH=gui_terminal/src`.
-

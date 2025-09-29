@@ -65,7 +65,7 @@ interface WorkflowDashboard {
     selectionReason: string;
     estimatedCost: number;
   };
-  
+
   taskQueue: TaskStatus[];
   completedTasks: TaskHistory[];
 }
@@ -87,7 +87,7 @@ interface CostDashboard {
     byService: { [service: string]: number };
     transactionHistory: CostTransaction[];
   };
-  
+
   quotaStatus: {
     [service: string]: {
       used: number;
@@ -95,7 +95,7 @@ interface CostDashboard {
       resetTime: Date;
     };
   };
-  
+
   projections: {
     dailyTrend: number;
     monthlyEstimate: number;
@@ -125,7 +125,7 @@ interface ToolIntelligence {
       performance: number;
     };
   };
-  
+
   alternatives: {
     tool: string;
     reason: string;
@@ -188,16 +188,16 @@ interface ToolIntelligence {
 class EnhancedTerminalTab(TerminalTab):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         # Add cost tracking widget
         self.cost_widget = CostTrackingWidget()
-        
-        # Add tool status widget  
+
+        # Add tool status widget
         self.tool_widget = ToolStatusWidget()
-        
+
         # Add progress indicator
         self.progress_widget = ProgressIndicatorWidget()
-        
+
         # Wire up to existing layout
         self.status_layout.addWidget(self.cost_widget)
         self.status_layout.addWidget(self.tool_widget)

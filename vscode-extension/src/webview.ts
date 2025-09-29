@@ -33,4 +33,3 @@ export function openCockpitPanel(context: vscode.ExtensionContext) {
 
     return panel;
 }
-

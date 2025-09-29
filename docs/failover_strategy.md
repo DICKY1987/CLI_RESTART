@@ -9,4 +9,3 @@ Behavior
 
 Audit
 - Reroute decisions with reasons should be appended to `state/audit.jsonl`.
-

@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-
 STATE_PATH = Path(".ai/state.json")
 
 
@@ -22,4 +21,3 @@ def write_state(data: Dict[str, Any]) -> None:
     tmp = STATE_PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
     tmp.replace(STATE_PATH)
-

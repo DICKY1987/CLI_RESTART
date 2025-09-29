@@ -3,11 +3,10 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List
-
-import sys
 
 try:
     import yaml  # type: ignore
@@ -19,7 +18,11 @@ def run_cmd(cmd: List[str], timeout: float = 5.0) -> Dict[str, Any]:
     t0 = time.time()
     try:
         proc = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, text=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+            text=True,
         )
         out = proc.stdout.strip()
         return {
@@ -29,9 +32,19 @@ def run_cmd(cmd: List[str], timeout: float = 5.0) -> Dict[str, Any]:
             "latency_ms": int((time.time() - t0) * 1000),
         }
     except FileNotFoundError as e:
-        return {"ok": False, "code": 127, "output": str(e), "latency_ms": int((time.time() - t0) * 1000)}
+        return {
+            "ok": False,
+            "code": 127,
+            "output": str(e),
+            "latency_ms": int((time.time() - t0) * 1000),
+        }
     except subprocess.TimeoutExpired as e:
-        return {"ok": False, "code": 124, "output": f"timeout: {e}", "latency_ms": int((time.time() - t0) * 1000)}
+        return {
+            "ok": False,
+            "code": 124,
+            "output": f"timeout: {e}",
+            "latency_ms": int((time.time() - t0) * 1000),
+        }
 
 
 def load_tools_cfg(path: Path) -> Dict[str, Any]:
@@ -61,8 +74,16 @@ def main() -> int:
         caps = t.get("capabilities", [])
         cost_hint = t.get("cost_hint")
 
-        vres = run_cmd(version_cmd) if version_cmd else {"ok": False, "output": "no version_cmd"}
-        hres = run_cmd(health_cmd) if health_cmd else {"ok": False, "output": "no health_cmd"}
+        vres = (
+            run_cmd(version_cmd)
+            if version_cmd
+            else {"ok": False, "output": "no version_cmd"}
+        )
+        hres = (
+            run_cmd(health_cmd)
+            if health_cmd
+            else {"ok": False, "output": "no health_cmd"}
+        )
         status = "healthy" if hres.get("ok") else "unhealthy"
         results.append(
             {

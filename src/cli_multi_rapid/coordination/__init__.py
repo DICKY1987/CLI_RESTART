@@ -5,17 +5,18 @@ This module provides the core coordination infrastructure for multi-agent
 workflow orchestration, including file scope conflict detection and resolution.
 """
 
-from dataclasses import dataclass
-from typing import Dict, List, Set, Optional, Any
-from pathlib import Path
 import fnmatch
 import hashlib
 import time
+from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 
 class CoordinationMode(Enum):
     """Workflow coordination modes."""
+
     SEQUENTIAL = "sequential"
     PARALLEL = "parallel"
     IPT_WT = "ipt_wt"
@@ -24,6 +25,7 @@ class CoordinationMode(Enum):
 
 class ScopeMode(Enum):
     """File scope access modes."""
+
     EXCLUSIVE = "exclusive"
     SHARED = "shared"
     READ_ONLY = "read-only"
@@ -32,6 +34,7 @@ class ScopeMode(Enum):
 @dataclass
 class FileClaim:
     """Represents a file scope claim by a workflow."""
+
     workflow_id: str
     file_patterns: List[str]
     mode: ScopeMode = ScopeMode.EXCLUSIVE
@@ -46,6 +49,7 @@ class FileClaim:
 @dataclass
 class ScopeConflict:
     """Represents a conflict between file scope claims."""
+
     workflow_ids: List[str]
     conflicting_patterns: List[str]
     conflict_type: str  # "exclusive_overlap", "priority_collision"
@@ -55,6 +59,7 @@ class ScopeConflict:
 @dataclass
 class CoordinationPlan:
     """Plan for coordinating multiple workflows."""
+
     file_claims: List[FileClaim]
     execution_order: List[str] = None
     parallel_groups: List[List[str]] = None
@@ -76,9 +81,14 @@ class FileScopeManager:
         self.active_claims: Dict[str, FileClaim] = {}
         self.claim_history: List[FileClaim] = []
 
-    def claim_files(self, workflow_id: str, file_patterns: List[str],
-                   mode: ScopeMode = ScopeMode.EXCLUSIVE, priority: int = 1,
-                   phase_id: Optional[str] = None) -> bool:
+    def claim_files(
+        self,
+        workflow_id: str,
+        file_patterns: List[str],
+        mode: ScopeMode = ScopeMode.EXCLUSIVE,
+        priority: int = 1,
+        phase_id: Optional[str] = None,
+    ) -> bool:
         """Claim file patterns for a workflow."""
 
         claim = FileClaim(workflow_id, file_patterns, mode, priority, phase_id)
@@ -96,13 +106,15 @@ class FileScopeManager:
         conflicts = []
 
         for i, claim1 in enumerate(claims):
-            for claim2 in claims[i+1:]:
+            for claim2 in claims[i + 1 :]:
                 if self._claims_conflict(claim1, claim2):
-                    conflicts.append(ScopeConflict(
-                        workflow_ids=[claim1.workflow_id, claim2.workflow_id],
-                        conflicting_patterns=self._get_overlap(claim1, claim2),
-                        conflict_type="exclusive_overlap"
-                    ))
+                    conflicts.append(
+                        ScopeConflict(
+                            workflow_ids=[claim1.workflow_id, claim2.workflow_id],
+                            conflicting_patterns=self._get_overlap(claim1, claim2),
+                            conflict_type="exclusive_overlap",
+                        )
+                    )
 
         return conflicts
 
@@ -121,11 +133,18 @@ class FileScopeManager:
 
         for existing_claim in self.active_claims.values():
             if self._claims_conflict(new_claim, existing_claim):
-                conflicts.append(ScopeConflict(
-                    workflow_ids=[new_claim.workflow_id, existing_claim.workflow_id],
-                    conflicting_patterns=self._get_overlap(new_claim, existing_claim),
-                    conflict_type="exclusive_overlap"
-                ))
+                conflicts.append(
+                    ScopeConflict(
+                        workflow_ids=[
+                            new_claim.workflow_id,
+                            existing_claim.workflow_id,
+                        ],
+                        conflicting_patterns=self._get_overlap(
+                            new_claim, existing_claim
+                        ),
+                        conflict_type="exclusive_overlap",
+                    )
+                )
 
         return conflicts
 
@@ -143,6 +162,7 @@ class FileScopeManager:
 
     def _patterns_overlap(self, pattern1: str, pattern2: str) -> bool:
         """Check if two file patterns overlap."""
+
         # Convert patterns to normalized paths for comparison
         def normalize_pattern(pattern: str) -> Path:
             # Remove glob patterns for path comparison
@@ -162,7 +182,9 @@ class FileScopeManager:
                 return True
             except ValueError:
                 # Check for exact pattern matches using fnmatch
-                return fnmatch.fnmatch(pattern1, pattern2) or fnmatch.fnmatch(pattern2, pattern1)
+                return fnmatch.fnmatch(pattern1, pattern2) or fnmatch.fnmatch(
+                    pattern2, pattern1
+                )
 
     def _get_overlap(self, claim1: FileClaim, claim2: FileClaim) -> List[str]:
         """Get overlapping patterns between two claims."""
@@ -179,6 +201,7 @@ class FileScopeManager:
 @dataclass
 class ExecutionStatus:
     """Status of workflow execution coordination."""
+
     coordination_id: str
     active_workflows: int = 0
     completed_workflows: int = 0
@@ -190,6 +213,7 @@ class ExecutionStatus:
 @dataclass
 class DependencyNode:
     """Node in the workflow dependency graph."""
+
     id: str
     workflow_id: str
     phase_id: Optional[str] = None
@@ -204,6 +228,7 @@ class DependencyNode:
 @dataclass
 class DependencyGraph:
     """Dependency graph for workflow coordination."""
+
     nodes: Dict[str, DependencyNode] = None
     execution_order: List[List[str]] = None  # Groups that can run in parallel
 
@@ -221,36 +246,38 @@ class WorkflowCoordinator:
         self.scope_manager = FileScopeManager()
         self.active_coordinations: Dict[str, Dict[str, Any]] = {}
 
-    def create_coordination_plan(self, workflows: List[Dict[str, Any]]) -> CoordinationPlan:
+    def create_coordination_plan(
+        self, workflows: List[Dict[str, Any]]
+    ) -> CoordinationPlan:
         """Create coordination plan for workflow execution."""
 
         file_claims = []
 
         # Extract file scope from workflow phases or metadata
         for workflow in workflows:
-            workflow_id = workflow.get('name', 'unnamed_workflow')
+            workflow_id = workflow.get("name", "unnamed_workflow")
 
             # Check for coordination metadata
-            coordination = workflow.get('metadata', {}).get('coordination', {})
-            if coordination.get('file_scope'):
+            coordination = workflow.get("metadata", {}).get("coordination", {})
+            if coordination.get("file_scope"):
                 claim = FileClaim(
                     workflow_id=workflow_id,
-                    file_patterns=coordination['file_scope'],
-                    mode=ScopeMode(coordination.get('scope_mode', 'exclusive')),
-                    priority=coordination.get('priority', 1)
+                    file_patterns=coordination["file_scope"],
+                    mode=ScopeMode(coordination.get("scope_mode", "exclusive")),
+                    priority=coordination.get("priority", 1),
                 )
                 file_claims.append(claim)
 
             # Extract from phases if available
-            for phase in workflow.get('phases', []):
-                phase_scope = phase.get('file_scope', [])
+            for phase in workflow.get("phases", []):
+                phase_scope = phase.get("file_scope", [])
                 if phase_scope:
                     claim = FileClaim(
                         workflow_id=f"{workflow_id}_{phase['id']}",
                         file_patterns=phase_scope,
-                        mode=ScopeMode(phase.get('scope_mode', 'exclusive')),
-                        priority=phase.get('priority', 1),
-                        phase_id=phase['id']
+                        mode=ScopeMode(phase.get("scope_mode", "exclusive")),
+                        priority=phase.get("priority", 1),
+                        phase_id=phase["id"],
                     )
                     file_claims.append(claim)
 
@@ -265,11 +292,12 @@ class WorkflowCoordinator:
             file_claims=file_claims,
             execution_order=execution_order,
             parallel_groups=parallel_groups,
-            conflicts=conflicts
+            conflicts=conflicts,
         )
 
-    def coordinate_parallel_workflows(self, workflows: List[Dict[str, Any]],
-                                    coordination_id: str) -> CoordinationPlan:
+    def coordinate_parallel_workflows(
+        self, workflows: List[Dict[str, Any]], coordination_id: str
+    ) -> CoordinationPlan:
         """Coordinate multiple workflows for parallel execution."""
 
         # Create dependency graph
@@ -284,32 +312,34 @@ class WorkflowCoordinator:
             "dependency_graph": dependency_graph,
             "coordination_plan": coordination_plan,
             "status": "planning",
-            "start_time": time.time()
+            "start_time": time.time(),
         }
 
         return coordination_plan
 
-    def create_dependency_graph(self, workflows: List[Dict[str, Any]]) -> DependencyGraph:
+    def create_dependency_graph(
+        self, workflows: List[Dict[str, Any]]
+    ) -> DependencyGraph:
         """Create dependency graph from workflow dependencies."""
 
         nodes = {}
 
         # Create nodes for each workflow and phase
         for workflow in workflows:
-            workflow_id = workflow.get('name', 'unnamed_workflow')
-            phases = workflow.get('phases', [])
+            workflow_id = workflow.get("name", "unnamed_workflow")
+            phases = workflow.get("phases", [])
 
             if phases:
                 # IPT-WT pattern with phases
                 for phase in phases:
-                    phase_id = phase.get('id', 'unknown_phase')
+                    phase_id = phase.get("id", "unknown_phase")
                     node_id = f"{workflow_id}_{phase_id}"
 
-                    dependencies = phase.get('depends_on', [])
+                    dependencies = phase.get("depends_on", [])
                     # Convert relative dependencies to absolute node IDs
                     absolute_deps = []
                     for dep in dependencies:
-                        if '_' in dep:
+                        if "_" in dep:
                             absolute_deps.append(dep)
                         else:
                             absolute_deps.append(f"{workflow_id}_{dep}")
@@ -319,16 +349,16 @@ class WorkflowCoordinator:
                         workflow_id=workflow_id,
                         phase_id=phase_id,
                         dependencies=absolute_deps,
-                        can_start_immediately=len(absolute_deps) == 0
+                        can_start_immediately=len(absolute_deps) == 0,
                     )
             else:
                 # Simple workflow without phases
-                dependencies = workflow.get('depends_on', [])
+                dependencies = workflow.get("depends_on", [])
                 nodes[workflow_id] = DependencyNode(
                     id=workflow_id,
                     workflow_id=workflow_id,
                     dependencies=dependencies,
-                    can_start_immediately=len(dependencies) == 0
+                    can_start_immediately=len(dependencies) == 0,
                 )
 
         # Create execution order based on dependencies
@@ -351,11 +381,16 @@ class WorkflowCoordinator:
             active_workflows=len(workflows),
             completed_workflows=0,
             failed_workflows=0,
-            total_cost_used=0.0
+            total_cost_used=0.0,
         )
 
-    def handle_workflow_completion(self, workflow_id: str, coordination_id: str,
-                                 success: bool, cost_used: float = 0.0) -> None:
+    def handle_workflow_completion(
+        self,
+        workflow_id: str,
+        coordination_id: str,
+        success: bool,
+        cost_used: float = 0.0,
+    ) -> None:
         """Handle completion of a workflow in a coordination session."""
 
         if coordination_id in self.active_coordinations:
@@ -372,42 +407,52 @@ class WorkflowCoordinator:
             else:
                 coordination["failed_workflows"].append(workflow_id)
 
-            coordination["total_cost_used"] = coordination.get("total_cost_used", 0.0) + cost_used
+            coordination["total_cost_used"] = (
+                coordination.get("total_cost_used", 0.0) + cost_used
+            )
 
             # Check if coordination is complete
             total_workflows = len(coordination["workflows"])
-            completed_count = len(coordination["completed_workflows"]) + len(coordination["failed_workflows"])
+            completed_count = len(coordination["completed_workflows"]) + len(
+                coordination["failed_workflows"]
+            )
 
             if completed_count >= total_workflows:
                 coordination["status"] = "completed"
                 coordination["end_time"] = time.time()
 
-    def _create_execution_order(self, workflows: List[Dict[str, Any]],
-                              conflicts: List[ScopeConflict]) -> List[str]:
+    def _create_execution_order(
+        self, workflows: List[Dict[str, Any]], conflicts: List[ScopeConflict]
+    ) -> List[str]:
         """Create execution order considering dependencies and conflicts."""
         order = []
 
         # Simple implementation: order by priority, then by dependency
         workflow_priorities = {}
         for workflow in workflows:
-            workflow_id = workflow.get('name', 'unnamed_workflow')
-            priority = workflow.get('metadata', {}).get('coordination', {}).get('priority', 1)
+            workflow_id = workflow.get("name", "unnamed_workflow")
+            priority = (
+                workflow.get("metadata", {}).get("coordination", {}).get("priority", 1)
+            )
             workflow_priorities[workflow_id] = priority
 
         # Sort by priority (higher first)
-        sorted_workflows = sorted(workflow_priorities.items(), key=lambda x: x[1], reverse=True)
+        sorted_workflows = sorted(
+            workflow_priorities.items(), key=lambda x: x[1], reverse=True
+        )
         order = [workflow_id for workflow_id, _ in sorted_workflows]
 
         return order
 
-    def _create_parallel_groups(self, workflows: List[Dict[str, Any]],
-                              conflicts: List[ScopeConflict]) -> List[List[str]]:
+    def _create_parallel_groups(
+        self, workflows: List[Dict[str, Any]], conflicts: List[ScopeConflict]
+    ) -> List[List[str]]:
         """Create groups of workflows that can run in parallel."""
         groups = []
 
         if not conflicts:
             # No conflicts, all can run in parallel
-            workflow_ids = [w.get('name', 'unnamed_workflow') for w in workflows]
+            workflow_ids = [w.get("name", "unnamed_workflow") for w in workflows]
             if workflow_ids:
                 groups.append(workflow_ids)
         else:
@@ -420,7 +465,7 @@ class WorkflowCoordinator:
             conflicting_list = []
 
             for workflow in workflows:
-                workflow_id = workflow.get('name', 'unnamed_workflow')
+                workflow_id = workflow.get("name", "unnamed_workflow")
                 if workflow_id in conflicting_workflows:
                     conflicting_list.append(workflow_id)
                 else:
@@ -435,7 +480,9 @@ class WorkflowCoordinator:
 
         return groups
 
-    def _resolve_dependencies(self, nodes: Dict[str, DependencyNode]) -> List[List[str]]:
+    def _resolve_dependencies(
+        self, nodes: Dict[str, DependencyNode]
+    ) -> List[List[str]]:
         """Resolve dependencies and create execution order groups."""
 
         execution_order = []
@@ -467,14 +514,14 @@ class WorkflowCoordinator:
 
 # Export main classes
 __all__ = [
-    'CoordinationMode',
-    'ScopeMode',
-    'FileClaim',
-    'ScopeConflict',
-    'CoordinationPlan',
-    'ExecutionStatus',
-    'DependencyNode',
-    'DependencyGraph',
-    'FileScopeManager',
-    'WorkflowCoordinator'
+    "CoordinationMode",
+    "ScopeMode",
+    "FileClaim",
+    "ScopeConflict",
+    "CoordinationPlan",
+    "ExecutionStatus",
+    "DependencyNode",
+    "DependencyGraph",
+    "FileScopeManager",
+    "WorkflowCoordinator",
 ]

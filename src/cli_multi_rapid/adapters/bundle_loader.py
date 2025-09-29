@@ -43,36 +43,32 @@ class BundleLoaderAdapter(BaseAdapter):
 
             if not bundle_path:
                 return AdapterResult(
-                    success=False,
-                    error="Missing required parameter: bundle_path"
+                    success=False, error="Missing required parameter: bundle_path"
                 )
 
             if not validation_schema:
                 return AdapterResult(
-                    success=False,
-                    error="Missing required parameter: validation_schema"
+                    success=False, error="Missing required parameter: validation_schema"
                 )
 
             # Load bundle file
             bundle_file = Path(bundle_path)
             if not bundle_file.exists():
                 return AdapterResult(
-                    success=False,
-                    error=f"Bundle file not found: {bundle_path}"
+                    success=False, error=f"Bundle file not found: {bundle_path}"
                 )
 
-            with open(bundle_file, encoding='utf-8') as f:
+            with open(bundle_file, encoding="utf-8") as f:
                 bundle_data = json.load(f)
 
             # Load validation schema
             schema_file = Path(validation_schema)
             if not schema_file.exists():
                 return AdapterResult(
-                    success=False,
-                    error=f"Schema file not found: {validation_schema}"
+                    success=False, error=f"Schema file not found: {validation_schema}"
                 )
 
-            with open(schema_file, encoding='utf-8') as f:
+            with open(schema_file, encoding="utf-8") as f:
                 schema = json.load(f)
 
             # Validate bundle against schema
@@ -91,8 +87,8 @@ class BundleLoaderAdapter(BaseAdapter):
                     metadata={
                         "bundle_path": bundle_path,
                         "validation_schema": validation_schema,
-                        "schema_validation_error": schema_validation_error
-                    }
+                        "schema_validation_error": schema_validation_error,
+                    },
                 )
 
             # Pre-validate bundle contents
@@ -106,8 +102,8 @@ class BundleLoaderAdapter(BaseAdapter):
                         error=f"Bundle pre-validation failed: {pre_validation_results.get('error', 'Unknown error')}",
                         metadata={
                             "bundle_path": bundle_path,
-                            "pre_validation_results": pre_validation_results
-                        }
+                            "pre_validation_results": pre_validation_results,
+                        },
                     )
 
             # Create loaded bundle result
@@ -117,7 +113,7 @@ class BundleLoaderAdapter(BaseAdapter):
                 "loaded_at": self._get_timestamp(),
                 "schema_validation": {
                     "passed": schema_validation_passed,
-                    "error": schema_validation_error
+                    "error": schema_validation_error,
                 },
                 "pre_validation": pre_validation_results,
                 "bundle_metadata": {
@@ -126,9 +122,11 @@ class BundleLoaderAdapter(BaseAdapter):
                     "generated_by": bundle_data.get("generated_by", "unknown"),
                     "validation_level": bundle_data.get("validation_level", "unknown"),
                     "patch_count": len(bundle_data.get("patches", [])),
-                    "verification_gate_count": len(bundle_data.get("verification_gates", []))
+                    "verification_gate_count": len(
+                        bundle_data.get("verification_gates", [])
+                    ),
                 },
-                "bundle_content": bundle_data
+                "bundle_content": bundle_data,
             }
 
             # Write loaded bundle artifact
@@ -140,7 +138,7 @@ class BundleLoaderAdapter(BaseAdapter):
                     artifact_path = Path(emit_path)
                     artifact_path.parent.mkdir(parents=True, exist_ok=True)
 
-                    with open(artifact_path, 'w', encoding='utf-8') as f:
+                    with open(artifact_path, "w", encoding="utf-8") as f:
                         json.dump(loaded_bundle, f, indent=2)
 
                     artifacts.append(str(artifact_path))
@@ -151,7 +149,7 @@ class BundleLoaderAdapter(BaseAdapter):
                 tokens_used=0,  # Deterministic operation
                 artifacts=artifacts,
                 output=f"Successfully loaded and validated bundle: {bundle_path}",
-                metadata=loaded_bundle
+                metadata=loaded_bundle,
             )
 
             self._log_execution_complete(result)
@@ -163,7 +161,7 @@ class BundleLoaderAdapter(BaseAdapter):
             return AdapterResult(
                 success=False,
                 error=error_msg,
-                metadata={"exception_type": type(e).__name__}
+                metadata={"exception_type": type(e).__name__},
             )
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
@@ -179,28 +177,28 @@ class BundleLoaderAdapter(BaseAdapter):
         """Check if required dependencies are available."""
         try:
             import jsonschema
+
             return True
         except ImportError:
             return False
 
     def _pre_validate_bundle(self, bundle_data: Dict[str, Any]) -> Dict[str, Any]:
         """Perform pre-validation checks on bundle contents."""
-        validation_result = {
-            "valid": True,
-            "checks": [],
-            "warnings": [],
-            "errors": []
-        }
+        validation_result = {"valid": True, "checks": [], "warnings": [], "errors": []}
 
         try:
             # Check required fields
             required_fields = ["version", "contract_id", "patches"]
             for field in required_fields:
                 if field not in bundle_data:
-                    validation_result["errors"].append(f"Missing required field: {field}")
+                    validation_result["errors"].append(
+                        f"Missing required field: {field}"
+                    )
                     validation_result["valid"] = False
                 else:
-                    validation_result["checks"].append(f"Required field '{field}' present")
+                    validation_result["checks"].append(
+                        f"Required field '{field}' present"
+                    )
 
             # Validate patches structure
             patches = bundle_data.get("patches", [])
@@ -221,10 +219,14 @@ class BundleLoaderAdapter(BaseAdapter):
             # Validate verification gates
             gates = bundle_data.get("verification_gates", [])
             if gates and not isinstance(gates, list):
-                validation_result["errors"].append("'verification_gates' must be a list")
+                validation_result["errors"].append(
+                    "'verification_gates' must be a list"
+                )
                 validation_result["valid"] = False
             else:
-                validation_result["checks"].append(f"Found {len(gates)} verification gates")
+                validation_result["checks"].append(
+                    f"Found {len(gates)} verification gates"
+                )
 
             # Check for potential conflicts
             target_files = []
@@ -233,7 +235,9 @@ class BundleLoaderAdapter(BaseAdapter):
                     target_path = patch["target"].get("path")
                     if target_path:
                         if target_path in target_files:
-                            validation_result["warnings"].append(f"Multiple patches target same file: {target_path}")
+                            validation_result["warnings"].append(
+                                f"Multiple patches target same file: {target_path}"
+                            )
                         target_files.append(target_path)
 
             validation_result["target_files"] = target_files
@@ -246,11 +250,7 @@ class BundleLoaderAdapter(BaseAdapter):
 
     def _validate_patch(self, patch: Any, index: int) -> Dict[str, Any]:
         """Validate an individual patch structure."""
-        patch_validation = {
-            "valid": True,
-            "checks": [],
-            "errors": []
-        }
+        patch_validation = {"valid": True, "checks": [], "errors": []}
 
         if not isinstance(patch, dict):
             patch_validation["errors"].append(f"Patch {index} is not a dictionary")
@@ -261,16 +261,22 @@ class BundleLoaderAdapter(BaseAdapter):
         required_patch_fields = ["type", "target", "ops"]
         for field in required_patch_fields:
             if field not in patch:
-                patch_validation["errors"].append(f"Patch {index} missing required field: {field}")
+                patch_validation["errors"].append(
+                    f"Patch {index} missing required field: {field}"
+                )
                 patch_validation["valid"] = False
             else:
-                patch_validation["checks"].append(f"Patch {index} has required field '{field}'")
+                patch_validation["checks"].append(
+                    f"Patch {index} has required field '{field}'"
+                )
 
         # Validate target structure
         if "target" in patch:
             target = patch["target"]
             if not isinstance(target, dict) or "path" not in target:
-                patch_validation["errors"].append(f"Patch {index} target must be a dict with 'path' field")
+                patch_validation["errors"].append(
+                    f"Patch {index} target must be a dict with 'path' field"
+                )
                 patch_validation["valid"] = False
 
         # Validate operations structure
@@ -280,7 +286,9 @@ class BundleLoaderAdapter(BaseAdapter):
                 patch_validation["errors"].append(f"Patch {index} ops must be a list")
                 patch_validation["valid"] = False
             else:
-                patch_validation["checks"].append(f"Patch {index} has {len(ops)} operations")
+                patch_validation["checks"].append(
+                    f"Patch {index} has {len(ops)} operations"
+                )
 
         # Check for pre/post assertions
         if "pre" in patch:
@@ -293,4 +301,5 @@ class BundleLoaderAdapter(BaseAdapter):
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"

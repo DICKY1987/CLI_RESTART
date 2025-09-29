@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
-from typing import Iterable, Set, List
+from typing import Iterable, List, Set
 
 
 def normalize_name(raw: str) -> str:
@@ -107,7 +106,9 @@ def unique_ordered(items: Iterable[str]) -> List[str]:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Build open source apps catalog JSON from provided documents.")
+    ap = argparse.ArgumentParser(
+        description="Build open source apps catalog JSON from provided documents."
+    )
     ap.add_argument(
         "--source-dir",
         default=str(Path.home() / "Downloads" / "OPEN_SOURCE_APPS_LIIB"),

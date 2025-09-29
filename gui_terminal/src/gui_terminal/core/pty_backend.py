@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import sys
 from dataclasses import dataclass
 from typing import Optional
 
@@ -138,7 +137,11 @@ class PtyBackend:
         """
         # Try pty-provided write of ^C first
         try:
-            if hasattr(self, "_pty") and self._pty is not None and hasattr(self._pty, "write"):
+            if (
+                hasattr(self, "_pty")
+                and self._pty is not None
+                and hasattr(self._pty, "write")
+            ):
                 self._pty.write("\x03")
                 return
         except Exception:
@@ -182,6 +185,8 @@ class PtyBackend:
             # CTRL_C_EVENT = 0
             CTRL_C_EVENT = 0
             # Send to process group 0 (current) or the child's group if we had it; use 0 as fallback
-            kernel32.GenerateConsoleCtrlEvent(wintypes.DWORD(CTRL_C_EVENT), wintypes.DWORD(0))
+            kernel32.GenerateConsoleCtrlEvent(
+                wintypes.DWORD(CTRL_C_EVENT), wintypes.DWORD(0)
+            )
         except Exception:
             pass

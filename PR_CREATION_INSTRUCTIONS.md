@@ -19,7 +19,7 @@ This PR consolidates updates by merging the `feat/mods-integration-and-phase-pla
 The feature branch contains **140 commits** with substantial development history including:
 
 - **Security Improvements**: PEM file templates and key management
-- **MODs Integration**: Complete MODs integration with phase plan implementation  
+- **MODs Integration**: Complete MODs integration with phase plan implementation
 - **Repository Cleanup**: Remove duplicate workflows and ignore embedded repos
 - **CLI Orchestrator Stack**: Complete CLI orchestrator stack with tool integration layer
 - **AI Adapters Framework**: Comprehensive adapter framework with VS Code extension
@@ -64,7 +64,7 @@ After this PR is merged:
 ### 4. After Creating PR
 1. **Resolve the merge conflict** in `pyproject.toml`:
    - Keep version "1.1.0"
-   - Remove BOM character  
+   - Remove BOM character
    - Merge other changes from feature branch
 2. **Wait for CI/tests** to complete
 3. **Review and merge** when ready

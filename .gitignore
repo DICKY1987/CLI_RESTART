@@ -131,4 +131,3 @@ config/*.pem
 
 # Coordination state artifacts
 state/
-

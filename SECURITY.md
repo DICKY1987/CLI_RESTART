@@ -14,4 +14,3 @@ This project is in early development. We aim to address security issues on the l
 ## Disclosure
 
 Once a fix is available, we will disclose the vulnerability with mitigation steps in the release notes and credit reporters who wish to be acknowledged.
-

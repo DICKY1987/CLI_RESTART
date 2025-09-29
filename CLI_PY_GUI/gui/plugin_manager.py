@@ -1,7 +1,11 @@
 # plugin_manager.py
 from __future__ import annotations
-import os, importlib.util, types
-from typing import Any, Callable, Dict, List
+
+import importlib.util
+import os
+import types
+from typing import Any, Callable
+
 
 class Plugin:
     def __init__(self, mod: types.ModuleType):
@@ -11,10 +15,14 @@ class Plugin:
         fn = getattr(self.mod, name, None)
         return fn if callable(fn) else None
 
+
 class PluginManager:
     def __init__(self):
         self.plugins: list[Plugin] = []
-        self._load_paths = [os.path.expanduser("~/.python_cockpit/plugins"), os.path.join(os.path.dirname(__file__), "plugins")]
+        self._load_paths = [
+            os.path.expanduser("~/.python_cockpit/plugins"),
+            os.path.join(os.path.dirname(__file__), "plugins"),
+        ]
         for p in self._load_paths:
             self._load_dir(p)
 
@@ -30,7 +38,7 @@ class PluginManager:
                 spec = importlib.util.spec_from_file_location(name, full)
                 mod = importlib.util.module_from_spec(spec)  # type: ignore
                 assert spec and spec.loader
-                spec.loader.exec_module(mod)                 # type: ignore
+                spec.loader.exec_module(mod)  # type: ignore
                 self.plugins.append(Plugin(mod))
             except Exception:
                 continue

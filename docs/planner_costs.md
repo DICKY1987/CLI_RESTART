@@ -21,4 +21,3 @@ cost = estimate_plan_cost([{ 'capability': 'testing' }, { 'capability': 'code_qu
 
 Notes
 - Uses `cost_hint` until telemetry is available.
-

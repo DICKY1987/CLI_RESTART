@@ -6,4 +6,3 @@
   - `lib.cost_tracker.record_cost(task_id, tool, action, tokens, amount)`
   - `lib.cost_tracker.get_total_cost(task_id)`
 - Planner must compare `estimated_cost` vs `budget` and executor must halt when budget exhausted.
-

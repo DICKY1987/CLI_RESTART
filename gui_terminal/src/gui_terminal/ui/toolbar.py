@@ -7,4 +7,3 @@ class ToolBar:  # pragma: no cover - GUI placeholder
 
     def add_action(self, name: str) -> None:
         self.actions.append(name)
-

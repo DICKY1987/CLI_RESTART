@@ -5,8 +5,7 @@ Abstract base class for all GUI terminal plugins
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
-from pathlib import Path
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +78,9 @@ class BasePlugin(ABC):
         """Called when a terminal session stops"""
         pass
 
-    def on_command_executed(self, command: str, session_id: str, context: Dict[str, Any]):
+    def on_command_executed(
+        self, command: str, session_id: str, context: Dict[str, Any]
+    ):
         """Called when a command is executed"""
         pass
 
@@ -161,7 +162,9 @@ class CommandPlugin(BasePlugin):
         """
         pass
 
-    def handle_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_command(
+        self, command: str, args: List[str], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Handle custom command execution
 
@@ -178,15 +181,9 @@ class CommandPlugin(BasePlugin):
             try:
                 return commands[command](args, context)
             except Exception as e:
-                return {
-                    'success': False,
-                    'error': str(e)
-                }
+                return {"success": False, "error": str(e)}
         else:
-            return {
-                'success': False,
-                'error': f'Unknown command: {command}'
-            }
+            return {"success": False, "error": f"Unknown command: {command}"}
 
 
 class IntegrationPlugin(BasePlugin):
@@ -243,7 +240,9 @@ class SecurityPlugin(BasePlugin):
     Base class for security-related plugins
     """
 
-    def validate_command(self, command: str, args: List[str], context: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_command(
+        self, command: str, args: List[str], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Validate command for security compliance
 
@@ -255,10 +254,7 @@ class SecurityPlugin(BasePlugin):
         Returns:
             dict: Validation result with 'allowed' boolean and 'violations' list
         """
-        return {
-            'allowed': True,
-            'violations': []
-        }
+        return {"allowed": True, "violations": []}
 
     def scan_output(self, output: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -271,9 +267,7 @@ class SecurityPlugin(BasePlugin):
         Returns:
             dict: Scan result with 'issues' list
         """
-        return {
-            'issues': []
-        }
+        return {"issues": []}
 
     def get_security_rules(self) -> List[Dict[str, Any]]:
         """

@@ -30,4 +30,3 @@ python scripts/ipt_tools_ping.py
 ```
 
 Planner can filter healthy tools by capability and consider `cost_hint` for cost-aware selection.
-

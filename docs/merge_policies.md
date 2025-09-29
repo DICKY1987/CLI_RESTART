@@ -9,4 +9,3 @@ Implementation
 
 Audit & Cost
 - Decisions and outcomes are recorded in `state/audit.jsonl` with `merge_strategy` metadata.
-

@@ -17,7 +17,7 @@ This guide provides comprehensive instructions for deploying the Enhanced GUI Te
 ### ✅ **Security Requirements**
 - [ ] Security configuration reviewed and approved
 - [ ] Compliance rules configured for environment
-- [ ] Audit logging destination configured  
+- [ ] Audit logging destination configured
 - [ ] Resource limits defined and tested
 - [ ] Network security policies applied
 
@@ -131,7 +131,7 @@ Create production configuration files:
     "action": "block"
   },
   {
-    "rule_id": "CR002", 
+    "rule_id": "CR002",
     "name": "System File Protection",
     "description": "Prevent modification of critical system files",
     "enabled": true,
@@ -232,16 +232,16 @@ Create AppArmor profile for additional security:
 /opt/gui-terminal/venv/bin/python {
   #include <abstractions/base>
   #include <abstractions/python>
-  
+
   /opt/gui-terminal/** r,
   /opt/gui-terminal/src/** r,
   /opt/gui-terminal/logs/* w,
   /opt/gui-terminal/data/* rw,
-  
+
   /usr/bin/python3* ix,
   /bin/bash ix,
   /bin/sh ix,
-  
+
   deny /etc/shadow r,
   deny /root/** rwx,
 }
@@ -272,52 +272,52 @@ def check_application_health():
         "status": "healthy",
         "checks": {}
     }
-    
+
     try:
         # Check if application is running
-        gui_processes = [p for p in psutil.process_iter(['pid', 'name', 'cmdline']) 
+        gui_processes = [p for p in psutil.process_iter(['pid', 'name', 'cmdline'])
                         if 'enhanced_pty_terminal' in ' '.join(p.info['cmdline'] or [])]
-        
+
         health["checks"]["process_running"] = len(gui_processes) > 0
-        
+
         # Check memory usage
         if gui_processes:
             process = psutil.Process(gui_processes[0].info['pid'])
             memory_mb = process.memory_info().rss / (1024 * 1024)
             health["checks"]["memory_usage_mb"] = memory_mb
             health["checks"]["memory_ok"] = memory_mb < 1000  # Less than 1GB
-        
+
         # Check log file size
         log_file = Path("/opt/gui-terminal/logs/gui_terminal.log")
         if log_file.exists():
             log_size_mb = log_file.stat().st_size / (1024 * 1024)
             health["checks"]["log_size_mb"] = log_size_mb
             health["checks"]["log_size_ok"] = log_size_mb < 100  # Less than 100MB
-        
+
         # Check disk space
         disk_usage = psutil.disk_usage('/opt/gui-terminal')
         free_space_gb = disk_usage.free / (1024 * 1024 * 1024)
         health["checks"]["disk_free_gb"] = free_space_gb
         health["checks"]["disk_ok"] = free_space_gb > 1  # At least 1GB free
-        
+
         # Overall status
         all_checks_ok = all(
             check for check_name, check in health["checks"].items()
             if check_name.endswith("_ok")
         )
-        
+
         health["status"] = "healthy" if all_checks_ok else "degraded"
-        
+
     except Exception as e:
         health["status"] = "error"
         health["error"] = str(e)
-    
+
     return health
 
 if __name__ == "__main__":
     health = check_application_health()
     print(json.dumps(health, indent=2))
-    
+
     # Exit with error code if unhealthy
     sys.exit(0 if health["status"] == "healthy" else 1)
 ```
@@ -345,7 +345,7 @@ if __name__ == "__main__":
       "formatter": "detailed"
     },
     "security_file": {
-      "class": "logging.handlers.RotatingFileHandler", 
+      "class": "logging.handlers.RotatingFileHandler",
       "filename": "/opt/gui-terminal/logs/security_audit.log",
       "maxBytes": 10485760,
       "backupCount": 50,
@@ -440,26 +440,26 @@ def optimize_python():
     """Optimize Python runtime"""
     # Disable garbage collection during startup
     gc.disable()
-    
+
     # Set optimizations
     os.environ["PYTHONOPTIMIZE"] = "2"
     os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
-    
+
     # Pre-import heavy modules
     import PyQt6.QtWidgets
     import PyQt6.QtCore
     import PyQt6.QtGui
-    
+
     # Re-enable garbage collection
     gc.enable()
 
 def main():
     """Main optimized startup"""
     print("Starting Enhanced GUI Terminal (Optimized)...")
-    
+
     # Apply optimizations
     optimize_python()
-    
+
     # Import and start main application
     from enhanced_pty_terminal import main as gui_main
     gui_main()
@@ -489,7 +489,7 @@ from pathlib import Path
 def run_smoke_tests():
     """Run basic smoke tests"""
     tests = []
-    
+
     # Test 1: Application starts
     print("Testing application startup...")
     try:
@@ -497,7 +497,7 @@ def run_smoke_tests():
         result = subprocess.run([
             sys.executable, "/opt/gui-terminal/src/enhanced_pty_terminal.py", "--test-mode"
         ], capture_output=True, text=True, timeout=30)
-        
+
         tests.append({
             "test": "application_startup",
             "passed": result.returncode == 0,
@@ -505,24 +505,24 @@ def run_smoke_tests():
         })
     except Exception as e:
         tests.append({
-            "test": "application_startup", 
+            "test": "application_startup",
             "passed": False,
             "error": str(e)
         })
-    
+
     # Test 2: Configuration loading
     print("Testing configuration loading...")
     try:
         config_file = Path("/opt/gui-terminal/config/production_config.json")
         config_exists = config_file.exists()
-        
+
         if config_exists:
             with open(config_file) as f:
                 config = json.load(f)
             valid_config = "security" in config and "terminal" in config
         else:
             valid_config = False
-        
+
         tests.append({
             "test": "configuration_loading",
             "passed": config_exists and valid_config,
@@ -534,20 +534,20 @@ def run_smoke_tests():
             "passed": False,
             "error": str(e)
         })
-    
+
     # Test 3: Security system
     print("Testing security system...")
     try:
         from security_configuration import EnhancedSecurityManager
         security = EnhancedSecurityManager()
-        
+
         # Test command validation
         allowed, violations, _ = security.validate_and_execute(
             "echo test", "/tmp", {}, "smoke_test", "smoke_test"
         )
-        
+
         security.shutdown()
-        
+
         tests.append({
             "test": "security_system",
             "passed": allowed and len(violations) == 0,
@@ -559,28 +559,28 @@ def run_smoke_tests():
             "passed": False,
             "error": str(e)
         })
-    
+
     return tests
 
 def main():
     """Main smoke test runner"""
     print("🔥 Production Smoke Test Suite")
     print("=" * 40)
-    
+
     tests = run_smoke_tests()
-    
+
     passed_count = sum(1 for t in tests if t["passed"])
     total_count = len(tests)
-    
+
     print(f"\nResults: {passed_count}/{total_count} tests passed")
-    
+
     for test in tests:
         status = "✅" if test["passed"] else "❌"
         print(f"{status} {test['test']}")
-        
+
         if not test["passed"] and "error" in test:
             print(f"   Error: {test['error']}")
-    
+
     # Exit with appropriate code
     sys.exit(0 if passed_count == total_count else 1)
 
@@ -599,7 +599,7 @@ crontab -e
 # Run smoke tests every hour
 0 * * * * /opt/gui-terminal/venv/bin/python /opt/gui-terminal/scripts/smoke_test.py >> /opt/gui-terminal/logs/smoke_test.log 2>&1
 
-# Run health check every 5 minutes  
+# Run health check every 5 minutes
 */5 * * * * /opt/gui-terminal/venv/bin/python /opt/gui-terminal/scripts/health_check.py >> /opt/gui-terminal/logs/health_check.log 2>&1
 ```
 
@@ -668,7 +668,7 @@ Create Grafana dashboard configuration:
       },
       {
         "title": "Active Terminals",
-        "type": "stat", 
+        "type": "stat",
         "targets": [
           {
             "expr": "terminal_active_count"
@@ -858,7 +858,7 @@ sudo systemctl restart auditd
 ```json
 {
   "security": {
-    "level": "strict", 
+    "level": "strict",
     "audit_commands": true,
     "max_execution_time": 300
   },
@@ -907,7 +907,7 @@ from pathlib import Path
 def deploy_to_environment(environment, version):
     """Deploy to specific environment"""
     print(f"Deploying version {version} to {environment}...")
-    
+
     steps = [
         ("Backup current version", backup_current),
         ("Download new version", lambda: download_version(version)),
@@ -918,7 +918,7 @@ def deploy_to_environment(environment, version):
         ("Verify deployment", verify_deployment),
         ("Run smoke tests", run_smoke_tests)
     ]
-    
+
     for step_name, step_func in steps:
         print(f"  {step_name}...")
         try:
@@ -929,7 +929,7 @@ def deploy_to_environment(environment, version):
             print(f"  ❌ {step_name} failed: {e}")
             rollback_deployment()
             return False
-    
+
     print(f"✅ Deployment to {environment} completed successfully")
     return True
 
@@ -957,7 +957,7 @@ def update_config(environment):
     """Update configuration for environment"""
     config_file = f"/opt/gui-terminal/config/{environment}_config.json"
     target_file = "/opt/gui-terminal/config/production_config.json"
-    
+
     if Path(config_file).exists():
         subprocess.run(["cp", config_file, target_file])
         return True
@@ -1001,10 +1001,10 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Usage: deploy.py <environment> <version>")
         sys.exit(1)
-    
+
     environment = sys.argv[1]
     version = sys.argv[2]
-    
+
     success = deploy_to_environment(environment, version)
     sys.exit(0 if success else 1)
 ```
@@ -1049,7 +1049,7 @@ def log_rotation():
     """Rotate log files"""
     log_dir = Path("/opt/gui-terminal/logs")
     max_size_mb = 100
-    
+
     for log_file in log_dir.glob("*.log"):
         size_mb = log_file.stat().st_size / (1024 * 1024)
         if size_mb > max_size_mb:
@@ -1057,10 +1057,10 @@ def log_rotation():
             timestamp = int(time.time())
             rotated_name = log_file.with_suffix(f".{timestamp}.log")
             log_file.rename(rotated_name)
-            
+
             # Compress rotated log
             subprocess.run(["gzip", str(rotated_name)])
-            
+
             # Create new log file
             log_file.touch()
             os.chown(log_file, os.getuid(), os.getgid())
@@ -1069,10 +1069,10 @@ def cleanup_temp_files():
     """Clean up temporary files"""
     temp_dirs = [
         "/tmp",
-        "/var/tmp", 
+        "/var/tmp",
         "/opt/gui-terminal/temp"
     ]
-    
+
     for temp_dir in temp_dirs:
         if Path(temp_dir).exists():
             # Remove files older than 7 days
@@ -1084,14 +1084,14 @@ def cleanup_temp_files():
 def check_disk_space():
     """Check disk space and alert if low"""
     import shutil
-    
+
     total, used, free = shutil.disk_usage("/opt/gui-terminal")
     free_gb = free / (1024 ** 3)
-    
+
     if free_gb < 5:  # Less than 5GB free
         print(f"WARNING: Low disk space - {free_gb:.1f}GB remaining")
         return False
-    
+
     return True
 
 def security_scan():
@@ -1100,35 +1100,35 @@ def security_scan():
     result = subprocess.run([
         "ps", "aux"
     ], capture_output=True, text=True)
-    
+
     # Look for suspicious activity
     suspicious_patterns = ["nc ", "netcat", "/bin/sh", "bash -i"]
     alerts = []
-    
+
     for line in result.stdout.split('\n'):
         for pattern in suspicious_patterns:
             if pattern in line and "gui-terminal" in line:
                 alerts.append(f"Suspicious process: {line}")
-    
+
     if alerts:
         print("SECURITY ALERT:")
         for alert in alerts:
             print(f"  {alert}")
         return False
-    
+
     return True
 
 def main():
     """Main maintenance routine"""
     print("🔧 Starting maintenance tasks...")
-    
+
     tasks = [
         ("Log rotation", log_rotation),
-        ("Cleanup temp files", cleanup_temp_files), 
+        ("Cleanup temp files", cleanup_temp_files),
         ("Check disk space", check_disk_space),
         ("Security scan", security_scan)
     ]
-    
+
     results = []
     for task_name, task_func in tasks:
         print(f"  Running: {task_name}")
@@ -1140,12 +1140,12 @@ def main():
         except Exception as e:
             results.append((task_name, False))
             print(f"  ❌ {task_name}: {e}")
-    
+
     # Summary
     successful = len([r for r in results if r[1]])
     total = len(results)
     print(f"\nMaintenance completed: {successful}/{total} tasks successful")
-    
+
     return successful == total
 
 if __name__ == "__main__":
@@ -1239,14 +1239,14 @@ upstream gui_terminal_backend {
 server {
     listen 80;
     server_name gui-terminal.company.com;
-    
+
     location / {
         proxy_pass http://gui_terminal_backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
-    
+
     location /health {
         access_log off;
         proxy_pass http://gui_terminal_backend/health;
@@ -1295,12 +1295,12 @@ server {
 
 **Escalation Path**:
 1. On-call Engineer (0-15 minutes)
-2. Team Lead (15-30 minutes)  
+2. Team Lead (15-30 minutes)
 3. Engineering Manager (30-60 minutes)
 4. CTO (1+ hours for critical business impact)
 
 ---
 
-*Last Updated: December 2024*  
-*Version: 1.0*  
+*Last Updated: December 2024*
+*Version: 1.0*
 *Next Review: March 2025*

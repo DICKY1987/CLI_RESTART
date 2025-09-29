@@ -8,31 +8,54 @@ Security:
 - Path normalization + allow-list enforcement (glob patterns)
 - Optional mirroring into a git repo with branch protections
 """
-from flask import Flask, request, jsonify
+import base64
+import os
+import subprocess
 from pathlib import Path
-import os, base64, subprocess
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST  # type: ignore
+
+from flask import Flask, jsonify, request
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # type: ignore
 
 app = Flask(__name__)
 
 # ---- Config (env vars) ----
 DROP_TOKEN = os.getenv("DROP_TOKEN", "").strip()
 SAVE_BASE_DIR = Path(os.getenv("SAVE_BASE_DIR", "./_agent_out")).resolve()
-ALLOW_PATTERNS = [p.strip() for p in os.getenv("ALLOW_PATTERNS", "src/**,tests/**,.ai/**").split(",") if p.strip()]
+ALLOW_PATTERNS = [
+    p.strip()
+    for p in os.getenv("ALLOW_PATTERNS", "src/**,tests/**,.ai/**").split(",")
+    if p.strip()
+]
 REPO_DIR = Path(os.getenv("REPO_DIR", "")).resolve() if os.getenv("REPO_DIR") else None
 DEFAULT_BRANCH = os.getenv("DEFAULT_BRANCH", "main")
-ALLOWED_BRANCH_PREFIXES = [p.strip() for p in os.getenv("ALLOWED_BRANCH_PREFIXES", "lane/,feature/,hotfix/,bugfix/").split(",") if p.strip()]
-PROTECTED_BRANCHES = [b.strip() for b in os.getenv("PROTECTED_BRANCHES", "main,master,develop").split(",") if b.strip()]
+ALLOWED_BRANCH_PREFIXES = [
+    p.strip()
+    for p in os.getenv(
+        "ALLOWED_BRANCH_PREFIXES", "lane/,feature/,hotfix/,bugfix/"
+    ).split(",")
+    if p.strip()
+]
+PROTECTED_BRANCHES = [
+    b.strip()
+    for b in os.getenv("PROTECTED_BRANCHES", "main,master,develop").split(",")
+    if b.strip()
+]
 DISABLE_GIT = os.getenv("DISABLE_GIT", "") == "1"
 ALLOW_LOCALHOST_NO_TOKEN = os.getenv("ALLOW_LOCALHOST_NO_TOKEN", "") == "1"
 
 SAVE_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
+
 def _token_ok():
     if ALLOW_LOCALHOST_NO_TOKEN and request.remote_addr in ("127.0.0.1", "::1"):
         return True
     auth = request.headers.get("Authorization", "")
-    return auth.startswith("Bearer ") and DROP_TOKEN and (auth.split(" ",1)[1].strip() == DROP_TOKEN)
+    return (
+        auth.startswith("Bearer ")
+        and DROP_TOKEN
+        and (auth.split(" ", 1)[1].strip() == DROP_TOKEN)
+    )
+
 
 def _sanitize_rel_path(rel):
     p = Path(rel)
@@ -40,19 +63,28 @@ def _sanitize_rel_path(rel):
         return None
     return p
 
+
 def _match_allowed(rel_path: Path) -> bool:
     from fnmatch import fnmatch
+
     unix = rel_path.as_posix()
     return any(fnmatch(unix, pat) for pat in ALLOW_PATTERNS)
 
+
 def _git(*args, cwd=None, check=True):
-    return subprocess.run(["git", *args], cwd=cwd, check=check, capture_output=True, text=True)
+    return subprocess.run(
+        ["git", *args], cwd=cwd, check=check, capture_output=True, text=True
+    )
+
 
 def _ensure_git_identity(cwd):
     name = os.getenv("GIT_USER_NAME")
     email = os.getenv("GIT_USER_EMAIL")
-    if name:  _git("config", "user.name", name, cwd=cwd, check=False)
-    if email: _git("config", "user.email", email, cwd=cwd, check=False)
+    if name:
+        _git("config", "user.name", name, cwd=cwd, check=False)
+    if email:
+        _git("config", "user.email", email, cwd=cwd, check=False)
+
 
 def _ensure_branch(cwd, branch):
     try:
@@ -63,16 +95,20 @@ def _ensure_branch(cwd, branch):
         return
     _git("checkout", branch, cwd=cwd, check=True)
 
+
 @app.get("/health")
 def health():
-    return jsonify({
-        "ok": True,
-        "save_base": str(SAVE_BASE_DIR),
-        "repo_dir": str(REPO_DIR) if REPO_DIR else None,
-        "allow_patterns": ALLOW_PATTERNS,
-        "allowed_branch_prefixes": ALLOWED_BRANCH_PREFIXES,
-        "protected_branches": PROTECTED_BRANCHES
-    })
+    return jsonify(
+        {
+            "ok": True,
+            "save_base": str(SAVE_BASE_DIR),
+            "repo_dir": str(REPO_DIR) if REPO_DIR else None,
+            "allow_patterns": ALLOW_PATTERNS,
+            "allowed_branch_prefixes": ALLOWED_BRANCH_PREFIXES,
+            "protected_branches": PROTECTED_BRANCHES,
+        }
+    )
+
 
 @app.post("/save")
 def save():
@@ -89,7 +125,12 @@ def save():
     if not rel_path:
         return jsonify({"ok": False, "error": "invalid path"}), 400
     if not _match_allowed(rel_path):
-        return jsonify({"ok": False, "error": "path not allowed", "allowed": ALLOW_PATTERNS}), 403
+        return (
+            jsonify(
+                {"ok": False, "error": "path not allowed", "allowed": ALLOW_PATTERNS}
+            ),
+            403,
+        )
 
     try:
         raw = base64.b64decode(b64.encode("utf-8"), validate=True)
@@ -105,14 +146,17 @@ def save():
     git_result = None
     if REPO_DIR and not DISABLE_GIT:
         if branch in PROTECTED_BRANCHES:
-            return jsonify({"ok": False, "error": f"branch '{branch}' is protected"}), 403
+            return (
+                jsonify({"ok": False, "error": f"branch '{branch}' is protected"}),
+                403,
+            )
         if not any(branch.startswith(p) for p in ALLOWED_BRANCH_PREFIXES):
             # not fatal, but you can enforce if desired
             pass
 
         _ensure_git_identity(REPO_DIR)
         _ensure_branch(REPO_DIR, branch)
-        repo_target = (REPO_DIR / rel_path)
+        repo_target = REPO_DIR / rel_path
         repo_target.parent.mkdir(parents=True, exist_ok=True)
         repo_target.write_bytes(raw)
 
@@ -129,10 +173,12 @@ def save():
 
     return jsonify({"ok": True, "saved": str(dest), "git": git_result}), 201
 
+
 @app.get("/metrics")
 def metrics():  # pragma: no cover - integration endpoint
     data = generate_latest()
     return app.response_class(response=data, status=200, mimetype=CONTENT_TYPE_LATEST)
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5055"))

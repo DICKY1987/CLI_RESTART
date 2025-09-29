@@ -563,7 +563,7 @@
 
   Phase 4: GDW Library Gaps
 
-  1. Missing runners for most GDWs: Only git.commit_push.main and build.container.sign     
+  1. Missing runners for most GDWs: Only git.commit_push.main and build.container.sign
   have complete runner implementations
     - security.scan.trivy/v1.0.0/runners/ - MISSING
     - k8s.deploy.rolling/v1.0.0/runners/ - MISSING
@@ -605,7 +605,7 @@
 
   High Priority
 
-  1. Complete GDW runner implementations for security.scan.trivy, k8s.deploy.rolling,      
+  1. Complete GDW runner implementations for security.scan.trivy, k8s.deploy.rolling,
   version.bump.semver
   2. Fix GDW catalog loading - gdw list should show available workflows
   3. Create example chain definitions (dev-to-prod.yaml, simple-ci.yaml)
@@ -615,7 +615,7 @@
 
   5. Add comprehensive test suites for all GDWs with fixtures and golden outputs
   6. Integrate GDW metrics into Prometheus/Grafana monitoring stack
-  7. Fix Windows testing compatibility (remove semgrep dependency or make optional)        
+  7. Fix Windows testing compatibility (remove semgrep dependency or make optional)
 
   Low Priority
 
@@ -625,7 +625,7 @@
 
   Summary
 
-  The GDW framework implementation is ~85% complete with solid foundations but needs       
+  The GDW framework implementation is ~85% complete with solid foundations but needs
   finishing touches on the pre-built library, example chains, documentation, and
   production monitoring to be fully production-ready as specified in the original
   requirements.

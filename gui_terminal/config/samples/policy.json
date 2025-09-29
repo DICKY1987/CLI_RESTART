@@ -5,4 +5,3 @@
     "blocked_commands": ["rm -rf", "del /f /s /q"]
   }
 }
-

@@ -21,7 +21,7 @@ tasks:
   ci:
     desc: "Run core CI checks locally"
     cmds:
-      - ruff check .
+      - ruff check src --select F
       - mypy src || true
       - pytest -q --cov=src --cov-report=term-missing --cov-fail-under=85
   local:

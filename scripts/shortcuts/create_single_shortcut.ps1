@@ -15,5 +15,5 @@ $Shortcut.Description = "CLI Multi-Rapid Enterprise Orchestration Platform"
 $Shortcut.Save()
 
 Write-Host "Created single desktop shortcut: CLI Multi-Rapid System" -ForegroundColor Green
-Write-Host "Double-click to open the full program in VS Code" -ForegroundColor Yellow  
+Write-Host "Double-click to open the full program in VS Code" -ForegroundColor Yellow
 Write-Host "Access all features via Ctrl+Shift+P -> CLI Multi-Rapid" -ForegroundColor Cyan

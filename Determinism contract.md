@@ -23,4 +23,3 @@ Workflow Summary
 
 Windows considerations
 - Replace POSIX shell snippets in tasks with PowerShell equivalents.
-

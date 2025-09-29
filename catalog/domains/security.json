@@ -4,4 +4,3 @@
     {"id": "security.scan.trivy", "version": "1.0.0", "summary": "Run trivy scan"}
   ]
 }
-

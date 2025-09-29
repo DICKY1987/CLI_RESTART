@@ -84,4 +84,3 @@ jobs:
           GUI_PARITY: '1'
         run: |
           xvfb-run -a pytest -q tests/test_gui_parity_*_optional.py
-

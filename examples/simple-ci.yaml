@@ -8,4 +8,3 @@ steps:
   - workflow: security.scan.trivy
     inputs:
       target: .
-

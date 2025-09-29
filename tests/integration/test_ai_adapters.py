@@ -5,20 +5,18 @@ Tests the AI-powered code analysis and editing functionality.
 """
 
 import json
-import pytest
+
+# Add src to path for imports
+import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-# Add src to path for imports
-import sys
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cli_multi_rapid.adapters import (
-    AIAnalystAdapter,
-    AIEditorAdapter,
-    AdapterRegistry,
-)
+from cli_multi_rapid.adapters import AdapterRegistry, AIAnalystAdapter, AIEditorAdapter
 from cli_multi_rapid.router import Router
 
 
@@ -148,7 +146,8 @@ class TestAIAdaptersIntegration:
 
         # Create test Python file
         test_file = tmp_path / "test_code.py"
-        test_file.write_text('''
+        test_file.write_text(
+            '''
 def example_function(data):
     """Example function for testing."""
     if data is None:
@@ -160,7 +159,8 @@ def example_function(data):
             results.append(str(item))
 
     return results
-''')
+'''
+        )
 
         # Create artifacts directory
         artifacts_dir = tmp_path / "artifacts"
@@ -358,7 +358,8 @@ def example_function(data):
         test_dir = tmp_path / "test_project"
         test_dir.mkdir()
 
-        (test_dir / "main.py").write_text('''
+        (test_dir / "main.py").write_text(
+            """
 def calculate_total(items):
     total = 0
     for item in items:
@@ -370,7 +371,8 @@ def process_data(data):
     if data is None:
         return []
     return [x for x in data if x is not None]
-''')
+"""
+        )
 
         # Create artifacts directory
         artifacts_dir = tmp_path / "artifacts"
@@ -392,10 +394,7 @@ def process_data(data):
             "emits": [str(artifacts_dir / "review.json")],
         }
 
-        review_result = ai_analyst.execute(
-            review_step,
-            files=str(test_dir / "*.py")
-        )
+        review_result = ai_analyst.execute(review_step, files=str(test_dir / "*.py"))
 
         assert review_result.success
         assert len(review_result.artifacts) > 0
@@ -412,10 +411,7 @@ def process_data(data):
             "emits": [str(artifacts_dir / "architecture.json")],
         }
 
-        arch_result = ai_analyst.execute(
-            arch_step,
-            files=str(test_dir / "*.py")
-        )
+        arch_result = ai_analyst.execute(arch_step, files=str(test_dir / "*.py"))
 
         assert arch_result.success
         assert len(arch_result.artifacts) > 0

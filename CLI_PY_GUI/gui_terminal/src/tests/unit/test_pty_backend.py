@@ -2,10 +2,16 @@
 Unit tests for PTY Backend
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch, MagicMock
-from gui_terminal.core.pty_backend import PTYBackend, PTYWorker, CommandResult, CommandStatus
+from unittest.mock import Mock, patch
+
+import pytest
+from gui_terminal.core.pty_backend import (
+    CommandResult,
+    CommandStatus,
+    PTYBackend,
+    PTYWorker,
+)
 
 
 class TestPTYBackend:
@@ -28,7 +34,7 @@ class TestPTYBackend:
         assert isinstance(shell, str)
         assert len(shell) > 0
 
-    @patch('gui_terminal.core.pty_backend.PTYWorker')
+    @patch("gui_terminal.core.pty_backend.PTYWorker")
     def test_start_session(self, mock_worker_class):
         """Test starting a PTY session"""
         mock_worker = Mock()
@@ -44,7 +50,7 @@ class TestPTYBackend:
 
     def test_start_session_defaults(self):
         """Test starting session with default parameters"""
-        with patch('gui_terminal.core.pty_backend.PTYWorker') as mock_worker_class:
+        with patch("gui_terminal.core.pty_backend.PTYWorker") as mock_worker_class:
             mock_worker = Mock()
             mock_worker_class.return_value = mock_worker
 
@@ -107,7 +113,7 @@ class TestCommandResult:
             stdout="test output",
             stderr="",
             execution_time=1.5,
-            status=CommandStatus.COMPLETED
+            status=CommandStatus.COMPLETED,
         )
 
         assert result.exit_code == 0
@@ -133,8 +139,7 @@ class TestPTYWorkerIntegration:
     """Integration tests for PTY worker"""
 
     @pytest.mark.skipif(
-        not hasattr(pytest, 'qt_api'),
-        reason="Requires Qt for signal testing"
+        not hasattr(pytest, "qt_api"), reason="Requires Qt for signal testing"
     )
     def test_pty_worker_signals(self, qtbot):
         """Test PTY worker signal emissions"""

@@ -29,8 +29,12 @@ class JWTIssuer:
         algorithm: str = "RS256",
     ) -> None:
         self.algorithm = algorithm
-        self.private_key = self._load_key(private_key_path or DEFAULT_PRIVATE_KEY, env="JWT_PRIVATE_KEY")
-        self.public_key = self._load_key(public_key_path or DEFAULT_PUBLIC_KEY, env="JWT_PUBLIC_KEY")
+        self.private_key = self._load_key(
+            private_key_path or DEFAULT_PRIVATE_KEY, env="JWT_PRIVATE_KEY"
+        )
+        self.public_key = self._load_key(
+            public_key_path or DEFAULT_PUBLIC_KEY, env="JWT_PUBLIC_KEY"
+        )
 
     def _load_key(self, path: Path, env: str) -> Optional[str]:
         if os.getenv(env):
@@ -78,4 +82,3 @@ class JWTIssuer:
         if isinstance(token, bytes):  # pragma: no cover
             token = token.decode("utf-8")
         return token
-

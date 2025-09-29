@@ -6,7 +6,7 @@ param(
     [Parameter(Mandatory)]
     [ValidateSet("init", "start-lane", "submit", "integrate", "status", "quota-check", "setup-local", "rotate-service")]
     [string]$Command,
-    
+
     [string]$Lane,
     [string]$Message,
     [string]$ConfigPath = ".ai/framework-config.json",
@@ -41,10 +41,10 @@ function Update-QuotaUsage {
         [string]$Service,
         [int]$UsageCount = 1
     )
-    
+
     $tracker = Get-QuotaTracker
     $config = Get-FrameworkConfig
-    
+
     # Reset daily quotas if needed
     $today = (Get-Date).ToString("yyyy-MM-dd")
     if ($tracker.lastReset -ne $today) {
@@ -55,32 +55,32 @@ function Update-QuotaUsage {
         }
         $tracker.lastReset = $today
     }
-    
+
     # Update usage
     if (-not $tracker.services.$Service) {
         $tracker.services.$Service = 0
     }
     $tracker.services.$Service += $UsageCount
-    
+
     # Save tracker
     $tracker | ConvertTo-Json | Set-Content ".ai/quota-tracker.json"
-    
+
     Write-Host "📊 Updated quota usage for $Service: $($tracker.services.$Service)" -ForegroundColor Cyan
 }
 
 function Get-BestAvailableService {
     param([string]$UseCase = "coding")
-    
+
     $config = Get-FrameworkConfig
     $tracker = Get-QuotaTracker
-    
+
     # Sort services by priority
     $availableServices = @()
-    
+
     foreach ($serviceName in $config.quotaManagement.services.PSObject.Properties.Name) {
         $service = $config.quotaManagement.services.$serviceName
         $currentUsage = if ($tracker.services.$serviceName) { $tracker.services.$serviceName } else { 0 }
-        
+
         $isAvailable = $true
         if ($service.dailyLimit -ne "unlimited") {
             $usagePercent = $currentUsage / $service.dailyLimit
@@ -88,7 +88,7 @@ function Get-BestAvailableService {
                 $isAvailable = $false
             }
         }
-        
+
         if ($isAvailable) {
             $availableServices += @{
                 name = $serviceName
@@ -97,24 +97,24 @@ function Get-BestAvailableService {
             }
         }
     }
-    
+
     if ($availableServices.Count -eq 0) {
         Write-Host "⚠️  All quotas exceeded, falling back to local models" -ForegroundColor Yellow
         return "local"
     }
-    
+
     $bestService = $availableServices | Sort-Object priority | Select-Object -First 1
     Write-Host "🎯 Selected service: $($bestService.name) (Usage: $([math]::Round($bestService.usagePercent * 100, 1))%)" -ForegroundColor Green
-    
+
     return $bestService.name
 }
 
 # Local model management
 function Initialize-LocalModels {
     $config = Get-FrameworkConfig
-    
+
     Write-Host "🔧 Setting up local models..." -ForegroundColor Blue
-    
+
     # Check if Ollama is installed
     try {
         $ollamaVersion = ollama --version
@@ -129,48 +129,48 @@ function Initialize-LocalModels {
         }
         exit 1
     }
-    
+
     # Pull required models
     foreach ($modelName in $config.localModels.models.PSObject.Properties.Name) {
         $model = $config.localModels.models.$modelName
         Write-Host "📥 Pulling model: $($model.name)" -ForegroundColor Cyan
-        
+
         if (-not $DryRun) {
             ollama pull $model.name
         }
     }
-    
+
     Write-Host "✅ Local models setup complete!" -ForegroundColor Green
 }
 
 # Git worktree management
 function Initialize-Lanes {
     $config = Get-FrameworkConfig
-    
+
     Write-Host "🔧 Initializing Git worktrees and lanes..." -ForegroundColor Blue
-    
+
     # Ensure we're in a Git repository
     if (-not (Test-Path ".git")) {
         git init
         git add .
         git commit -m "Initial commit"
     }
-    
+
     # Create integration branch
     git checkout -b integrate 2>$null
     git checkout main 2>$null
-    
+
     foreach ($laneName in $config.lanes.PSObject.Properties.Name) {
         $lane = $config.lanes.$laneName
         Write-Host "🛤️  Setting up lane: $laneName" -ForegroundColor Cyan
-        
+
         if (-not $DryRun) {
             # Create worktree directory
             $worktreePath = $lane.worktreePath
             if (-not (Test-Path $worktreePath)) {
                 New-Item -ItemType Directory -Path $worktreePath -Force | Out-Null
             }
-            
+
             # Create branch and worktree
             git worktree add $worktreePath $lane.branch 2>$null
             if ($LASTEXITCODE -ne 0) {
@@ -179,32 +179,32 @@ function Initialize-Lanes {
             }
         }
     }
-    
+
     Write-Host "✅ Lanes initialized successfully!" -ForegroundColor Green
 }
 
 # Lane operation functions
 function Start-Lane {
     param([string]$LaneName)
-    
+
     $config = Get-FrameworkConfig
-    
+
     if (-not $config.lanes.$LaneName) {
         Write-Error "Lane '$LaneName' not found in configuration"
         return
     }
-    
+
     $lane = $config.lanes.$LaneName
     $worktreePath = $lane.worktreePath
-    
+
     Write-Host "🚀 Starting lane: $LaneName" -ForegroundColor Green
     Write-Host "📁 Worktree path: $worktreePath" -ForegroundColor Cyan
-    
+
     # Generate VS Code command
     $vscodeCommand = "code `"$worktreePath`""
     Write-Host "💻 Open in VS Code:" -ForegroundColor Yellow
     Write-Host $vscodeCommand -ForegroundColor White
-    
+
     # Show tool configuration
     Write-Host "🔧 Available tools:" -ForegroundColor Cyan
     if ($lane.tools.primary) {
@@ -213,7 +213,7 @@ function Start-Lane {
     if ($lane.tools.fallback) {
         Write-Host "  Fallback: $($lane.tools.fallback.tool)" -ForegroundColor Yellow
     }
-    
+
     return $vscodeCommand
 }
 
@@ -222,24 +222,24 @@ function Submit-Lane {
         [string]$LaneName,
         [string]$CommitMessage
     )
-    
+
     $config = Get-FrameworkConfig
     $lane = $config.lanes.$LaneName
-    
+
     if (-not $lane) {
         Write-Error "Lane '$LaneName' not found"
         return
     }
-    
+
     Write-Host "📤 Submitting lane: $LaneName" -ForegroundColor Blue
-    
+
     Push-Location $lane.worktreePath
     try {
         # Check allowed patterns
         $changedFiles = git diff --name-only HEAD~1 HEAD
         $allowedFiles = @()
         $rejectedFiles = @()
-        
+
         foreach ($file in $changedFiles) {
             $allowed = $false
             foreach ($pattern in $lane.allowedPatterns) {
@@ -248,7 +248,7 @@ function Submit-Lane {
                     break
                 }
             }
-            
+
             if ($lane.excludePatterns) {
                 foreach ($pattern in $lane.excludePatterns) {
                     if ($file -like $pattern) {
@@ -257,20 +257,20 @@ function Submit-Lane {
                     }
                 }
             }
-            
+
             if ($allowed) {
                 $allowedFiles += $file
             } else {
                 $rejectedFiles += $file
             }
         }
-        
+
         if ($rejectedFiles.Count -gt 0) {
             Write-Warning "❌ Rejected files (outside lane scope):"
             $rejectedFiles | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
             return
         }
-        
+
         # Run pre-commit checks
         if ($lane.preCommit) {
             Write-Host "🔍 Running pre-commit checks..." -ForegroundColor Cyan
@@ -285,21 +285,21 @@ function Submit-Lane {
                 }
             }
         }
-        
+
         # Commit changes
         if (-not $DryRun) {
             git add .
             $fullMessage = "$($lane.commitPrefix) $CommitMessage"
             git commit -m $fullMessage
-            
+
             if ($config.git.push) {
                 git push origin $lane.branch
             }
         }
-        
+
         Write-Host "✅ Lane submitted successfully!" -ForegroundColor Green
         Write-Host "📝 Files changed: $($allowedFiles.Count)" -ForegroundColor Cyan
-        
+
     } finally {
         Pop-Location
     }
@@ -307,23 +307,23 @@ function Submit-Lane {
 
 function Invoke-Integration {
     $config = Get-FrameworkConfig
-    
+
     Write-Host "🔄 Starting integration process..." -ForegroundColor Blue
-    
+
     # Switch to integration branch
     git checkout integrate
     git reset --hard main
-    
+
     # Merge lanes in order
     $integrationOrder = $config.integration.order
     if (-not $integrationOrder) {
         $integrationOrder = $config.lanes.PSObject.Properties.Name
     }
-    
+
     foreach ($laneName in $integrationOrder) {
         $lane = $config.lanes.$laneName
         Write-Host "🔀 Merging lane: $laneName" -ForegroundColor Cyan
-        
+
         if (-not $DryRun) {
             git merge $lane.branch --no-ff -m "Integrate $laneName"
             if ($LASTEXITCODE -ne 0) {
@@ -332,7 +332,7 @@ function Invoke-Integration {
             }
         }
     }
-    
+
     # Run integration tests
     if ($config.integration.testCommand) {
         Write-Host "🧪 Running integration tests..." -ForegroundColor Cyan
@@ -344,29 +344,29 @@ function Invoke-Integration {
             }
         }
     }
-    
+
     # Fast-forward main
     if (-not $DryRun) {
         git checkout main
         git merge integrate --ff-only
     }
-    
+
     Write-Host "✅ Integration completed successfully!" -ForegroundColor Green
 }
 
 function Show-Status {
     $config = Get-FrameworkConfig
     $tracker = Get-QuotaTracker
-    
+
     Write-Host "📊 Framework Status" -ForegroundColor Blue
     Write-Host "==================" -ForegroundColor Blue
-    
+
     # Quota status
     Write-Host "`n🎯 Service Quotas:" -ForegroundColor Cyan
     foreach ($serviceName in $config.quotaManagement.services.PSObject.Properties.Name) {
         $service = $config.quotaManagement.services.$serviceName
         $currentUsage = if ($tracker.services.$serviceName) { $tracker.services.$serviceName } else { 0 }
-        
+
         if ($service.dailyLimit -eq "unlimited") {
             $status = "✅ Unlimited"
         } else {
@@ -374,10 +374,10 @@ function Show-Status {
             $color = if ($usagePercent -lt 70) { "Green" } elseif ($usagePercent -lt 90) { "Yellow" } else { "Red" }
             $status = "$currentUsage/$($service.dailyLimit) ($([math]::Round($usagePercent, 1))%)"
         }
-        
+
         Write-Host "  $serviceName`: $status" -ForegroundColor $color
     }
-    
+
     # Lane status
     Write-Host "`n🛤️  Lane Status:" -ForegroundColor Cyan
     foreach ($laneName in $config.lanes.PSObject.Properties.Name) {
@@ -386,7 +386,7 @@ function Show-Status {
         $status = if ($branchExists) { "✅ Ready" } else { "❌ Not initialized" }
         Write-Host "  $laneName`: $status" -ForegroundColor $(if ($branchExists) { "Green" } else { "Red" })
     }
-    
+
     # Local models status
     Write-Host "`n🤖 Local Models:" -ForegroundColor Cyan
     try {
@@ -410,11 +410,11 @@ switch ($Command) {
         Initialize-Lanes
         Write-Host "✅ Framework initialized! Run 'setup-local' to configure local models." -ForegroundColor Green
     }
-    
+
     "setup-local" {
         Initialize-LocalModels
     }
-    
+
     "start-lane" {
         if (-not $Lane) {
             Write-Error "Lane parameter required. Available lanes: $($(Get-FrameworkConfig).lanes.PSObject.Properties.Name -join ', ')"
@@ -422,7 +422,7 @@ switch ($Command) {
         }
         Start-Lane $Lane
     }
-    
+
     "submit" {
         if (-not $Lane) {
             Write-Error "Lane parameter required"
@@ -434,20 +434,20 @@ switch ($Command) {
         }
         Submit-Lane $Lane $Message
     }
-    
+
     "integrate" {
         Invoke-Integration
     }
-    
+
     "status" {
         Show-Status
     }
-    
+
     "quota-check" {
         $bestService = Get-BestAvailableService
         Write-Host "💡 Recommended service: $bestService" -ForegroundColor Green
     }
-    
+
     "rotate-service" {
         $config = Get-FrameworkConfig
         Write-Host "🔄 Service rotation logic:" -ForegroundColor Blue

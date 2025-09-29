@@ -3,26 +3,28 @@ Event System Implementation
 WebSocket integration and platform event handling
 """
 
-import json
-import time
 import asyncio
+import json
 import logging
-import threading
-from typing import Dict, Any, Optional, Callable, List
-from dataclasses import dataclass, asdict
+import time
+from dataclasses import asdict, dataclass
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 try:
     import websockets
+
     WEBSOCKETS_AVAILABLE = True
 except ImportError:
     WEBSOCKETS_AVAILABLE = False
 
 try:
-    from PyQt6.QtCore import QObject, pyqtSignal, QThread, QTimer
+    from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
+
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtCore import QObject, pyqtSignal, QThread, QTimer
+    from PyQt5.QtCore import QObject, QThread, pyqtSignal
+
     PYQT_VERSION = 5
 
 logger = logging.getLogger(__name__)
@@ -30,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 class EventType(Enum):
     """Event types for platform integration"""
+
     TERMINAL_START = "terminal_start"
     TERMINAL_STOP = "terminal_stop"
     COMMAND_EXECUTED = "command_executed"
@@ -44,6 +47,7 @@ class EventType(Enum):
 @dataclass
 class TerminalEvent:
     """Terminal event data structure"""
+
     event_type: EventType
     timestamp: float
     session_id: str
@@ -57,19 +61,19 @@ class TerminalEvent:
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary"""
         result = asdict(self)
-        result['event_type'] = self.event_type.value
+        result["event_type"] = self.event_type.value
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TerminalEvent':
+    def from_dict(cls, data: Dict[str, Any]) -> "TerminalEvent":
         """Create event from dictionary"""
-        event_type = EventType(data['event_type'])
+        event_type = EventType(data["event_type"])
         return cls(
             event_type=event_type,
-            timestamp=data['timestamp'],
-            session_id=data['session_id'],
-            user_id=data.get('user_id', 'default'),
-            data=data.get('data', {})
+            timestamp=data["timestamp"],
+            session_id=data["session_id"],
+            user_id=data.get("user_id", "default"),
+            data=data.get("data", {}),
         )
 
 
@@ -110,16 +114,21 @@ class WebSocketClient(QThread):
 
     async def _connect_and_listen(self):
         """Connect to WebSocket and listen for events"""
-        while not self.should_stop and self.reconnect_attempts < self.max_reconnect_attempts:
+        while (
+            not self.should_stop
+            and self.reconnect_attempts < self.max_reconnect_attempts
+        ):
             try:
                 # Prepare headers
                 headers = {}
                 if self.auth_token:
-                    headers['Authorization'] = f"Bearer {self.auth_token}"
+                    headers["Authorization"] = f"Bearer {self.auth_token}"
 
                 # Connect to WebSocket
                 logger.info(f"Connecting to WebSocket: {self.url}")
-                self.websocket = await websockets.connect(self.url, extra_headers=headers)
+                self.websocket = await websockets.connect(
+                    self.url, extra_headers=headers
+                )
 
                 self.connected.emit()
                 self.reconnect_attempts = 0
@@ -141,9 +150,14 @@ class WebSocketClient(QThread):
                 self.error_occurred.emit(str(e))
 
             # Reconnect logic
-            if not self.should_stop and self.reconnect_attempts < self.max_reconnect_attempts:
+            if (
+                not self.should_stop
+                and self.reconnect_attempts < self.max_reconnect_attempts
+            ):
                 self.reconnect_attempts += 1
-                logger.info(f"Reconnecting in {self.reconnect_delay} seconds (attempt {self.reconnect_attempts})")
+                logger.info(
+                    f"Reconnecting in {self.reconnect_delay} seconds (attempt {self.reconnect_attempts})"
+                )
                 await asyncio.sleep(self.reconnect_delay)
 
         if self.reconnect_attempts >= self.max_reconnect_attempts:
@@ -160,14 +174,15 @@ class WebSocketClient(QThread):
     def send_event(self, event: TerminalEvent):
         """Send event to platform"""
         if self.websocket:
-            message = {
-                'type': 'terminal_event',
-                'event': event.to_dict()
-            }
+            message = {"type": "terminal_event", "event": event.to_dict()}
             # Schedule message sending in the event loop
             asyncio.run_coroutine_threadsafe(
                 self._send_message(message),
-                self.thread().eventLoop() if hasattr(self.thread(), 'eventLoop') else asyncio.get_event_loop()
+                (
+                    self.thread().eventLoop()
+                    if hasattr(self.thread(), "eventLoop")
+                    else asyncio.get_event_loop()
+                ),
             )
 
     def stop(self):
@@ -176,7 +191,11 @@ class WebSocketClient(QThread):
         if self.websocket:
             asyncio.run_coroutine_threadsafe(
                 self.websocket.close(),
-                self.thread().eventLoop() if hasattr(self.thread(), 'eventLoop') else asyncio.get_event_loop()
+                (
+                    self.thread().eventLoop()
+                    if hasattr(self.thread(), "eventLoop")
+                    else asyncio.get_event_loop()
+                ),
             )
 
 
@@ -220,13 +239,17 @@ class EventSystem(QObject):
         self.subscribers = {}  # event_type -> list of callbacks
         self.event_buffer = EventBuffer()
 
-    def subscribe(self, event_type: EventType, callback: Callable[[TerminalEvent], None]):
+    def subscribe(
+        self, event_type: EventType, callback: Callable[[TerminalEvent], None]
+    ):
         """Subscribe to event type"""
         if event_type not in self.subscribers:
             self.subscribers[event_type] = []
         self.subscribers[event_type].append(callback)
 
-    def unsubscribe(self, event_type: EventType, callback: Callable[[TerminalEvent], None]):
+    def unsubscribe(
+        self, event_type: EventType, callback: Callable[[TerminalEvent], None]
+    ):
         """Unsubscribe from event type"""
         if event_type in self.subscribers:
             try:
@@ -280,7 +303,9 @@ class PlatformEventIntegration(QObject):
         """Setup local event subscriptions"""
         # Subscribe to all events for platform forwarding
         for event_type in EventType:
-            self.local_event_system.subscribe(event_type, self._forward_event_to_platform)
+            self.local_event_system.subscribe(
+                event_type, self._forward_event_to_platform
+            )
 
     def connect_to_platform(self):
         """Connect to platform WebSocket"""
@@ -307,15 +332,20 @@ class PlatformEventIntegration(QObject):
         self.connected = False
         self.connection_status_changed.emit(False)
 
-    def emit_terminal_event(self, event_type: EventType, session_id: str,
-                          user_id: str = "default", data: Optional[Dict[str, Any]] = None):
+    def emit_terminal_event(
+        self,
+        event_type: EventType,
+        session_id: str,
+        user_id: str = "default",
+        data: Optional[Dict[str, Any]] = None,
+    ):
         """Emit terminal event"""
         event = TerminalEvent(
             event_type=event_type,
             timestamp=time.time(),
             session_id=session_id,
             user_id=user_id,
-            data=data or {}
+            data=data or {},
         )
         self.local_event_system.emit_event(event)
 
@@ -347,21 +377,19 @@ class PlatformEventIntegration(QObject):
 
     def handle_workflow_event(self, event: Dict[str, Any]):
         """Handle workflow status updates from platform"""
-        event_type = event.get('type')
-        data = event.get('data', {})
+        event_type = event.get("type")
+        data = event.get("data", {})
 
-        if event_type == 'workflow_started':
+        if event_type == "workflow_started":
             logger.info(f"Workflow started: {data.get('workflow_id')}")
-        elif event_type == 'workflow_completed':
+        elif event_type == "workflow_completed":
             logger.info(f"Workflow completed: {data.get('workflow_id')}")
-        elif event_type == 'workflow_failed':
+        elif event_type == "workflow_failed":
             logger.warning(f"Workflow failed: {data.get('workflow_id')}")
 
         # Emit local event
         self.emit_terminal_event(
-            EventType.WORKFLOW_UPDATE,
-            session_id="platform",
-            data=data
+            EventType.WORKFLOW_UPDATE, session_id="platform", data=data
         )
 
     def handle_cost_update(self, cost_data: Dict[str, Any]):
@@ -370,9 +398,7 @@ class PlatformEventIntegration(QObject):
 
         # Emit local event
         self.emit_terminal_event(
-            EventType.COST_UPDATE,
-            session_id="platform",
-            data=cost_data
+            EventType.COST_UPDATE, session_id="platform", data=cost_data
         )
 
     def get_connection_status(self) -> Dict[str, Any]:
@@ -380,8 +406,10 @@ class PlatformEventIntegration(QObject):
         return {
             "connected": self.connected,
             "websocket_url": self.websocket_url,
-            "reconnect_attempts": self.websocket_client.reconnect_attempts if self.websocket_client else 0,
-            "events_buffered": self.local_event_system.event_buffer.size()
+            "reconnect_attempts": (
+                self.websocket_client.reconnect_attempts if self.websocket_client else 0
+            ),
+            "events_buffered": self.local_event_system.event_buffer.size(),
         }
 
     def get_recent_events(self, count: int = 10) -> List[Dict[str, Any]]:

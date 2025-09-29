@@ -364,7 +364,7 @@ bash
 export IPT_MODE="verbose"
 export WT_PARALLEL_LIMIT=2
 
-# Production environment  
+# Production environment
 export IPT_MODE="silent"
 export WT_PARALLEL_LIMIT=5
 export COST_BUDGET_DAILY=100
@@ -386,7 +386,7 @@ budgets:
   user_limits:
     "senior_dev": $20/day
     "junior_dev": $10/day
-    
+
 cost_alerts:
   warning_threshold: 80%
   stop_threshold: 95%
@@ -461,7 +461,7 @@ execution_plan = {
             "estimated_cost": 4.00
         },
         {
-            "phase": 2, 
+            "phase": 2,
             "tool": "claude-cli",
             "task": "Add comprehensive tests",
             "files": ["tests/test_auth.py"],
@@ -470,7 +470,7 @@ execution_plan = {
         },
         {
             "phase": 3,
-            "tool": "cursor", 
+            "tool": "cursor",
             "task": "Update documentation",
             "files": ["docs/authentication.md"],
             "estimated_cost": 2.50,
@@ -492,7 +492,7 @@ for tool in execution_plan.tools:
         --tool $tool \
         --scope "branch:feature/oauth2-auth-abc123" \
         --expires "2h")
-    
+
 # Create isolated git worktree
 git worktree add ../workspaces/tsk_abc123 feature/oauth2-auth-abc123
 Phase 4: Parallel Task Execution with Real-Time Monitoring
@@ -501,12 +501,12 @@ python
 async def execute_phases(execution_plan):
     event_bus = EventBus()
     task_monitor = TaskMonitor(event_bus)
-    
+
     for phase in execution_plan.phases:
         # Check dependencies
         if not dependencies_satisfied(phase.depends_on):
             await wait_for_dependencies(phase.depends_on)
-        
+
         # Execute phase with monitoring
         wt_result = await execute_work_tool(
             tool=phase.tool,
@@ -516,18 +516,18 @@ async def execute_phases(execution_plan):
             auth_token=get_tool_token(phase.tool),
             callback=event_bus.publish
         )
-        
+
         # Real-time status updates
         event_bus.publish({
             "type": "phase_completed",
-            "task_id": "tsk_abc123", 
+            "task_id": "tsk_abc123",
             "phase": phase.phase,
             "status": "completed",
             "files_changed": wt_result.files_changed,
             "cost_actual": wt_result.cost,
             "duration": wt_result.duration
         })
-        
+
         # Verification checkpoints
         if phase.phase in execution_plan.verification_points:
             verification_result = await ipt_verify_phase(phase)
@@ -539,28 +539,28 @@ python
 class ErrorRecoverySystem:
     async def handle_verification_failure(self, phase, verification_result):
         failure_count = self.get_failure_count(phase.tool)
-        
+
         if failure_count < 3:
             # Level 1: Retry with same tool
             return await self.retry_phase(phase, "same_tool")
-            
+
         elif failure_count < 5:
             # Level 2: Switch to backup tool
             backup_tool = self.get_backup_tool(phase.tool, phase.capabilities)
             return await self.retry_phase(phase, backup_tool)
-            
+
         else:
             # Level 3: Circuit breaker - mark tool unhealthy
             self.circuit_breaker.mark_unhealthy(phase.tool, duration="30m")
-            
+
             # Level 4: IPT direct intervention
             return await self.ipt_direct_fix(phase, verification_result.errors)
-    
+
     async def handle_tool_failure(self, tool, error):
         # Auto-rollback on critical failures
         if error.severity == "critical":
             await self.rollback_to_checkpoint(self.last_good_state)
-            
+
         # Notify stakeholders
         await self.notification_service.alert(
             level="error",
@@ -572,18 +572,18 @@ bash
 # IPT performs comprehensive verification
 ipt_verify_branch() {
     local branch_name="feature/oauth2-auth-abc123"
-    
+
     # Code quality checks
     run_static_analysis $branch_name
     run_security_scan $branch_name
     run_test_suite $branch_name
-    
+
     # Integration testing
     test_merge_compatibility $branch_name "main"
-    
+
     # Performance impact analysis
     benchmark_performance_delta $branch_name
-    
+
     # Documentation completeness
     validate_documentation_coverage $branch_name
 }
@@ -601,7 +601,7 @@ class IntegrationManager:
         # Final cost calculation
         total_cost = self.cost_tracker.get_total_cost(task_id)
         budget_remaining = self.get_user_budget_remaining(user_id)
-        
+
         # Merge strategy optimization
         if self.has_conflicts("main", branch_name):
             if total_cost < (budget_remaining * 0.1):
@@ -610,11 +610,11 @@ class IntegrationManager:
             else:
                 # High cost - use cheaper automated resolution
                 await self.automated_conflict_resolution(branch_name)
-        
+
         # Delegate merge to cost-effective WT
         merge_tool = self.select_cheapest_tool(["aider", "cursor"])
         await self.delegate_merge(merge_tool, branch_name, "main")
-        
+
         # Cleanup and reporting
         await self.cleanup_workspace(task_id)
         await self.generate_completion_report(task_id)
@@ -679,13 +679,13 @@ json
                 "details": {"description": "Add OAuth2 authentication", "budget": 15.00}
             },
             {
-                "timestamp": "2024-09-13T10:31:15Z", 
+                "timestamp": "2024-09-13T10:31:15Z",
                 "action": "tool_delegated",
                 "details": {"tool": "aider", "phase": 1, "auth_token": "jwt_abc..."}
             },
             {
                 "timestamp": "2024-09-13T10:45:22Z",
-                "action": "verification_failed", 
+                "action": "verification_failed",
                 "details": {"tool": "aider", "error": "test_coverage_insufficient"}
             },
             {
@@ -1167,7 +1167,7 @@ python gui/gui_test_server.py (in one shell)
 
 python gui/parity_test_harness.py (in another)
 
-If you want, I can extend the test harness with Ctrl-C exit-code asserts, stderr interleave checks, and add an artifacts panel (directory watcher) next. 
+If you want, I can extend the test harness with Ctrl-C exit-code asserts, stderr interleave checks, and add an artifacts panel (directory watcher) next.
 
 You said:
 proceed
@@ -1224,7 +1224,7 @@ add a “Open in system terminal here” action, and
 
 include a cost/health sidebar to visualize your IPT↔WT parallel plans,
 
-say the word and I’ll drop another patch. 
+say the word and I’ll drop another patch.
 
 You said:
 proceed with all
@@ -1268,7 +1268,7 @@ add a merge-queue monitor and DAG panel for your parallel workflows,
 
 wire the sidebar to a tiny local event bus so IPT can stream status/cost in real time, and
 
-include a policy file to enforce path-claims + per-tool concurrency from the GUI. 
+include a policy file to enforce path-claims + per-tool concurrency from the GUI.
 
 You said:
 proceed
@@ -1326,7 +1326,7 @@ download the bundle
 
 python_gui_cockpit_patchset_v4.zip
 
-If you want me to enforce path-claims + per-tool concurrency in a local scheduler (so you can test policies even without the IPT), I can add a lightweight scheduler that consumes the same plan.json + policy.json, runs nodes in isolated worktrees, and reports back via the same event stream. 
+If you want me to enforce path-claims + per-tool concurrency in a local scheduler (so you can test policies even without the IPT), I can add a lightweight scheduler that consumes the same plan.json + policy.json, runs nodes in isolated worktrees, and reports back via the same event stream.
 
 You said:
 thoughts:
@@ -1393,7 +1393,7 @@ class ErrorRecoveryConfig:
     backoff_multiplier: float = 2.0
     timeout_seconds: int = 30
     circuit_breaker_threshold: int = 5
-    
+
     def handle_pty_failure(self, error: Exception) -> RecoveryAction:
         # Implement progressive recovery strategies
         pass
@@ -1417,7 +1417,7 @@ class ErrorRecoveryConfig:
 
 **Security Vulnerabilities:**
 - **No process isolation**: Child processes can access parent resources
-- **Command injection risks**: Direct command execution without sanitization  
+- **Command injection risks**: Direct command execution without sanitization
 - **No audit logging**: Commands executed without security trail
 - **Missing privilege controls**: No user/group restrictions on executed commands
 
@@ -1432,7 +1432,7 @@ class SecureProcessManager:
             network_access=False,
             filesystem_access=FileSystemAccess.READ_ONLY
         )
-    
+
     def execute_command(self, cmd: str) -> SecureResult:
         # Validate, sanitize, and execute with restrictions
         pass
@@ -1442,7 +1442,7 @@ class SecureProcessManager:
 
 **Architecture Limitations:**
 - **Tight coupling**: GUI components heavily coupled to PTY implementation
-- **No plugin system**: Can't extend functionality without core changes  
+- **No plugin system**: Can't extend functionality without core changes
 - **Limited API**: No external integration points for automation
 - **Missing event system**: Basic event bus without filtering/routing
 
@@ -1453,11 +1453,11 @@ class PluginManager:
     def __init__(self):
         self.plugins: Dict[str, Plugin] = {}
         self.hooks: Dict[str, List[Callable]] = {}
-    
+
     def register_plugin(self, plugin: Plugin):
         # Dynamic plugin loading with dependency resolution
         pass
-    
+
     def trigger_hook(self, event: str, data: Any) -> Any:
         # Event-driven plugin system
         pass
@@ -1479,7 +1479,7 @@ def test_terminal_rendering():
     # Capture screenshots and compare pixel differences
     pass
 
-# Performance benchmarking  
+# Performance benchmarking
 def test_performance_under_load():
     # Measure resource usage with concurrent processes
     pass
@@ -1504,15 +1504,15 @@ python
 @dataclass
 class GuiConfiguration:
     terminal: TerminalConfig
-    appearance: AppearanceConfig  
+    appearance: AppearanceConfig
     security: SecurityConfig
     performance: PerformanceConfig
-    
+
     @classmethod
     def load_from_env(cls, env: str = "development"):
         # Environment-specific configuration loading
         pass
-    
+
     def validate(self) -> List[ConfigError]:
         # Pre-startup validation
         pass
@@ -1522,7 +1522,7 @@ class GuiConfiguration:
 
 **Missing Observability:**
 - **No metrics collection**: Can't track usage patterns or performance
-- **Missing health checks**: No automated system health monitoring  
+- **Missing health checks**: No automated system health monitoring
 - **No alerting system**: Silent failures without notification
 - **Limited debugging**: No structured logging or tracing
 
@@ -1537,7 +1537,7 @@ class GuiMetrics:
             "memory_usage": Gauge(),
             "error_rate": Rate()
         }
-    
+
     def track_command_execution(self, cmd: str, duration: float):
         # Track performance metrics
         pass

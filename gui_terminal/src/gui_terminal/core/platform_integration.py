@@ -8,6 +8,7 @@ def _import_integration_manager():
     try:
         # Expect repo root on sys.path for src imports
         from integrations.integration_manager import IntegrationManager  # type: ignore
+
         return IntegrationManager
     except Exception:
         try:
@@ -17,7 +18,10 @@ def _import_integration_manager():
             root = Path(__file__).resolve().parents[4] / "src"
             if str(root) not in sys.path:
                 sys.path.append(str(root))
-            from integrations.integration_manager import IntegrationManager  # type: ignore
+            from integrations.integration_manager import (
+                IntegrationManager,  # type: ignore
+            )
+
             return IntegrationManager
         except Exception:
             return None
@@ -48,13 +52,16 @@ class PlatformIntegrationsBridge:
     async def notify_started(self, ctx: WorkflowContextData) -> None:
         if not self._mgr:
             return
-        await self._mgr.notify_workflow_started(ctx.workflow_id, {
-            "name": ctx.name,
-            "user_id": ctx.user_id,
-            "jira_project": ctx.jira_project,
-            "slack_channel": ctx.slack_channel,
-            "github_repo": ctx.github_repo,
-        })
+        await self._mgr.notify_workflow_started(
+            ctx.workflow_id,
+            {
+                "name": ctx.name,
+                "user_id": ctx.user_id,
+                "jira_project": ctx.jira_project,
+                "slack_channel": ctx.slack_channel,
+                "github_repo": ctx.github_repo,
+            },
+        )
 
     async def notify_progress(self, workflow_id: str, progress: Dict[str, Any]) -> None:
         if not self._mgr:
@@ -70,4 +77,3 @@ class PlatformIntegrationsBridge:
         if not self._mgr:
             return
         await self._mgr.notify_workflow_failed(workflow_id, error)
-

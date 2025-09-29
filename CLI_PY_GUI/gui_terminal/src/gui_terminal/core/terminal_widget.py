@@ -3,27 +3,41 @@ Enterprise Terminal Widget Implementation
 Advanced terminal widget with full PTY support and enterprise features
 """
 
-import os
-import sys
-import signal
 import logging
-from typing import Optional, Dict, List, Any
-from pathlib import Path
+import os
+import signal
+from typing import Any, Dict, Optional
 
 try:
-    from PyQt6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
-    from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-    from PyQt6.QtGui import QFont, QTextCursor, QKeyEvent, QResizeEvent
+    from PyQt6.QtCore import Qt, QTimer, pyqtSignal
+    from PyQt6.QtGui import QFont, QKeyEvent, QResizeEvent, QTextCursor
+    from PyQt6.QtWidgets import (
+        QHBoxLayout,
+        QLabel,
+        QPushButton,
+        QTextEdit,
+        QVBoxLayout,
+        QWidget,
+    )
+
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
-    from PyQt5.QtCore import Qt, pyqtSignal, QTimer
-    from PyQt5.QtGui import QFont, QTextCursor, QKeyEvent, QResizeEvent
+    from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+    from PyQt5.QtGui import QFont, QKeyEvent, QResizeEvent, QTextCursor
+    from PyQt5.QtWidgets import (
+        QHBoxLayout,
+        QLabel,
+        QPushButton,
+        QTextEdit,
+        QVBoxLayout,
+        QWidget,
+    )
+
     PYQT_VERSION = 5
 
-from .pty_backend import PTYBackend, CommandResult
 from ..config.settings import SettingsManager
 from ..security.policy_manager import SecurityPolicyManager
+from .pty_backend import CommandResult, PTYBackend
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +70,8 @@ class TerminalDisplay(QTextEdit):
         self.setFont(font)
 
         # Dark terminal theme
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QTextEdit {
                 background-color: #1e1e1e;
                 color: #ffffff;
@@ -64,7 +79,8 @@ class TerminalDisplay(QTextEdit):
                 selection-background-color: #404040;
                 selection-color: #ffffff;
             }
-        """)
+        """
+        )
 
         # Terminal settings
         self.setAcceptRichText(False)
@@ -90,7 +106,9 @@ class TerminalDisplay(QTextEdit):
         """Clear current input line"""
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End)
-        cursor.movePosition(QTextCursor.MoveOperation.StartOfLine, QTextCursor.MoveMode.KeepAnchor)
+        cursor.movePosition(
+            QTextCursor.MoveOperation.StartOfLine, QTextCursor.MoveMode.KeepAnchor
+        )
         cursor.removeSelectedText()
 
     def show_prompt(self, prompt: str = "$ "):
@@ -107,15 +125,15 @@ class TerminalDisplay(QTextEdit):
         if modifiers == Qt.KeyboardModifier.ControlModifier:
             if key == Qt.Key.Key_C:
                 # Ctrl+C - send interrupt signal
-                self.input_received.emit('\x03')
+                self.input_received.emit("\x03")
                 return
             elif key == Qt.Key.Key_D:
                 # Ctrl+D - send EOF
-                self.input_received.emit('\x04')
+                self.input_received.emit("\x04")
                 return
             elif key == Qt.Key.Key_Z:
                 # Ctrl+Z - send suspend signal
-                self.input_received.emit('\x1a')
+                self.input_received.emit("\x1a")
                 return
             elif key == Qt.Key.Key_L:
                 # Ctrl+L - clear screen
@@ -127,22 +145,24 @@ class TerminalDisplay(QTextEdit):
             # Get current line text
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.MoveOperation.End)
-            cursor.movePosition(QTextCursor.MoveOperation.StartOfLine, QTextCursor.MoveMode.KeepAnchor)
+            cursor.movePosition(
+                QTextCursor.MoveOperation.StartOfLine, QTextCursor.MoveMode.KeepAnchor
+            )
             line_text = cursor.selectedText()
 
             # Remove prompt from line
             if len(line_text) >= self.prompt_length:
-                command_text = line_text[self.prompt_length:]
+                command_text = line_text[self.prompt_length :]
                 if command_text.strip():
                     self.command_history.append(command_text)
                     self.history_index = len(self.command_history)
 
                 # Send command
-                self.append_output('\n')
-                self.input_received.emit(command_text + '\n')
+                self.append_output("\n")
+                self.input_received.emit(command_text + "\n")
             else:
-                self.append_output('\n')
-                self.input_received.emit('\n')
+                self.append_output("\n")
+                self.input_received.emit("\n")
             return
 
         # Handle history navigation
@@ -153,7 +173,10 @@ class TerminalDisplay(QTextEdit):
             return
 
         if key == Qt.Key.Key_Down:
-            if self.command_history and self.history_index < len(self.command_history) - 1:
+            if (
+                self.command_history
+                and self.history_index < len(self.command_history) - 1
+            ):
                 self.history_index += 1
                 self._replace_current_line(self.command_history[self.history_index])
             elif self.history_index >= len(self.command_history) - 1:
@@ -191,7 +214,9 @@ class TerminalDisplay(QTextEdit):
         # Keep the prompt, replace everything after it
         prompt_end = cursor.position() + self.prompt_length
         cursor.setPosition(prompt_end)
-        cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.KeepAnchor)
+        cursor.movePosition(
+            QTextCursor.MoveOperation.End, QTextCursor.MoveMode.KeepAnchor
+        )
         cursor.removeSelectedText()
         cursor.insertText(text)
         self.setTextCursor(cursor)
@@ -206,9 +231,12 @@ class EnterpriseTerminalWidget(QWidget):
     session_ended = pyqtSignal()
     command_executed = pyqtSignal(str)
 
-    def __init__(self, config_manager: Optional[SettingsManager] = None,
-                 security_manager: Optional[SecurityPolicyManager] = None,
-                 audit_logger=None):
+    def __init__(
+        self,
+        config_manager: Optional[SettingsManager] = None,
+        security_manager: Optional[SecurityPolicyManager] = None,
+        audit_logger=None,
+    ):
         super().__init__()
 
         # Dependency injection
@@ -224,9 +252,9 @@ class EnterpriseTerminalWidget(QWidget):
         # Session state
         self.current_session_id = None
         self.session_info = {
-            'start_time': None,
-            'command_count': 0,
-            'working_directory': os.getcwd()
+            "start_time": None,
+            "command_count": 0,
+            "working_directory": os.getcwd(),
         }
 
         # Status update timer
@@ -286,7 +314,9 @@ class EnterpriseTerminalWidget(QWidget):
         self.stop_button.clicked.connect(self.stop_session)
         self.clear_button.clicked.connect(self.clear_terminal)
 
-    def start_session(self, command: Optional[str] = None, working_dir: Optional[str] = None):
+    def start_session(
+        self, command: Optional[str] = None, working_dir: Optional[str] = None
+    ):
         """Start new terminal session"""
         try:
             # Get configuration
@@ -296,22 +326,23 @@ class EnterpriseTerminalWidget(QWidget):
             if self.config_manager:
                 config = self.config_manager.get_terminal_config()
                 if command is None:
-                    command = config.get('default_shell', 'auto')
-                if command == 'auto':
+                    command = config.get("default_shell", "auto")
+                if command == "auto":
                     command = None  # Let PTY backend determine default
 
             # Security validation
             if self.security_manager and command:
-                is_valid, violations = self.security_manager.validate_command(command, [], working_dir)
+                is_valid, violations = self.security_manager.validate_command(
+                    command, [], working_dir
+                )
                 if not is_valid:
-                    self.terminal_display.append_output(f"Security violation: {'; '.join(violations)}\n")
+                    self.terminal_display.append_output(
+                        f"Security violation: {'; '.join(violations)}\n"
+                    )
                     return
 
             # Start PTY session
-            self.pty_backend.start_session(
-                command=command,
-                cwd=working_dir
-            )
+            self.pty_backend.start_session(command=command, cwd=working_dir)
 
             # Update UI state
             self.start_button.setEnabled(False)
@@ -320,9 +351,10 @@ class EnterpriseTerminalWidget(QWidget):
 
             # Initialize session
             import time
-            self.session_info['start_time'] = time.time()
-            self.session_info['command_count'] = 0
-            self.session_info['working_directory'] = working_dir
+
+            self.session_info["start_time"] = time.time()
+            self.session_info["command_count"] = 0
+            self.session_info["working_directory"] = working_dir
 
             # Show initial prompt
             self.terminal_display.show_prompt("$ ")
@@ -368,10 +400,14 @@ class EnterpriseTerminalWidget(QWidget):
                 command_parts = text.strip().split()
                 if command_parts:
                     is_valid, violations = self.security_manager.validate_command(
-                        command_parts[0], command_parts[1:], self.session_info['working_directory']
+                        command_parts[0],
+                        command_parts[1:],
+                        self.session_info["working_directory"],
                     )
                     if not is_valid:
-                        self.terminal_display.append_output(f"Security violation: {'; '.join(violations)}\n")
+                        self.terminal_display.append_output(
+                            f"Security violation: {'; '.join(violations)}\n"
+                        )
                         self.terminal_display.show_prompt("$ ")
                         return
 
@@ -380,7 +416,7 @@ class EnterpriseTerminalWidget(QWidget):
 
             # Update command count
             if text.strip():
-                self.session_info['command_count'] += 1
+                self.session_info["command_count"] += 1
                 self.command_executed.emit(text.strip())
 
                 # Audit logging
@@ -393,11 +429,15 @@ class EnterpriseTerminalWidget(QWidget):
 
     def handle_process_finished(self, result: CommandResult):
         """Handle process completion"""
-        self.terminal_display.append_output(f"\nProcess exited with code {result.exit_code}\n")
+        self.terminal_display.append_output(
+            f"\nProcess exited with code {result.exit_code}\n"
+        )
         self.terminal_display.show_prompt("$ ")
 
         # Update status
-        status_text = f"Exit code: {result.exit_code}, Time: {result.execution_time:.2f}s"
+        status_text = (
+            f"Exit code: {result.exit_code}, Time: {result.execution_time:.2f}s"
+        )
         self.status_label.setText(status_text)
 
     def handle_error(self, error_message: str):
@@ -428,24 +468,36 @@ class EnterpriseTerminalWidget(QWidget):
     def update_status(self):
         """Update status information"""
         if self.pty_backend.is_session_active():
-            uptime = time.time() - self.session_info['start_time'] if self.session_info['start_time'] else 0
-            self.session_label.setText(f"Session: {uptime:.0f}s, Commands: {self.session_info['command_count']}")
+            uptime = (
+                time.time() - self.session_info["start_time"]
+                if self.session_info["start_time"]
+                else 0
+            )
+            self.session_label.setText(
+                f"Session: {uptime:.0f}s, Commands: {self.session_info['command_count']}"
+            )
             self.status_label.setText("Session active")
 
     def get_session_info(self) -> Dict[str, Any]:
         """Return current session information for status bar"""
         return {
-            'active': self.pty_backend.is_session_active(),
-            'uptime': time.time() - self.session_info['start_time'] if self.session_info['start_time'] else 0,
-            'command_count': self.session_info['command_count'],
-            'working_directory': self.session_info['working_directory'],
-            'status': self.status_label.text()
+            "active": self.pty_backend.is_session_active(),
+            "uptime": (
+                time.time() - self.session_info["start_time"]
+                if self.session_info["start_time"]
+                else 0
+            ),
+            "command_count": self.session_info["command_count"],
+            "working_directory": self.session_info["working_directory"],
+            "status": self.status_label.text(),
         }
 
-    def set_startup_options(self, command: Optional[str] = None, working_dir: Optional[str] = None):
+    def set_startup_options(
+        self, command: Optional[str] = None, working_dir: Optional[str] = None
+    ):
         """Set startup options for the terminal"""
         if working_dir:
-            self.session_info['working_directory'] = working_dir
+            self.session_info["working_directory"] = working_dir
             self.cwd_label.setText(f"CWD: {working_dir}")
 
         # Auto-start if command specified

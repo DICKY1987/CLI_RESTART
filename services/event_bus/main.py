@@ -6,12 +6,12 @@ from typing import Dict, List, Set
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import PlainTextResponse
+
 try:
-    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST  # type: ignore
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # type: ignore
 except Exception:  # pragma: no cover - optional
     generate_latest = None  # type: ignore
     CONTENT_TYPE_LATEST = "text/plain"
-from fastapi.responses import PlainTextResponse
 
 
 class Hub:

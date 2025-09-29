@@ -19,18 +19,18 @@ import json
 import os
 import re
 import subprocess
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
-
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS_DIR = ROOT / "contracts" / "schemas"
 
 
 def run(cmd: List[str], cwd: Optional[Path] = None) -> str:
-    res = subprocess.run(cmd, cwd=str(cwd) if cwd else None, capture_output=True, text=True)
+    res = subprocess.run(
+        cmd, cwd=str(cwd) if cwd else None, capture_output=True, text=True
+    )
     if res.returncode != 0:
         raise RuntimeError(f"Command failed: {' '.join(cmd)}\n{res.stderr}")
     return res.stdout
@@ -54,7 +54,11 @@ def load_json_file(path: Path) -> Dict[str, Any]:
 
 def get_changed_schema_paths(base_ref: str) -> List[Path]:
     diff = run(["git", "diff", "--name-only", f"origin/{base_ref}...HEAD"]).splitlines()
-    paths = [ROOT / p for p in diff if p.startswith("contracts/schemas/") and p.endswith(".json")]
+    paths = [
+        ROOT / p
+        for p in diff
+        if p.startswith("contracts/schemas/") and p.endswith(".json")
+    ]
     return paths
 
 
@@ -77,7 +81,9 @@ class ChangeReport:
 IGNORED_KEYS = {"title", "description", "$schema", "$id", "default", "examples"}
 
 
-def collect_props(schema: Dict[str, Any], base: str = "") -> Tuple[Set[str], Set[str], Dict[str, Any]]:
+def collect_props(
+    schema: Dict[str, Any], base: str = ""
+) -> Tuple[Set[str], Set[str], Dict[str, Any]]:
     props_paths: Set[str] = set()
     required_paths: Set[str] = set()
     types: Dict[str, Any] = {}
@@ -130,7 +136,14 @@ def classify_change(old: Dict[str, Any], new: Dict[str, Any]) -> Tuple[str, List
     removed_props = old_props - new_props
     if removed_props:
         # Flag breaking if any removed was also required
-        removed_required = {rp for rp in removed_props if rp.replace("/properties/", "/required/").rsplit("/", 1)[0] + "/" + rp.rsplit("/", 1)[1] in old_required}
+        removed_required = {
+            rp
+            for rp in removed_props
+            if rp.replace("/properties/", "/required/").rsplit("/", 1)[0]
+            + "/"
+            + rp.rsplit("/", 1)[1]
+            in old_required
+        }
         if removed_required or removed_props:
             details.append(f"removed properties: {sorted(list(removed_props))}")
             breaking = True
@@ -157,10 +170,14 @@ def classify_change(old: Dict[str, Any], new: Dict[str, Any]) -> Tuple[str, List
         if old_set == new_set:
             continue
         if old_set.issubset(new_set):
-            details.append(f"enum extended at {key}: +{sorted(list(new_set - old_set))}")
+            details.append(
+                f"enum extended at {key}: +{sorted(list(new_set - old_set))}"
+            )
             additive = True
         else:
-            details.append(f"enum narrowed at {key}: -{sorted(list(old_set - new_set))}")
+            details.append(
+                f"enum narrowed at {key}: -{sorted(list(old_set - new_set))}"
+            )
             breaking = True
 
     # New properties added (and not required) -> additive
@@ -248,4 +265,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

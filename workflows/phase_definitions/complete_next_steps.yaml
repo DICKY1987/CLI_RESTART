@@ -72,4 +72,3 @@ phases:
           req=urllib.request.Request('http://127.0.0.1:8000/publish',data=json.dumps({'type':'phase.progress','pct':1}).encode('utf-8'),headers={'Content-Type':'application/json'},method='POST')
           print(urllib.request.urlopen(req, timeout=2.0).read())
         PY
-

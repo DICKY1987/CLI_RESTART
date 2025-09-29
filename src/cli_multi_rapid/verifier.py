@@ -47,7 +47,7 @@ class Verifier:
                 return False
 
             # Load artifact
-            with open(artifact_file, "r", encoding="utf-8") as f:
+            with open(artifact_file, encoding="utf-8") as f:
                 artifact = json.load(f)
 
             console.print(f"[blue]Loaded artifact: {artifact_file.name}[/blue]")
@@ -72,7 +72,7 @@ class Verifier:
         try:
             import jsonschema
 
-            with open(schema_file, "r", encoding="utf-8") as f:
+            with open(schema_file, encoding="utf-8") as f:
                 schema = json.load(f)
 
             jsonschema.validate(artifact, schema)
@@ -172,7 +172,7 @@ class Verifier:
             )
 
         try:
-            with open(test_report_file, "r", encoding="utf-8") as f:
+            with open(test_report_file, encoding="utf-8") as f:
                 test_report = json.load(f)
 
             tests_passed = test_report.get("tests_passed", 0)
@@ -222,7 +222,7 @@ class Verifier:
             )
 
         try:
-            with open(diff_file, "r", encoding="utf-8") as f:
+            with open(diff_file, encoding="utf-8") as f:
                 lines = f.readlines()
 
             line_count = len(lines)
@@ -283,7 +283,9 @@ class Verifier:
                     if "code-review" in name:
                         schema_file = schema_dir / "ai_code_review.schema.json"
                     elif "architecture" in name:
-                        schema_file = schema_dir / "ai_architecture_analysis.schema.json"
+                        schema_file = (
+                            schema_dir / "ai_architecture_analysis.schema.json"
+                        )
                     elif "refactor-plan" in name:
                         schema_file = schema_dir / "ai_refactor_plan.schema.json"
                     elif "test-plan" in name:
@@ -298,12 +300,119 @@ class Verifier:
             return GateResult(
                 gate_name="schema_valid",
                 passed=all_ok,
-                message="All artifacts valid" if all_ok else "One or more artifacts invalid",
+                message=(
+                    "All artifacts valid" if all_ok else "One or more artifacts invalid"
+                ),
                 details=details,
             )
         except Exception as e:
             return GateResult(
-                gate_name="schema_valid", passed=False, message=f"Schema gate error: {e}"
+                gate_name="schema_valid",
+                passed=False,
+                message=f"Schema gate error: {e}",
+            )
+
+    def _check_yaml_schema_valid_gate(self, gate_config: Dict[str, Any]) -> GateResult:
+        """Validate a YAML file against a JSON schema.
+
+        Expects:
+          - gate_config['file']: path to the YAML file (repo-relative or absolute)
+          - gate_config['schema']: path to the JSON schema file
+        """
+        try:
+            import json
+            from pathlib import Path
+
+            import jsonschema  # type: ignore
+            import yaml  # type: ignore
+
+            yaml_path = Path(gate_config.get("file", ""))
+            schema_path = Path(gate_config.get("schema", ""))
+
+            if not yaml_path.exists():
+                return GateResult(
+                    gate_name="yaml_schema_valid",
+                    passed=False,
+                    message=f"YAML file not found: {yaml_path}",
+                )
+            if not schema_path.exists():
+                return GateResult(
+                    gate_name="yaml_schema_valid",
+                    passed=False,
+                    message=f"Schema file not found: {schema_path}",
+                )
+
+            with open(yaml_path, encoding="utf-8") as yf:
+                data = yaml.safe_load(yf)
+            with open(schema_path, encoding="utf-8") as sf:
+                schema = json.load(sf)
+
+            jsonschema.validate(data, schema)
+            return GateResult(
+                gate_name="yaml_schema_valid",
+                passed=True,
+                message="YAML schema validation passed",
+            )
+        except ImportError as e:
+            return GateResult(
+                gate_name="yaml_schema_valid",
+                passed=False,
+                message=f"Missing dependency for YAML/JSON schema validation: {e}",
+            )
+        except Exception as e:
+            return GateResult(
+                gate_name="yaml_schema_valid",
+                passed=False,
+                message=f"YAML schema validation failed: {e}",
+            )
+
+    def _check_yaml_schema_valid_gate(self, gate_config: Dict[str, Any]) -> GateResult:
+        """Validate a YAML file against a JSON schema.
+
+        Expects:
+          - gate_config['file']: path to the YAML file (repo-relative or absolute)
+          - gate_config['schema']: path to the JSON schema file
+        """
+        try:
+            import json
+            from pathlib import Path
+            import jsonschema  # type: ignore
+            import yaml  # type: ignore
+
+            yaml_path = Path(gate_config.get("file", ""))
+            schema_path = Path(gate_config.get("schema", ""))
+
+            if not yaml_path.exists():
+                return GateResult(
+                    gate_name="yaml_schema_valid",
+                    passed=False,
+                    message=f"YAML file not found: {yaml_path}",
+                )
+            if not schema_path.exists():
+                return GateResult(
+                    gate_name="yaml_schema_valid",
+                    passed=False,
+                    message=f"Schema file not found: {schema_path}",
+                )
+
+            with open(yaml_path, "r", encoding="utf-8") as yf:
+                data = yaml.safe_load(yf)
+            with open(schema_path, "r", encoding="utf-8") as sf:
+                schema = json.load(sf)
+
+            jsonschema.validate(data, schema)
+            return GateResult(
+                gate_name="yaml_schema_valid", passed=True, message="YAML schema validation passed"
+            )
+        except ImportError as e:
+            return GateResult(
+                gate_name="yaml_schema_valid",
+                passed=False,
+                message=f"Missing dependency for YAML/JSON schema validation: {e}",
+            )
+        except Exception as e:
+            return GateResult(
+                gate_name="yaml_schema_valid", passed=False, message=f"YAML schema validation failed: {e}"
             )
 
     def _check_yaml_schema_valid_gate(self, gate_config: Dict[str, Any]) -> GateResult:
@@ -362,7 +471,9 @@ class Verifier:
         try:
             max_tokens = gate_config.get("max_tokens")
             max_usd = gate_config.get("max_usd")
-            tokens_file = artifacts_dir / (gate_config.get("tokens_file", "ai-cost.json"))
+            tokens_file = artifacts_dir / (
+                gate_config.get("tokens_file", "ai-cost.json")
+            )
 
             if not tokens_file.exists():
                 return GateResult(
@@ -371,7 +482,7 @@ class Verifier:
                     message=f"Tokens file not found: {tokens_file}",
                 )
 
-            with open(tokens_file, "r", encoding="utf-8") as f:
+            with open(tokens_file, encoding="utf-8") as f:
                 data = json.load(f)
 
             total_tokens = int(data.get("total_estimated_tokens", 0))
@@ -382,7 +493,11 @@ class Verifier:
                     gate_name="token_budget",
                     passed=False,
                     message=f"Token budget exceeded: {total_tokens} > {max_tokens}",
-                    details={"tokens": total_tokens, "max_tokens": max_tokens, "usd": est_usd},
+                    details={
+                        "tokens": total_tokens,
+                        "max_tokens": max_tokens,
+                        "usd": est_usd,
+                    },
                 )
 
             if max_usd is not None and est_usd > float(max_usd):
@@ -390,14 +505,23 @@ class Verifier:
                     gate_name="token_budget",
                     passed=False,
                     message=f"USD budget exceeded: ${est_usd:.4f} > ${float(max_usd):.4f}",
-                    details={"tokens": total_tokens, "usd": est_usd, "max_usd": max_usd},
+                    details={
+                        "tokens": total_tokens,
+                        "usd": est_usd,
+                        "max_usd": max_usd,
+                    },
                 )
 
             return GateResult(
                 gate_name="token_budget",
                 passed=True,
                 message="Within budget",
-                details={"tokens": total_tokens, "usd": est_usd, "max_tokens": max_tokens, "max_usd": max_usd},
+                details={
+                    "tokens": total_tokens,
+                    "usd": est_usd,
+                    "max_tokens": max_tokens,
+                    "max_usd": max_usd,
+                },
             )
         except Exception as e:
             return GateResult(

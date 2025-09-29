@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Create GitHub milestones and issues from roadmap/backlog docs.
 
@@ -20,12 +21,10 @@ Notes:
 import argparse
 import json
 import os
-import sys
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 import requests
-
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
 ROADMAP_DIR = os.path.join(ROOT, "docs", "roadmap", "2025-09-20")
@@ -51,7 +50,7 @@ class Task:
 
 
 def load_roadmap() -> Dict[str, Milestone]:
-    with open(DETAILED_ROADMAP_FP, "r", encoding="utf-8") as f:
+    with open(DETAILED_ROADMAP_FP, encoding="utf-8") as f:
         data = json.load(f)
     milestones: Dict[str, Milestone] = {}
     for phase in data.get("phases", []):
@@ -70,7 +69,7 @@ def load_roadmap() -> Dict[str, Milestone]:
 
 
 def load_backlog() -> List[Task]:
-    with open(BACKLOG_FP, "r", encoding="utf-8") as f:
+    with open(BACKLOG_FP, encoding="utf-8") as f:
         data = json.load(f)
     tasks: List[Task] = []
     for t in data.get("tasks", []):
@@ -114,7 +113,9 @@ def get_existing_milestones(repo: str, token: Optional[str]) -> Dict[str, int]:
     return out
 
 
-def ensure_milestone(repo: str, token: Optional[str], title: str, description: str, dry_run: bool) -> Optional[int]:
+def ensure_milestone(
+    repo: str, token: Optional[str], title: str, description: str, dry_run: bool
+) -> Optional[int]:
     existing = get_existing_milestones(repo, token)
     if title in existing:
         return existing[title]
@@ -122,7 +123,12 @@ def ensure_milestone(repo: str, token: Optional[str], title: str, description: s
         print(f"[dry-run] Would create milestone: {title}")
         return None
     url = gh_api(repo, token) + "/milestones"
-    r = requests.post(url, headers=gh_headers(token), json={"title": title, "state": "open", "description": description}, timeout=30)
+    r = requests.post(
+        url,
+        headers=gh_headers(token),
+        json={"title": title, "state": "open", "description": description},
+        timeout=30,
+    )
     r.raise_for_status()
     return r.json()["number"]
 
@@ -139,12 +145,22 @@ def search_issue_by_title(repo: str, token: Optional[str], title: str) -> Option
     return None
 
 
-def create_issue(repo: str, token: Optional[str], title: str, body: str, labels: List[str], milestone_number: Optional[int], dry_run: bool) -> Optional[int]:
+def create_issue(
+    repo: str,
+    token: Optional[str],
+    title: str,
+    body: str,
+    labels: List[str],
+    milestone_number: Optional[int],
+    dry_run: bool,
+) -> Optional[int]:
     if search_issue_by_title(repo, token, title):
         print(f"Exists: {title}")
         return None
     if dry_run:
-        print(f"[dry-run] Would create issue: {title} labels={labels} milestone={milestone_number}")
+        print(
+            f"[dry-run] Would create issue: {title} labels={labels} milestone={milestone_number}"
+        )
         return None
     url = gh_api(repo, token) + "/issues"
     payload: Dict[str, object] = {"title": title, "body": body, "labels": labels}
@@ -174,8 +190,16 @@ def task_body(t: Task) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", required=True, help="owner/repo")
-    ap.add_argument("--token", default=os.environ.get("GITHUB_TOKEN"), help="GitHub token (or set GITHUB_TOKEN)")
-    ap.add_argument("--dry-run", action="store_true", help="Print actions without creating on GitHub")
+    ap.add_argument(
+        "--token",
+        default=os.environ.get("GITHUB_TOKEN"),
+        help="GitHub token (or set GITHUB_TOKEN)",
+    )
+    ap.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print actions without creating on GitHub",
+    )
     args = ap.parse_args()
 
     milestones = load_roadmap()
@@ -184,16 +208,30 @@ def main() -> int:
     # Create milestones
     milestone_numbers: Dict[str, Optional[int]] = {}
     for pid, m in milestones.items():
-        num = ensure_milestone(args.repo, args.token, m.title, m.description, dry_run=args.dry_run)
+        num = ensure_milestone(
+            args.repo, args.token, m.title, m.description, dry_run=args.dry_run
+        )
         milestone_numbers[pid] = num
 
     # Create issues per task
     for t in tasks:
-        labels = [f"phase-{t.phase.lower()}", f"priority-{t.priority.lower()}", "type:task"]
+        labels = [
+            f"phase-{t.phase.lower()}",
+            f"priority-{t.priority.lower()}",
+            "type:task",
+        ]
         title = f"[Phase {t.phase}] {t.id}: {t.title}"
         body = task_body(t)
         milestone_num = milestone_numbers.get(t.phase)
-        create_issue(args.repo, args.token, title, body, labels, milestone_num, dry_run=args.dry_run)
+        create_issue(
+            args.repo,
+            args.token,
+            title,
+            body,
+            labels,
+            milestone_num,
+            dry_run=args.dry_run,
+        )
 
     print("Done.")
     return 0
@@ -201,4 +239,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, DefaultDict, List
 
-
 Subscriber = Callable[[Any], None]
 
 
@@ -28,7 +27,9 @@ class EventBus:
 class PlatformEventIntegration:
     """Placeholder for platform event system integration (websocket)."""
 
-    def __init__(self, websocket_url: str | None = None, auth_token: str | None = None) -> None:
+    def __init__(
+        self, websocket_url: str | None = None, auth_token: str | None = None
+    ) -> None:
         self.websocket_url = websocket_url
         self.auth_token = auth_token
 
@@ -37,4 +38,3 @@ class PlatformEventIntegration:
 
     def broadcast_terminal_event(self, event: dict) -> None:  # noqa: D401
         _ = event
-

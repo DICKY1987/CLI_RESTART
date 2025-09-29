@@ -3,31 +3,52 @@ Main Window Implementation
 Enterprise GUI terminal main window with tabbed sessions and advanced features
 """
 
-import os
-import sys
 import logging
-from typing import Optional, Dict, Any, List
-from pathlib import Path
+from typing import Optional
 
 try:
-    from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                               QTabWidget, QMenuBar, QMenu, QStatusBar, QToolBar,
-                               QAction, QMessageBox, QDialog, QFileDialog,
-                               QSplitter, QTextEdit, QLabel, QPushButton)
-    from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QSettings
-    from PyQt6.QtGui import QIcon, QKeySequence, QFont, QAction as QActionAlias
+    from PyQt6.QtCore import QSettings, Qt, QTimer, pyqtSignal
+    from PyQt6.QtGui import QAction as QActionAlias
+    from PyQt6.QtGui import QFont, QIcon, QKeySequence
+    from PyQt6.QtWidgets import (
+        QAction,
+        QDialog,
+        QFileDialog,
+        QHBoxLayout,
+        QLabel,
+        QMainWindow,
+        QMenu,
+        QMenuBar,
+        QMessageBox,
+        QPushButton,
+        QSplitter,
+        QStatusBar,
+        QTabWidget,
+        QTextEdit,
+        QToolBar,
+        QVBoxLayout,
+        QWidget,
+    )
+
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                               QTabWidget, QMenuBar, QMenu, QStatusBar, QToolBar,
-                               QAction, QMessageBox, QDialog, QFileDialog,
-                               QSplitter, QTextEdit, QLabel, QPushButton)
-    from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QSettings
-    from PyQt5.QtGui import QIcon, QKeySequence, QFont
+    from PyQt5.QtCore import QSettings, Qt, QTimer, pyqtSignal
+    from PyQt5.QtGui import QKeySequence
+    from PyQt5.QtWidgets import (
+        QAction,
+        QMainWindow,
+        QMessageBox,
+        QSplitter,
+        QTabWidget,
+        QTextEdit,
+        QVBoxLayout,
+        QWidget,
+    )
+
     PYQT_VERSION = 5
 
-from ..core.terminal_widget import EnterpriseTerminalWidget
 from ..config.settings import SettingsManager
+from ..core.terminal_widget import EnterpriseTerminalWidget
 from ..security.policy_manager import SecurityPolicyManager
 from .status_bar import StatusBar
 from .toolbar import Toolbar
@@ -60,18 +81,22 @@ class TabManager(QTabWidget):
         widget = self.widget(index)
         if widget:
             # Stop terminal session if active
-            if hasattr(widget, 'pty_backend') and widget.pty_backend.is_session_active():
+            if (
+                hasattr(widget, "pty_backend")
+                and widget.pty_backend.is_session_active()
+            ):
                 reply = QMessageBox.question(
-                    self, "Close Tab",
+                    self,
+                    "Close Tab",
                     "Terminal session is active. Close anyway?",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                    QMessageBox.StandardButton.No
+                    QMessageBox.StandardButton.No,
                 )
                 if reply != QMessageBox.StandardButton.Yes:
                     return
 
             # Clean up and remove tab
-            if hasattr(widget, 'stop_session'):
+            if hasattr(widget, "stop_session"):
                 widget.stop_session()
 
             self.removeTab(index)
@@ -98,8 +123,11 @@ class MainWindow(QMainWindow):
     Main application window with enterprise features
     """
 
-    def __init__(self, settings_manager: Optional[SettingsManager] = None,
-                 security_manager: Optional[SecurityPolicyManager] = None):
+    def __init__(
+        self,
+        settings_manager: Optional[SettingsManager] = None,
+        security_manager: Optional[SecurityPolicyManager] = None,
+    ):
         super().__init__()
 
         # Dependency injection
@@ -279,7 +307,7 @@ class MainWindow(QMainWindow):
             shortcut = QKeySequence(f"Ctrl+{i}")
             action = QAction(self)
             action.setShortcut(shortcut)
-            action.triggered.connect(lambda checked, idx=i-1: self.switch_to_tab(idx))
+            action.triggered.connect(lambda checked, idx=i - 1: self.switch_to_tab(idx))
             self.addAction(action)
 
     def setup_connections(self):
@@ -332,13 +360,13 @@ class MainWindow(QMainWindow):
     def copy_selection(self):
         """Copy terminal selection to clipboard"""
         terminal = self.tab_manager.get_current_terminal()
-        if terminal and hasattr(terminal, 'terminal_display'):
+        if terminal and hasattr(terminal, "terminal_display"):
             terminal.terminal_display.copy()
 
     def paste_clipboard(self):
         """Paste clipboard content to terminal"""
         terminal = self.tab_manager.get_current_terminal()
-        if terminal and hasattr(terminal, 'terminal_display'):
+        if terminal and hasattr(terminal, "terminal_display"):
             terminal.terminal_display.paste()
 
     def clear_terminal(self):
@@ -364,6 +392,7 @@ class MainWindow(QMainWindow):
         terminal = self.tab_manager.get_current_terminal()
         if terminal:
             import signal
+
             terminal.send_signal(signal.SIGINT)
 
     def toggle_fullscreen(self):
@@ -408,7 +437,9 @@ class MainWindow(QMainWindow):
     def show_preferences(self):
         """Show preferences dialog"""
         # TODO: Implement preferences dialog
-        QMessageBox.information(self, "Preferences", "Preferences dialog not yet implemented")
+        QMessageBox.information(
+            self, "Preferences", "Preferences dialog not yet implemented"
+        )
 
     def show_about(self):
         """Show about dialog"""
@@ -424,10 +455,11 @@ class MainWindow(QMainWindow):
         """Apply application theme"""
         if self.settings_manager:
             ui_config = self.settings_manager.get_ui_config()
-            theme = ui_config.get('theme', 'default')
+            theme = ui_config.get("theme", "default")
 
-            if theme == 'dark':
-                self.setStyleSheet("""
+            if theme == "dark":
+                self.setStyleSheet(
+                    """
                     QMainWindow {
                         background-color: #2b2b2b;
                         color: #ffffff;
@@ -460,7 +492,8 @@ class MainWindow(QMainWindow):
                     QMenu::item:selected {
                         background-color: #4a4a4a;
                     }
-                """)
+                """
+                )
 
     def update_status(self):
         """Update status bar information"""
@@ -497,7 +530,9 @@ class MainWindow(QMainWindow):
         """Handle tab changed event"""
         self.update_status()
 
-    def set_startup_options(self, command: Optional[str] = None, working_dir: Optional[str] = None):
+    def set_startup_options(
+        self, command: Optional[str] = None, working_dir: Optional[str] = None
+    ):
         """Set startup options for the terminal"""
         terminal = self.tab_manager.get_current_terminal()
         if terminal:
@@ -509,15 +544,20 @@ class MainWindow(QMainWindow):
         active_sessions = 0
         for i in range(self.tab_manager.count()):
             terminal = self.tab_manager.widget(i)
-            if terminal and hasattr(terminal, 'pty_backend') and terminal.pty_backend.is_session_active():
+            if (
+                terminal
+                and hasattr(terminal, "pty_backend")
+                and terminal.pty_backend.is_session_active()
+            ):
                 active_sessions += 1
 
         if active_sessions > 0:
             reply = QMessageBox.question(
-                self, "Close Application",
+                self,
+                "Close Application",
                 f"There are {active_sessions} active terminal sessions. Close anyway?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.No,
             )
             if reply != QMessageBox.StandardButton.Yes:
                 event.ignore()
@@ -529,7 +569,7 @@ class MainWindow(QMainWindow):
         # Stop all sessions
         for i in range(self.tab_manager.count()):
             terminal = self.tab_manager.widget(i)
-            if terminal and hasattr(terminal, 'stop_session'):
+            if terminal and hasattr(terminal, "stop_session"):
                 terminal.stop_session()
 
         event.accept()
