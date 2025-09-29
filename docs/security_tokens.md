@@ -24,4 +24,3 @@ token = issuer.issue_token(subject="user:alice", branch="feature/x", task_id="T-
 Notes
 - Do not commit real keys; placeholders are provided for structure only.
 - Keys can also be supplied via env vars `JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY`.
-

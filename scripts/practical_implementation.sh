@@ -22,10 +22,10 @@ log() {
 calculate_complexity() {
     local files=("$@")
     local score=0
-    
+
     # File count factor (0-30 points)
     score=$((score + ${#files[@]} * 3))
-    
+
     # File size factor (0-40 points)
     for file in "${files[@]}"; do
         if [[ -f "$file" ]]; then
@@ -33,7 +33,7 @@ calculate_complexity() {
             score=$((score + lines / 25))
         fi
     done
-    
+
     # Cap at 100
     if ((score > 100)); then score=100; fi
     echo $score
@@ -44,16 +44,16 @@ route_task() {
     local task_desc="$1"
     shift
     local files=("$@")
-    
+
     local complexity=$(calculate_complexity "${files[@]}")
     log "Task complexity: $complexity/100"
-    
+
     # Check constraints
     if (( ${#files[@]} > 10 )); then
         echo "vscode_manual"
         return
     fi
-    
+
     # Route based on complexity
     if (( complexity < 30 )); then
         echo "aider"
@@ -69,9 +69,9 @@ execute_aider() {
     local task_desc="$1"
     shift
     local files=("$@")
-    
+
     log "🔧 Executing with Aider: $task_desc"
-    
+
     if command -v aider >/dev/null 2>&1; then
         aider --yes --message "$task_desc" "${files[@]}" 2>&1 | tee "$AI_DIR/aider-output.log"
         return ${PIPESTATUS[0]}
@@ -86,9 +86,9 @@ execute_claude() {
     local task_desc="$1"
     shift
     local files=("$@")
-    
+
     log "🧠 Executing with Claude Code: $task_desc"
-    
+
     # Create context file
     local context_file="$CONTEXT_DIR/claude-context-$(date +%s).md"
     cat > "$context_file" << EOF
@@ -123,17 +123,17 @@ execute_copilot() {
     local task_desc="$1"
     shift
     local files=("$@")
-    
+
     log "🤖 Getting suggestions from GitHub Copilot: $task_desc"
-    
+
     if command -v gh >/dev/null 2>&1 && gh extension list | grep -q copilot; then
         # Generate suggestions
         local suggestions_file="$CONTEXT_DIR/copilot-suggestions-$(date +%s).md"
         echo "# Copilot Suggestions for: $task_desc" > "$suggestions_file"
         echo "" >> "$suggestions_file"
-        
+
         gh copilot suggest "$task_desc for files: $(printf '%s ' "${files[@]}")" >> "$suggestions_file" 2>&1
-        
+
         log "💡 Copilot suggestions saved to: $suggestions_file"
         cat "$suggestions_file"
         return 0
@@ -148,14 +148,14 @@ orchestrate_task() {
     local task_desc="$1"
     shift
     local files=("$@")
-    
+
     log "🎯 Starting task: $task_desc"
     log "📁 Files: $(printf '%s ' "${files[@]}")"
-    
+
     # Route the task
     local routing_decision=$(route_task "$task_desc" "${files[@]}")
     log "🎲 Routing decision: $routing_decision"
-    
+
     # Execute based on routing
     case "$routing_decision" in
         "aider")
@@ -174,7 +174,7 @@ orchestrate_task() {
         "copilot_then_claude_then_aider")
             log "📋 Phase 1: Copilot suggestions"
             execute_copilot "$task_desc" "${files[@]}"
-            
+
             log "📋 Phase 2: Claude analysis"
             if execute_claude "Based on the Copilot suggestions, analyze and plan: $task_desc" "${files[@]}"; then
                 log "📋 Phase 3: Aider implementation"
@@ -198,23 +198,23 @@ orchestrate_task() {
             return 1
             ;;
     esac
-    
+
     log "✅ Task orchestration completed"
 }
 
 # Status check function
 status_check() {
     log "🔍 System Status Check"
-    
+
     echo "Available tools:"
     command -v aider >/dev/null && echo "  ✅ Aider" || echo "  ❌ Aider"
     command -v claude >/dev/null && echo "  ✅ Claude Code" || echo "  ❌ Claude Code"
     command -v gh >/dev/null && echo "  ✅ GitHub CLI" || echo "  ❌ GitHub CLI"
-    
+
     if command -v gh >/dev/null; then
         gh extension list | grep -q copilot && echo "  ✅ GitHub Copilot CLI" || echo "  ❌ GitHub Copilot CLI"
     fi
-    
+
     echo ""
     echo "Git status:"
     if git status --porcelain | grep -q .; then

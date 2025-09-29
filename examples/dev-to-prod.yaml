@@ -16,4 +16,3 @@ steps:
   - workflow: kube.deploy.rolling
     inputs:
       manifests: deploy/
-

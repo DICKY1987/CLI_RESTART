@@ -13,4 +13,3 @@
     "changes": {"type": "array", "items": {"type": "object"}}
   }
 }
-

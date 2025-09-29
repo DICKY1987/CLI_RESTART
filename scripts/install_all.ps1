@@ -1,8 +1,8 @@
-<# 
+<#
 install_all.ps1 — Windows universal installer for Agentic Framework v3 toolchain
 Adds unattended aliases/env + GUARDRAILS (allowed paths, lane-only branches, git hooks).
 Can be run in regular PowerShell - will use package managers safely without elevation.
-Safe to re-run. 
+Safe to re-run.
 #>
 
 $ErrorActionPreference = "Stop"

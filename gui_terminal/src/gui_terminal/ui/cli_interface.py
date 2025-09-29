@@ -1,61 +1,91 @@
 """Simple CLI execution interface for GUI terminal."""
 
-from typing import Optional
 import subprocess
+import sys
 import threading
 import time
-import sys
+from typing import Optional
 
 try:
-    from PyQt6 import QtWidgets, QtCore, QtGui
+    from PyQt6 import QtCore, QtGui, QtWidgets
+
     PyQt6Available = True
 except ImportError:
     PyQt6Available = False
+
     # Create dummy classes for when PyQt6 is not available
     class QtWidgets:
         class QWidget:
-            def __init__(self, parent=None): pass
+            def __init__(self, parent=None):
+                pass
+
         class QVBoxLayout:
-            def __init__(self, parent=None): pass
+            def __init__(self, parent=None):
+                pass
+
         class QHBoxLayout:
-            def __init__(self): pass
+            def __init__(self):
+                pass
+
         class QLabel:
-            def __init__(self, text=""): pass
+            def __init__(self, text=""):
+                pass
+
         class QLineEdit:
-            def __init__(self): pass
+            def __init__(self):
+                pass
+
         class QPushButton:
-            def __init__(self, text=""): pass
+            def __init__(self, text=""):
+                pass
+
         class QTextEdit:
-            def __init__(self): pass
+            def __init__(self):
+                pass
+
         class QFrame:
-            def __init__(self): pass
+            def __init__(self):
+                pass
+
         class QListWidget:
-            def __init__(self): pass
+            def __init__(self):
+                pass
+
     class QtCore:
         class Qt:
             class Key:
                 Key_Up = None
                 Key_Down = None
+
             class ConnectionType:
                 QueuedConnection = None
+
         pyqtSlot = lambda *args, **kwargs: lambda func: func
+
         class QMetaObject:
             @staticmethod
-            def invokeMethod(*args, **kwargs): pass
+            def invokeMethod(*args, **kwargs):
+                pass
+
         Q_ARG = lambda *args: None
+
     class QtGui:
         class QFont:
-            def __init__(self, family="", size=10): pass
+            def __init__(self, family="", size=10):
+                pass
+
         class QTextCursor:
             class MoveOperation:
                 End = None
+
             class SelectionType:
                 LineUnderCursor = None
 
+
 from ..security.policy_manager import PolicyManager
 
-
 if PyQt6Available:
+
     class CLIExecutionInterface(QtWidgets.QWidget):
         """Simple command input/output interface focused on CLI execution."""
 
@@ -75,7 +105,9 @@ if PyQt6Available:
 
             # Header
             header_label = QtWidgets.QLabel("CLI Multi-Rapid Terminal")
-            header_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #2d3748; margin-bottom: 10px;")
+            header_label.setStyleSheet(
+                "font-size: 16px; font-weight: bold; color: #2d3748; margin-bottom: 10px;"
+            )
             layout.addWidget(header_label)
 
             # Command input section
@@ -86,7 +118,9 @@ if PyQt6Available:
             input_layout.addWidget(input_label)
 
             self.command_input = QtWidgets.QLineEdit()
-            self.command_input.setPlaceholderText("Enter command (e.g., cli-multi-rapid --help)")
+            self.command_input.setPlaceholderText(
+                "Enter command (e.g., cli-multi-rapid --help)"
+            )
             self.command_input.returnPressed.connect(self._execute_command)
             self.command_input.keyPressEvent = self._handle_key_press
             input_layout.addWidget(self.command_input)
@@ -105,7 +139,8 @@ if PyQt6Available:
             self.output_display = QtWidgets.QTextEdit()
             self.output_display.setReadOnly(True)
             self.output_display.setFont(QtGui.QFont("Consolas", 10))
-            self.output_display.setStyleSheet("""
+            self.output_display.setStyleSheet(
+                """
                 QTextEdit {
                     background-color: #1e1e1e;
                     color: #ffffff;
@@ -113,7 +148,8 @@ if PyQt6Available:
                     border-radius: 4px;
                     padding: 8px;
                 }
-            """)
+            """
+            )
             layout.addWidget(self.output_display, stretch=1)
 
             # Status bar
@@ -188,7 +224,9 @@ if PyQt6Available:
 
             # Security policy check
             if not self.policy_manager.is_command_allowed(command):
-                self._append_output(f"❌ Command blocked by security policy: {command}", "error")
+                self._append_output(
+                    f"❌ Command blocked by security policy: {command}", "error"
+                )
                 self.status_bar.setText("Command blocked")
                 return
 
@@ -213,7 +251,7 @@ if PyQt6Available:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
-                    universal_newlines=True
+                    universal_newlines=True,
                 )
 
                 # Read output line by line
@@ -228,7 +266,7 @@ if PyQt6Available:
                             "_append_output",
                             QtCore.Qt.ConnectionType.QueuedConnection,
                             QtCore.Q_ARG(str, line.rstrip()),
-                            QtCore.Q_ARG(str, "output")
+                            QtCore.Q_ARG(str, "output"),
                         )
                     elif self.current_process.poll() is not None:
                         break
@@ -239,7 +277,7 @@ if PyQt6Available:
 
                 # Update UI with completion status
                 if return_code == 0:
-                    status_msg = f"✅ Command completed successfully"
+                    status_msg = "✅ Command completed successfully"
                     status_color = "success"
                 else:
                     status_msg = f"❌ Command failed (exit code: {return_code})"
@@ -250,13 +288,11 @@ if PyQt6Available:
                     "_append_output",
                     QtCore.Qt.ConnectionType.QueuedConnection,
                     QtCore.Q_ARG(str, status_msg),
-                    QtCore.Q_ARG(str, status_color)
+                    QtCore.Q_ARG(str, status_color),
                 )
 
                 QtCore.QMetaObject.invokeMethod(
-                    self,
-                    "_command_finished",
-                    QtCore.Qt.ConnectionType.QueuedConnection
+                    self, "_command_finished", QtCore.Qt.ConnectionType.QueuedConnection
                 )
 
             except Exception as e:
@@ -266,12 +302,10 @@ if PyQt6Available:
                     "_append_output",
                     QtCore.Qt.ConnectionType.QueuedConnection,
                     QtCore.Q_ARG(str, error_msg),
-                    QtCore.Q_ARG(str, "error")
+                    QtCore.Q_ARG(str, "error"),
                 )
                 QtCore.QMetaObject.invokeMethod(
-                    self,
-                    "_command_finished",
-                    QtCore.Qt.ConnectionType.QueuedConnection
+                    self, "_command_finished", QtCore.Qt.ConnectionType.QueuedConnection
                 )
 
         @QtCore.pyqtSlot(str, str)
@@ -282,7 +316,9 @@ if PyQt6Available:
 
             # Set color based on message type
             if msg_type == "command":
-                cursor.insertHtml(f'<span style="color: #00ff00; font-weight: bold;">{text}</span><br>')
+                cursor.insertHtml(
+                    f'<span style="color: #00ff00; font-weight: bold;">{text}</span><br>'
+                )
             elif msg_type == "error":
                 cursor.insertHtml(f'<span style="color: #ff4444;">{text}</span><br>')
             elif msg_type == "success":
@@ -331,7 +367,7 @@ else:
                 try:
                     command = input("$ ").strip()
 
-                    if command.lower() in ['exit', 'quit']:
+                    if command.lower() in ["exit", "quit"]:
                         print("Goodbye!")
                         break
 
@@ -345,10 +381,7 @@ else:
                     # Execute command
                     try:
                         result = subprocess.run(
-                            command,
-                            shell=True,
-                            capture_output=True,
-                            text=True
+                            command, shell=True, capture_output=True, text=True
                         )
 
                         if result.stdout:

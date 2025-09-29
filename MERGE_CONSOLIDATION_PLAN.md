@@ -4,7 +4,7 @@ This PR consolidates the `feat/mods-integration-and-phase-plan` branch into `mai
 
 ## Context
 - **Base branch**: `main` (SHA: 20a6636)
-- **Source branch**: `feat/mods-integration-and-phase-plan` (SHA: e361d2e) 
+- **Source branch**: `feat/mods-integration-and-phase-plan` (SHA: e361d2e)
 - **Commits to merge**: 10 commits with MODs integration, security improvements, and orchestrator enhancements
 - **Merge type**: This is a merge-only operation with no new code generation
 
@@ -20,10 +20,10 @@ This PR consolidates the `feat/mods-integration-and-phase-plan` branch into `mai
 ## Merge Conflict Resolution Required
 **File**: `pyproject.toml`
 **Conflict**: Version number and BOM character differences
-- Main: version "1.1.0" with BOM character  
+- Main: version "1.1.0" with BOM character
 - Feature: version "1.0.0" without BOM character
 
-**Recommended Resolution**: 
+**Recommended Resolution**:
 - Keep version "1.1.0" (maintain version progression)
 - Remove BOM character (cleaner format)
 - Retain feature branch content structure

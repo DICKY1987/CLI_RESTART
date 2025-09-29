@@ -4,19 +4,22 @@ Integration with CLI Multi-Rapid platform cost tracking system
 """
 
 import json
-import time
 import logging
-import requests
-from pathlib import Path
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
+import time
+from dataclasses import asdict, dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import requests
 
 try:
-    from PyQt6.QtCore import QObject, pyqtSignal, QTimer
+    from PyQt6.QtCore import QObject, QTimer, pyqtSignal
+
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtCore import QObject, pyqtSignal, QTimer
+    from PyQt5.QtCore import QObject, QTimer, pyqtSignal
+
     PYQT_VERSION = 5
 
 logger = logging.getLogger(__name__)
@@ -25,6 +28,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CostEntry:
     """Individual cost tracking entry"""
+
     timestamp: float
     task_type: str
     service: str
@@ -44,7 +48,7 @@ class CostEntry:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'CostEntry':
+    def from_dict(cls, data: Dict[str, Any]) -> "CostEntry":
         """Create from dictionary"""
         return cls(**data)
 
@@ -58,7 +62,9 @@ class CostTracker(QObject):
     budget_warning = pyqtSignal(str, float, float)  # Message, current, limit
     budget_exceeded = pyqtSignal(str, float, float)  # Message, current, limit
 
-    def __init__(self, platform_url: Optional[str] = None, api_key: Optional[str] = None):
+    def __init__(
+        self, platform_url: Optional[str] = None, api_key: Optional[str] = None
+    ):
         super().__init__()
         self.platform_url = platform_url
         self.api_key = api_key
@@ -93,7 +99,7 @@ class CostTracker(QObject):
             return
 
         try:
-            with open(self.cost_log_file, 'r') as f:
+            with open(self.cost_log_file) as f:
                 for line in f:
                     try:
                         data = json.loads(line.strip())
@@ -111,8 +117,8 @@ class CostTracker(QObject):
         """Save cost entry to local file"""
         try:
             # Append to JSONL file
-            with open(self.cost_log_file, 'a') as f:
-                f.write(json.dumps(entry.to_dict()) + '\n')
+            with open(self.cost_log_file, "a") as f:
+                f.write(json.dumps(entry.to_dict()) + "\n")
 
             # Add to memory
             self.cost_entries.append(entry)
@@ -125,8 +131,14 @@ class CostTracker(QObject):
         except Exception as e:
             logger.error(f"Failed to save cost entry: {e}")
 
-    def record_command_cost(self, command: str, service: str, cost: float,
-                          tokens_input: int = 0, tokens_output: int = 0):
+    def record_command_cost(
+        self,
+        command: str,
+        service: str,
+        cost: float,
+        tokens_input: int = 0,
+        tokens_output: int = 0,
+    ):
         """Record cost for a command execution"""
         entry = CostEntry(
             timestamp=time.time(),
@@ -135,19 +147,23 @@ class CostTracker(QObject):
             cost=cost,
             tokens_input=tokens_input,
             tokens_output=tokens_output,
-            metadata={
-                "command": command,
-                "user_agent": "gui_terminal"
-            }
+            metadata={"command": command, "user_agent": "gui_terminal"},
         )
 
         self.save_cost_entry(entry)
         self.check_budget_limits()
 
-    def record_ai_service_cost(self, task_type: str, service: str, cost: float,
-                             tokens_input: int = 0, tokens_output: int = 0,
-                             tokens_cache_read: int = 0, tokens_cache_write: int = 0,
-                             metadata: Optional[Dict[str, Any]] = None):
+    def record_ai_service_cost(
+        self,
+        task_type: str,
+        service: str,
+        cost: float,
+        tokens_input: int = 0,
+        tokens_output: int = 0,
+        tokens_cache_read: int = 0,
+        tokens_cache_write: int = 0,
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
         """Record cost for AI service usage"""
         entry = CostEntry(
             timestamp=time.time(),
@@ -158,7 +174,7 @@ class CostTracker(QObject):
             tokens_output=tokens_output,
             tokens_cache_read=tokens_cache_read,
             tokens_cache_write=tokens_cache_write,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.save_cost_entry(entry)
@@ -195,43 +211,33 @@ class CostTracker(QObject):
         # Daily budget check
         if self.daily_usage >= self.daily_budget:
             self.budget_exceeded.emit(
-                "Daily budget exceeded!",
-                self.daily_usage,
-                self.daily_budget
+                "Daily budget exceeded!", self.daily_usage, self.daily_budget
             )
         elif self.daily_usage >= self.daily_budget * self.warning_threshold:
             self.budget_warning.emit(
-                "Approaching daily budget limit",
-                self.daily_usage,
-                self.daily_budget
+                "Approaching daily budget limit", self.daily_usage, self.daily_budget
             )
 
         # Weekly budget check
         if self.weekly_usage >= self.weekly_budget:
             self.budget_exceeded.emit(
-                "Weekly budget exceeded!",
-                self.weekly_usage,
-                self.weekly_budget
+                "Weekly budget exceeded!", self.weekly_usage, self.weekly_budget
             )
         elif self.weekly_usage >= self.weekly_budget * self.warning_threshold:
             self.budget_warning.emit(
-                "Approaching weekly budget limit",
-                self.weekly_usage,
-                self.weekly_budget
+                "Approaching weekly budget limit", self.weekly_usage, self.weekly_budget
             )
 
         # Monthly budget check
         if self.monthly_usage >= self.monthly_budget:
             self.budget_exceeded.emit(
-                "Monthly budget exceeded!",
-                self.monthly_usage,
-                self.monthly_budget
+                "Monthly budget exceeded!", self.monthly_usage, self.monthly_budget
             )
         elif self.monthly_usage >= self.monthly_budget * self.warning_threshold:
             self.budget_warning.emit(
                 "Approaching monthly budget limit",
                 self.monthly_usage,
-                self.monthly_budget
+                self.monthly_budget,
             )
 
     def get_usage_summary(self) -> Dict[str, Any]:
@@ -240,19 +246,31 @@ class CostTracker(QObject):
             "daily": {
                 "usage": self.daily_usage,
                 "budget": self.daily_budget,
-                "percentage": (self.daily_usage / self.daily_budget) * 100 if self.daily_budget > 0 else 0
+                "percentage": (
+                    (self.daily_usage / self.daily_budget) * 100
+                    if self.daily_budget > 0
+                    else 0
+                ),
             },
             "weekly": {
                 "usage": self.weekly_usage,
                 "budget": self.weekly_budget,
-                "percentage": (self.weekly_usage / self.weekly_budget) * 100 if self.weekly_budget > 0 else 0
+                "percentage": (
+                    (self.weekly_usage / self.weekly_budget) * 100
+                    if self.weekly_budget > 0
+                    else 0
+                ),
             },
             "monthly": {
                 "usage": self.monthly_usage,
                 "budget": self.monthly_budget,
-                "percentage": (self.monthly_usage / self.monthly_budget) * 100 if self.monthly_budget > 0 else 0
+                "percentage": (
+                    (self.monthly_usage / self.monthly_budget) * 100
+                    if self.monthly_budget > 0
+                    else 0
+                ),
             },
-            "total_entries": len(self.cost_entries)
+            "total_entries": len(self.cost_entries),
         }
 
     def get_service_breakdown(self) -> Dict[str, Dict[str, Any]]:
@@ -266,7 +284,7 @@ class CostTracker(QObject):
                     "total_cost": 0.0,
                     "entry_count": 0,
                     "total_tokens_input": 0,
-                    "total_tokens_output": 0
+                    "total_tokens_output": 0,
                 }
 
             breakdown[service]["total_cost"] += entry.cost
@@ -278,7 +296,9 @@ class CostTracker(QObject):
 
     def get_recent_entries(self, count: int = 20) -> List[Dict[str, Any]]:
         """Get recent cost entries"""
-        recent = sorted(self.cost_entries, key=lambda x: x.timestamp, reverse=True)[:count]
+        recent = sorted(self.cost_entries, key=lambda x: x.timestamp, reverse=True)[
+            :count
+        ]
         return [entry.to_dict() for entry in recent]
 
     def sync_with_platform(self):
@@ -293,21 +313,21 @@ class CostTracker(QObject):
             # Send to platform
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
 
             data = {
                 "source": "gui_terminal",
                 "timestamp": time.time(),
                 "usage_summary": summary,
-                "service_breakdown": self.get_service_breakdown()
+                "service_breakdown": self.get_service_breakdown(),
             }
 
             response = requests.post(
                 f"{self.platform_url}/cost-tracking/sync",
                 json=data,
                 headers=headers,
-                timeout=10
+                timeout=10,
             )
 
             if response.status_code == 200:
@@ -329,7 +349,9 @@ class CostTracker(QObject):
         # Recheck after updating limits
         self.check_budget_limits()
 
-        logger.info(f"Budget limits updated: Daily=${daily}, Weekly=${weekly}, Monthly=${monthly}")
+        logger.info(
+            f"Budget limits updated: Daily=${daily}, Weekly=${weekly}, Monthly=${monthly}"
+        )
 
     def export_cost_report(self, export_path: str, format: str = "json"):
         """Export cost report"""
@@ -338,29 +360,41 @@ class CostTracker(QObject):
                 "generated_at": datetime.utcnow().isoformat(),
                 "summary": self.get_usage_summary(),
                 "service_breakdown": self.get_service_breakdown(),
-                "recent_entries": self.get_recent_entries(100)
+                "recent_entries": self.get_recent_entries(100),
             }
 
             export_file = Path(export_path)
 
             if format.lower() == "json":
-                with open(export_file, 'w') as f:
+                with open(export_file, "w") as f:
                     json.dump(report_data, f, indent=2)
             elif format.lower() == "csv":
                 import csv
-                with open(export_file, 'w', newline='') as f:
+
+                with open(export_file, "w", newline="") as f:
                     writer = csv.writer(f)
-                    writer.writerow(['Timestamp', 'Service', 'Task Type', 'Cost', 'Tokens Input', 'Tokens Output'])
+                    writer.writerow(
+                        [
+                            "Timestamp",
+                            "Service",
+                            "Task Type",
+                            "Cost",
+                            "Tokens Input",
+                            "Tokens Output",
+                        ]
+                    )
 
                     for entry in self.cost_entries:
-                        writer.writerow([
-                            datetime.fromtimestamp(entry.timestamp).isoformat(),
-                            entry.service,
-                            entry.task_type,
-                            entry.cost,
-                            entry.tokens_input,
-                            entry.tokens_output
-                        ])
+                        writer.writerow(
+                            [
+                                datetime.fromtimestamp(entry.timestamp).isoformat(),
+                                entry.service,
+                                entry.task_type,
+                                entry.cost,
+                                entry.tokens_input,
+                                entry.tokens_output,
+                            ]
+                        )
 
             logger.info(f"Cost report exported to: {export_path}")
 
@@ -374,9 +408,10 @@ class CostTracker(QObject):
 
         try:
             # Backup current data
-            backup_file = self.cost_log_file.with_suffix('.backup.jsonl')
+            backup_file = self.cost_log_file.with_suffix(".backup.jsonl")
             if self.cost_log_file.exists():
                 import shutil
+
                 shutil.copy2(self.cost_log_file, backup_file)
 
             # Clear data
@@ -399,21 +434,21 @@ class CostTracker(QObject):
         now = time.time()
         day_seconds = 24 * 60 * 60
 
-        trends = {
-            "daily_costs": [],
-            "dates": []
-        }
+        trends = {"daily_costs": [], "dates": []}
 
         for i in range(days):
             day_start = now - (i + 1) * day_seconds
             day_end = now - i * day_seconds
 
             daily_cost = sum(
-                entry.cost for entry in self.cost_entries
+                entry.cost
+                for entry in self.cost_entries
                 if day_start <= entry.timestamp < day_end
             )
 
             trends["daily_costs"].insert(0, daily_cost)
-            trends["dates"].insert(0, datetime.fromtimestamp(day_start).strftime("%Y-%m-%d"))
+            trends["dates"].insert(
+                0, datetime.fromtimestamp(day_start).strftime("%Y-%m-%d")
+            )
 
         return trends

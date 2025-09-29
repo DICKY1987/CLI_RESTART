@@ -3,29 +3,30 @@ PTY Backend Implementation
 Cross-platform PTY/ConPTY support for Windows and Unix systems
 """
 
+import logging
 import os
-import sys
-import time
 import signal
 import struct
-import threading
-import logging
-from pathlib import Path
-from typing import Optional, Dict, Any
+import sys
+import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, Optional
 
 try:
-    from PyQt6.QtCore import QObject, pyqtSignal, QThread
+    from PyQt6.QtCore import QObject, QThread, pyqtSignal
+
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtCore import QObject, pyqtSignal, QThread
+    from PyQt5.QtCore import QObject, QThread, pyqtSignal
+
     PYQT_VERSION = 5
 
 # Windows-specific imports
-if sys.platform == 'win32':
+if sys.platform == "win32":
     try:
         import winpty
+
         WINDOWS_PTY_AVAILABLE = True
     except ImportError:
         WINDOWS_PTY_AVAILABLE = False
@@ -38,6 +39,7 @@ logger = logging.getLogger(__name__)
 
 class CommandStatus(Enum):
     """Command execution status"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -48,6 +50,7 @@ class CommandStatus(Enum):
 @dataclass
 class CommandResult:
     """Command execution result with metadata"""
+
     exit_code: int
     stdout: str = ""
     stderr: str = ""
@@ -75,8 +78,8 @@ class ANSIProcessor:
     def process_ansi(self, text: str) -> str:
         """Process ANSI escape sequences and return formatted text"""
         # Handle carriage return (overwrite line)
-        if '\r' in text and '\n' not in text:
-            parts = text.split('\r')
+        if "\r" in text and "\n" not in text:
+            parts = text.split("\r")
             if len(parts) > 1:
                 return parts[-1]  # Return last part after CR
 
@@ -109,7 +112,7 @@ class PTYWorker(QThread):
         try:
             self.start_time = time.time()
 
-            if sys.platform == 'win32':
+            if sys.platform == "win32":
                 self._run_windows()
             else:
                 self._run_unix()
@@ -121,15 +124,15 @@ class PTYWorker(QThread):
     def _run_windows(self):
         """Run PTY process on Windows using winpty"""
         if not WINDOWS_PTY_AVAILABLE:
-            self.error_occurred.emit("winpty not available. Install with: pip install pywinpty")
+            self.error_occurred.emit(
+                "winpty not available. Install with: pip install pywinpty"
+            )
             return
 
         try:
             # Create winpty process
             self.process = winpty.PtyProcess.spawn(
-                [self.command] + self.args,
-                cwd=self.cwd,
-                env=self.env
+                [self.command] + self.args, cwd=self.cwd, env=self.env
             )
 
             self.process_id = self.process.pid
@@ -194,7 +197,7 @@ class PTYWorker(QThread):
                         if not data:
                             break
 
-                        text = data.decode('utf-8', errors='replace')
+                        text = data.decode("utf-8", errors="replace")
                         processed_text = self.ansi_processor.process_ansi(text)
                         stdout_data.append(processed_text)
                         self.data_received.emit(processed_text)
@@ -230,10 +233,10 @@ class PTYWorker(QThread):
 
         result = CommandResult(
             exit_code=exit_code,
-            stdout=''.join(stdout_data),
+            stdout="".join(stdout_data),
             execution_time=execution_time,
             status=CommandStatus.COMPLETED if exit_code == 0 else CommandStatus.FAILED,
-            process_id=self.process_id
+            process_id=self.process_id,
         )
 
         self.process_finished.emit(result)
@@ -252,7 +255,7 @@ class PTYWorker(QThread):
                     # Read available data
                     data = self.process.read(1024, blocking=False)
                     if data:
-                        text = data.decode('utf-8', errors='replace')
+                        text = data.decode("utf-8", errors="replace")
                         processed_text = self.ansi_processor.process_ansi(text)
                         stdout_data.append(processed_text)
                         self.data_received.emit(processed_text)
@@ -273,10 +276,10 @@ class PTYWorker(QThread):
 
         result = CommandResult(
             exit_code=exit_code,
-            stdout=''.join(stdout_data),
+            stdout="".join(stdout_data),
             execution_time=execution_time,
             status=CommandStatus.COMPLETED if exit_code == 0 else CommandStatus.FAILED,
-            process_id=self.process_id
+            process_id=self.process_id,
         )
 
         self.process_finished.emit(result)
@@ -284,17 +287,17 @@ class PTYWorker(QThread):
     def send_input(self, text: str):
         """Send input to the PTY"""
         try:
-            if sys.platform == 'win32' and self.process:
-                self.process.write(text.encode('utf-8'))
+            if sys.platform == "win32" and self.process:
+                self.process.write(text.encode("utf-8"))
             elif self.pty_fd:
-                os.write(self.pty_fd, text.encode('utf-8'))
+                os.write(self.pty_fd, text.encode("utf-8"))
         except Exception as e:
             logger.warning(f"Failed to send input: {e}")
 
     def send_signal(self, sig: signal.Signals):
         """Send signal to the process"""
         try:
-            if sys.platform == 'win32':
+            if sys.platform == "win32":
                 self._send_signal_windows(sig)
             else:
                 self._send_signal_unix(sig)
@@ -313,26 +316,27 @@ class PTYWorker(QThread):
             if self.process:
                 try:
                     # Send Ctrl+C character to PTY
-                    self.process.write(b'\x03')
+                    self.process.write(b"\x03")
                 except:
                     # Fallback: terminate process
-                    if hasattr(self.process, 'terminate'):
+                    if hasattr(self.process, "terminate"):
                         self.process.terminate()
         elif sig == signal.SIGTERM:
-            if self.process and hasattr(self.process, 'terminate'):
+            if self.process and hasattr(self.process, "terminate"):
                 self.process.terminate()
 
     def resize_pty(self, cols: int, rows: int):
         """Resize the PTY"""
         try:
-            if sys.platform != 'win32' and self.pty_fd:
+            if sys.platform != "win32" and self.pty_fd:
                 import fcntl
                 import termios
-                s = struct.pack('HHHH', rows, cols, 0, 0)
+
+                s = struct.pack("HHHH", rows, cols, 0, 0)
                 fcntl.ioctl(self.pty_fd, termios.TIOCSWINSZ, s)
-            elif sys.platform == 'win32' and self.process:
+            elif sys.platform == "win32" and self.process:
                 # Windows PTY resize (if supported by winpty)
-                if hasattr(self.process, 'set_size'):
+                if hasattr(self.process, "set_size"):
                     self.process.set_size(cols, rows)
         except Exception as e:
             logger.warning(f"Failed to resize PTY: {e}")
@@ -344,7 +348,11 @@ class PTYWorker(QThread):
             try:
                 self.send_signal(signal.SIGTERM)
                 time.sleep(0.1)
-                if sys.platform != 'win32' and hasattr(self.process, 'poll') and self.process.poll() is None:
+                if (
+                    sys.platform != "win32"
+                    and hasattr(self.process, "poll")
+                    and self.process.poll() is None
+                ):
                     self.send_signal(signal.SIGKILL)
             except:
                 pass
@@ -365,13 +373,18 @@ class PTYBackend(QObject):
 
     def _get_default_shell(self) -> str:
         """Get default system shell"""
-        if sys.platform == 'win32':
-            return os.environ.get('COMSPEC', 'cmd.exe')
+        if sys.platform == "win32":
+            return os.environ.get("COMSPEC", "cmd.exe")
         else:
-            return os.environ.get('SHELL', '/bin/bash')
+            return os.environ.get("SHELL", "/bin/bash")
 
-    def start_session(self, command: Optional[str] = None, args: Optional[list] = None,
-                     cwd: Optional[str] = None, env: Optional[Dict[str, str]] = None):
+    def start_session(
+        self,
+        command: Optional[str] = None,
+        args: Optional[list] = None,
+        cwd: Optional[str] = None,
+        env: Optional[Dict[str, str]] = None,
+    ):
         """Start a new PTY session"""
         # Stop existing session
         self.stop_session()

@@ -44,27 +44,24 @@ class ContractValidatorAdapter(BaseAdapter):
 
             if not contract_file:
                 return AdapterResult(
-                    success=False,
-                    error="Missing required parameter: contract_file"
+                    success=False, error="Missing required parameter: contract_file"
                 )
 
             if not schema_path:
                 return AdapterResult(
-                    success=False,
-                    error="Missing required parameter: schema_path"
+                    success=False, error="Missing required parameter: schema_path"
                 )
 
             # Load contract file
             contract_path = Path(contract_file)
             if not contract_path.exists():
                 return AdapterResult(
-                    success=False,
-                    error=f"Contract file not found: {contract_file}"
+                    success=False, error=f"Contract file not found: {contract_file}"
                 )
 
             # Load contract content
-            with open(contract_path, encoding='utf-8') as f:
-                if contract_path.suffix.lower() in ['.yaml', '.yml']:
+            with open(contract_path, encoding="utf-8") as f:
+                if contract_path.suffix.lower() in [".yaml", ".yml"]:
                     contract_data = yaml.safe_load(f)
                 else:
                     contract_data = json.load(f)
@@ -73,11 +70,10 @@ class ContractValidatorAdapter(BaseAdapter):
             schema_path_obj = Path(schema_path)
             if not schema_path_obj.exists():
                 return AdapterResult(
-                    success=False,
-                    error=f"Schema file not found: {schema_path}"
+                    success=False, error=f"Schema file not found: {schema_path}"
                 )
 
-            with open(schema_path_obj, encoding='utf-8') as f:
+            with open(schema_path_obj, encoding="utf-8") as f:
                 schema = json.load(f)
 
             # Validate contract against schema
@@ -89,7 +85,7 @@ class ContractValidatorAdapter(BaseAdapter):
                     return AdapterResult(
                         success=False,
                         error=error_msg,
-                        metadata={"validation_error": str(e)}
+                        metadata={"validation_error": str(e)},
                     )
                 else:
                     self.logger.warning(f"Non-strict mode: {error_msg}")
@@ -114,7 +110,7 @@ class ContractValidatorAdapter(BaseAdapter):
                     artifact_path = Path(emit_path)
                     artifact_path.parent.mkdir(parents=True, exist_ok=True)
 
-                    with open(artifact_path, 'w', encoding='utf-8') as f:
+                    with open(artifact_path, "w", encoding="utf-8") as f:
                         json.dump(validation_result, f, indent=2)
 
                     artifacts.append(str(artifact_path))
@@ -125,7 +121,7 @@ class ContractValidatorAdapter(BaseAdapter):
                 tokens_used=0,  # Deterministic operation
                 artifacts=artifacts,
                 output=f"Contract validation passed for {contract_file}",
-                metadata=validation_result
+                metadata=validation_result,
             )
 
             self._log_execution_complete(result)
@@ -137,7 +133,7 @@ class ContractValidatorAdapter(BaseAdapter):
             return AdapterResult(
                 success=False,
                 error=error_msg,
-                metadata={"exception_type": type(e).__name__}
+                metadata={"exception_type": type(e).__name__},
             )
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
@@ -154,6 +150,7 @@ class ContractValidatorAdapter(BaseAdapter):
         try:
             import jsonschema
             import yaml
+
             return True
         except ImportError:
             return False
@@ -161,4 +158,5 @@ class ContractValidatorAdapter(BaseAdapter):
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"

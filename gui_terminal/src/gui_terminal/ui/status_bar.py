@@ -7,4 +7,3 @@ class StatusBar:  # pragma: no cover - GUI placeholder
 
     def set_status(self, text: str) -> None:
         self.status = text
-

@@ -1,25 +1,25 @@
 
 # CycleSync – Technical Specification Document (Patched)
 
-**Version**: v1.1  
-**Date**: 2025-08-13  
-**Author**: Agentic AI Orchestrator  
+**Version**: v1.1
+**Date**: 2025-08-13
+**Author**: Agentic AI Orchestrator
 **Purpose**: Deliver a complete, respectful, consent-first menstrual cycle awareness application designed for male users to track and support women in their lives.
 
 ---
 
 ## 📘 Table of Contents
 
-1. [Project Overview](#project-overview)  
-2. [System Architecture](#system-architecture)  
-3. [Data Models](#data-models)  
-4. [Backend Specification](#backend-specification)  
-5. [Mobile App Specification](#mobile-app-specification)  
-6. [Consent & Privacy Engine](#consent--privacy-engine)  
-7. [Tips & Intelligence Engine](#tips--intelligence-engine)  
-8. [Third-Party Sync Integration](#third-party-sync-integration)  
-9. [Deployment Infrastructure](#deployment-infrastructure)  
-10. [Testing & QA](#testing--qa)  
+1. [Project Overview](#project-overview)
+2. [System Architecture](#system-architecture)
+3. [Data Models](#data-models)
+4. [Backend Specification](#backend-specification)
+5. [Mobile App Specification](#mobile-app-specification)
+6. [Consent & Privacy Engine](#consent--privacy-engine)
+7. [Tips & Intelligence Engine](#tips--intelligence-engine)
+8. [Third-Party Sync Integration](#third-party-sync-integration)
+9. [Deployment Infrastructure](#deployment-infrastructure)
+10. [Testing & QA](#testing--qa)
 11. [Release Strategy](#release-strategy)
 
 ---
@@ -32,8 +32,8 @@ CycleSync is a cross-platform mobile and web application enabling men to:
 - Receive supportive tips
 - Respect privacy, boundaries, and data ethics
 
-**Target Users:** Male partners, fathers, friends, and respectful colleagues  
-**Core Value:** Empathy through information and consent  
+**Target Users:** Male partners, fathers, friends, and respectful colleagues
+**Core Value:** Empathy through information and consent
 
 ---
 

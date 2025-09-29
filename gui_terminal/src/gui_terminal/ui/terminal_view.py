@@ -2,6 +2,7 @@ from __future__ import annotations
 
 # Placeholder for future terminal widget implementation.
 
+
 class TerminalView:  # pragma: no cover - GUI placeholder
     def __init__(self, max_buffer_lines: int = 5000) -> None:
         self.buffer: list[str] = []

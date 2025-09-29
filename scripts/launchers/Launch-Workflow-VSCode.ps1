@@ -38,7 +38,7 @@ $workspaceConfig = @{
     extensions = @{
         recommendations = @(
             "ms-python.python",
-            "ms-python.vscode-pylance", 
+            "ms-python.vscode-pylance",
             "ms-vscode.powershell"
         )
     }
@@ -68,13 +68,13 @@ if ($DryRun) {
 } else {
     # Launch VS Code
     Start-Process "code" -ArgumentList $codeArgs -NoNewWindow
-    
+
     # Wait a moment then launch the CLI system
     Start-Sleep -Seconds 3
-    
+
     Write-Host "✅ VS Code launched successfully!" -ForegroundColor Green
     Write-Host "🔧 Starting CLI Multi-Rapid system..." -ForegroundColor Cyan
-    
+
     # Launch CLI system in new terminal
     $terminalCmd = "cli-multi-rapid --help"
     Start-Process "cmd" -ArgumentList "/k", "cd /d `"$WorkspaceFolder`" && echo 🚀 CLI Multi-Rapid System Ready! && echo Type: cli-multi-rapid --help to start && $terminalCmd"

@@ -10,4 +10,3 @@ Implementation
 
 Events
 - `phase.progress` and `task.status` should be emitted as phases start/complete/fail.
-

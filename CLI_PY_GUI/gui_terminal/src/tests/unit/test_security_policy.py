@@ -2,15 +2,14 @@
 Unit tests for Security Policy Manager
 """
 
-import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+
 from gui_terminal.security.policy_manager import (
     SecurityPolicyManager,
     SecurityViolation,
+    ThreatLevel,
     ViolationType,
-    ThreatLevel
 )
 
 
@@ -30,7 +29,7 @@ class TestSecurityPolicyManager:
         """Create temporary policy file"""
         import yaml
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(policy_data, f)
             self.temp_policy_file = f.name
             return f.name
@@ -41,7 +40,7 @@ class TestSecurityPolicyManager:
             "command_filtering": {
                 "mode": "whitelist",
                 "allowed_commands": ["ls", "pwd"],
-                "blocked_commands": ["rm", "del"]
+                "blocked_commands": ["rm", "del"],
             }
         }
 
@@ -59,7 +58,7 @@ class TestSecurityPolicyManager:
             "command_filtering": {
                 "mode": "whitelist",
                 "allowed_commands": ["ls", "pwd"],
-                "blocked_commands": []
+                "blocked_commands": [],
             }
         }
 
@@ -76,7 +75,7 @@ class TestSecurityPolicyManager:
             "command_filtering": {
                 "mode": "whitelist",
                 "allowed_commands": ["ls", "pwd"],
-                "blocked_commands": []
+                "blocked_commands": [],
             }
         }
 
@@ -94,7 +93,7 @@ class TestSecurityPolicyManager:
             "command_filtering": {
                 "mode": "blacklist",
                 "allowed_commands": [],
-                "blocked_commands": ["rm", "del"]
+                "blocked_commands": ["rm", "del"],
             }
         }
 
@@ -116,7 +115,9 @@ class TestSecurityPolicyManager:
         assert len(violations) > 0
 
         # Test directory traversal
-        is_valid, violations = manager.validate_command("cat", ["../../../etc/passwd"], "/tmp")
+        is_valid, violations = manager.validate_command(
+            "cat", ["../../../etc/passwd"], "/tmp"
+        )
         assert is_valid is False
         assert len(violations) > 0
 
@@ -137,7 +138,7 @@ class TestSecurityPolicyManager:
 
         assert command == "ls"  # Command should be clean
         assert "rm -rf /" in args[0]  # Semicolon removed but content preserved
-        assert "testfile" == args[1]  # Null byte removed
+        assert args[1] == "testfile"  # Null byte removed
 
     def test_compliance_rules(self):
         """Test compliance rules validation"""
@@ -147,7 +148,7 @@ class TestSecurityPolicyManager:
                     "enabled": True,
                     "patterns": ["sudo", "su"],
                     "severity": "critical",
-                    "action": "block"
+                    "action": "block",
                 }
             }
         }
@@ -166,27 +167,21 @@ class TestSecurityPolicyManager:
 
         # Test memory limit
         is_valid, violations = manager.validate_resource_usage(
-            memory_mb=1000,  # Exceeds default 512MB
-            cpu_percent=25,
-            execution_time=30
+            memory_mb=1000, cpu_percent=25, execution_time=30  # Exceeds default 512MB
         )
         assert is_valid is False
         assert any("Memory usage" in v for v in violations)
 
         # Test CPU limit
         is_valid, violations = manager.validate_resource_usage(
-            memory_mb=100,
-            cpu_percent=75,  # Exceeds default 50%
-            execution_time=30
+            memory_mb=100, cpu_percent=75, execution_time=30  # Exceeds default 50%
         )
         assert is_valid is False
         assert any("CPU usage" in v for v in violations)
 
         # Test execution time limit
         is_valid, violations = manager.validate_resource_usage(
-            memory_mb=100,
-            cpu_percent=25,
-            execution_time=400  # Exceeds default 300s
+            memory_mb=100, cpu_percent=25, execution_time=400  # Exceeds default 300s
         )
         assert is_valid is False
         assert any("Execution time" in v for v in violations)
@@ -196,7 +191,9 @@ class TestSecurityPolicyManager:
         manager = SecurityPolicyManager()
 
         # Trigger a violation
-        manager.validate_command("rm", ["-rf", "/"], "/tmp", "test_user", "test_session")
+        manager.validate_command(
+            "rm", ["-rf", "/"], "/tmp", "test_user", "test_session"
+        )
 
         # Check violations were logged
         assert len(manager.violations_log) > 0
@@ -252,7 +249,7 @@ class TestSecurityViolation:
             violation_type=ViolationType.COMMAND_BLOCKED,
             threat_level=ThreatLevel.HIGH,
             command="rm -rf /",
-            description="Dangerous command blocked"
+            description="Dangerous command blocked",
         )
 
         assert violation.violation_type == ViolationType.COMMAND_BLOCKED
@@ -267,7 +264,7 @@ class TestSecurityViolation:
             violation_type=ViolationType.SUSPICIOUS_ACTIVITY,
             threat_level=ThreatLevel.MEDIUM,
             command="test",
-            description="test"
+            description="test",
         )
 
         assert violation.user_id == "unknown"

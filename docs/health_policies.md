@@ -15,4 +15,3 @@ Circuit States
 Planner/Executor Integration
 - Planner excludes tools below threshold.
 - Executor avoids unstable tools and retries when half-open allows.
-

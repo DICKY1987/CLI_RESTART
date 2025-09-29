@@ -44,4 +44,3 @@ jobs:
         run: . .venv/bin/activate && ruff format . && ruff check --fix .
       - name: Tests with coverage >=85%
         run: . .venv/bin/activate && pytest --cov=src --cov-fail-under=85 -q
-

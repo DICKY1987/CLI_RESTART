@@ -1,10 +1,14 @@
 # audit_logger.py
 from __future__ import annotations
-import os, json, time
+
+import json
+import os
+import time
 from typing import Any
 
 LOG_PATH = os.path.expanduser("~/.python_cockpit/audit.jsonl")
 os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
+
 
 def write_event(evt: dict[str, Any]) -> None:
     try:

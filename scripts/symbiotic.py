@@ -1,9 +1,13 @@
 #!/usr/bin/env python
-import json, time, sys, subprocess
+import json
+import subprocess
+import sys
+import time
 from pathlib import Path
+
 from agentic.config import AgenticConfig
-from agentic.router import route_and_generate, run_validators, run_mutators
 from agentic.gates import enforce
+from agentic.router import route_and_generate, run_mutators, run_validators
 
 CFG = AgenticConfig.load()
 
@@ -17,7 +21,9 @@ def audit(event: dict):
 
 
 def preflight_snapshot():
-    subprocess.run('git add -A && git commit -m "preflight: snapshot" || true', shell=True)
+    subprocess.run(
+        'git add -A && git commit -m "preflight: snapshot" || true', shell=True
+    )
 
 
 def main():
@@ -26,7 +32,9 @@ def main():
     audit({"tool": "git", "action": "preflight"})
     manifest, cost = route_and_generate(prompt, CFG)
     Path(".ai").mkdir(exist_ok=True)
-    Path(".ai/manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    Path(".ai/manifest.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
     audit({"tool": "router", "action": "generate", "cost": cost})
     run_validators(CFG)
     audit({"tool": "validators", "action": "validate-ro"})
@@ -41,4 +49,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

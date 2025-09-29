@@ -2,11 +2,8 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from .automated_merge_strategy import (
-    AutomatedMergeStrategy,
-    ConflictAnalysis,
-    MergeStrategy as _AMSStrategyEnum,
-)
+from .automated_merge_strategy import AutomatedMergeStrategy, ConflictAnalysis
+from .automated_merge_strategy import MergeStrategy as _AMSStrategyEnum
 
 
 class MergeStrategy:
@@ -29,5 +26,6 @@ class MergeStrategy:
         base_branch: str,
         feature_branch: str,
     ) -> dict:
-        return await self._impl.execute_merge(tool, strategy, analysis, base_branch, feature_branch)
-
+        return await self._impl.execute_merge(
+            tool, strategy, analysis, base_branch, feature_branch
+        )

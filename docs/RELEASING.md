@@ -18,4 +18,3 @@ git push origin main --tags
 CI release
 
 - On tag push (`v*`), the `release` workflow builds artifacts, generates a CycloneDX SBOM, and publishes a GitHub Release with assets.
-

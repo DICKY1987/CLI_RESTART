@@ -3,13 +3,13 @@ Settings Manager for CLI Multi-Rapid GUI Terminal
 Advanced configuration management with validation and schema support
 """
 
-import os
 import json
-import yaml
 import logging
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, Any, Optional, Union
-from dataclasses import dataclass, field, asdict
+from typing import Any, Dict, Optional, Union
+
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TerminalConfig:
     """Terminal-specific configuration"""
+
     default_shell: str = "auto"
     startup_command: Optional[str] = None
     working_directory: str = "~"
@@ -31,28 +32,36 @@ class TerminalConfig:
 @dataclass
 class SecurityConfig:
     """Security configuration"""
+
     policy_file: str = "security_policies.yaml"
     audit_logging: bool = True
-    resource_limits: Dict[str, Union[int, float]] = field(default_factory=lambda: {
-        "max_memory_mb": 512,
-        "max_cpu_percent": 50,
-        "max_execution_time": 300
-    })
+    resource_limits: Dict[str, Union[int, float]] = field(
+        default_factory=lambda: {
+            "max_memory_mb": 512,
+            "max_cpu_percent": 50,
+            "max_execution_time": 300,
+        }
+    )
     command_filtering_enabled: bool = True
-    require_confirmation: list = field(default_factory=lambda: ["rm", "del", "format", "sudo"])
+    require_confirmation: list = field(
+        default_factory=lambda: ["rm", "del", "format", "sudo"]
+    )
 
 
 @dataclass
 class PlatformIntegrationConfig:
     """Platform integration configuration"""
+
     websocket_url: str = "ws://localhost:8000/ws"
     cost_tracking_enabled: bool = True
-    enterprise_integrations: Dict[str, bool] = field(default_factory=lambda: {
-        "jira_enabled": False,
-        "slack_enabled": False,
-        "github_enabled": False,
-        "teams_enabled": False
-    })
+    enterprise_integrations: Dict[str, bool] = field(
+        default_factory=lambda: {
+            "jira_enabled": False,
+            "slack_enabled": False,
+            "github_enabled": False,
+            "teams_enabled": False,
+        }
+    )
     api_key: str = ""
     auth_token: str = ""
 
@@ -60,6 +69,7 @@ class PlatformIntegrationConfig:
 @dataclass
 class UIConfig:
     """User interface configuration"""
+
     theme: str = "default"
     show_status_bar: bool = True
     show_toolbar: bool = True
@@ -71,18 +81,19 @@ class UIConfig:
 @dataclass
 class PluginConfig:
     """Plugin system configuration"""
+
     enabled: bool = True
     auto_load: bool = True
-    plugin_directories: list = field(default_factory=lambda: [
-        "~/.gui_terminal/plugins",
-        "/opt/gui_terminal/plugins"
-    ])
+    plugin_directories: list = field(
+        default_factory=lambda: ["~/.gui_terminal/plugins", "/opt/gui_terminal/plugins"]
+    )
     disabled_plugins: list = field(default_factory=list)
 
 
 @dataclass
 class PerformanceConfig:
     """Performance and optimization configuration"""
+
     max_buffer_chars: int = 1_000_000
     poll_interval_ms: int = 30
     enable_lazy_loading: bool = True
@@ -93,11 +104,14 @@ class PerformanceConfig:
 @dataclass
 class ApplicationConfig:
     """Main application configuration"""
+
     name: str = "CLI Multi-Rapid GUI Terminal"
     version: str = "1.0.0"
     terminal: TerminalConfig = field(default_factory=TerminalConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
-    platform_integration: PlatformIntegrationConfig = field(default_factory=PlatformIntegrationConfig)
+    platform_integration: PlatformIntegrationConfig = field(
+        default_factory=PlatformIntegrationConfig
+    )
     ui: UIConfig = field(default_factory=UIConfig)
     plugins: PluginConfig = field(default_factory=PluginConfig)
     performance: PerformanceConfig = field(default_factory=PerformanceConfig)
@@ -128,16 +142,18 @@ class SettingsManager:
             config_file = Path(self.config_path)
 
             if not config_file.exists():
-                logger.info(f"Config file not found, creating default: {self.config_path}")
+                logger.info(
+                    f"Config file not found, creating default: {self.config_path}"
+                )
                 self.save_config()
                 return
 
             # Determine file format
-            if config_file.suffix.lower() in ['.yaml', '.yml']:
-                with open(config_file, 'r', encoding='utf-8') as f:
+            if config_file.suffix.lower() in [".yaml", ".yml"]:
+                with open(config_file, encoding="utf-8") as f:
                     data = yaml.safe_load(f)
             else:
-                with open(config_file, 'r', encoding='utf-8') as f:
+                with open(config_file, encoding="utf-8") as f:
                     data = json.load(f)
 
             # Merge with default configuration
@@ -160,11 +176,11 @@ class SettingsManager:
             config_dict = asdict(self.config)
 
             # Save based on file extension
-            if config_file.suffix.lower() in ['.yaml', '.yml']:
-                with open(config_file, 'w', encoding='utf-8') as f:
+            if config_file.suffix.lower() in [".yaml", ".yml"]:
+                with open(config_file, "w", encoding="utf-8") as f:
                     yaml.dump(config_dict, f, default_flow_style=False, indent=2)
             else:
-                with open(config_file, 'w', encoding='utf-8') as f:
+                with open(config_file, "w", encoding="utf-8") as f:
                     json.dump(config_dict, f, indent=2)
 
             logger.info(f"Configuration saved to: {self.config_path}")
@@ -179,7 +195,7 @@ class SettingsManager:
                 target_attr = getattr(target_config, key)
 
                 # Handle nested dataclass objects
-                if hasattr(target_attr, '__dataclass_fields__'):
+                if hasattr(target_attr, "__dataclass_fields__"):
                     if isinstance(value, dict):
                         self._merge_config(target_attr, value)
                 else:
@@ -273,20 +289,20 @@ class SettingsManager:
             "terminal": {
                 "shell": self.config.terminal.default_shell,
                 "size": f"{self.config.terminal.cols}x{self.config.terminal.rows}",
-                "font": f"{self.config.terminal.font_family} {self.config.terminal.font_size}pt"
+                "font": f"{self.config.terminal.font_family} {self.config.terminal.font_size}pt",
             },
             "security": {
                 "enabled": self.config.security.audit_logging,
-                "policy_file": self.config.security.policy_file
+                "policy_file": self.config.security.policy_file,
             },
             "platform": {
                 "websocket": self.config.platform_integration.websocket_url,
-                "cost_tracking": self.config.platform_integration.cost_tracking_enabled
+                "cost_tracking": self.config.platform_integration.cost_tracking_enabled,
             },
             "plugins": {
                 "enabled": self.config.plugins.enabled,
-                "count": len(self.config.plugins.plugin_directories)
-            }
+                "count": len(self.config.plugins.plugin_directories),
+            },
         }
 
     def export_config(self, export_path: str, format: str = "yaml"):
@@ -296,10 +312,10 @@ class SettingsManager:
             config_dict = asdict(self.config)
 
             if format.lower() == "yaml":
-                with open(export_file, 'w', encoding='utf-8') as f:
+                with open(export_file, "w", encoding="utf-8") as f:
                     yaml.dump(config_dict, f, default_flow_style=False, indent=2)
             else:
-                with open(export_file, 'w', encoding='utf-8') as f:
+                with open(export_file, "w", encoding="utf-8") as f:
                     json.dump(config_dict, f, indent=2)
 
             logger.info(f"Configuration exported to: {export_path}")
@@ -316,11 +332,11 @@ class SettingsManager:
                 raise FileNotFoundError(f"Import file not found: {import_path}")
 
             # Load configuration
-            if import_file.suffix.lower() in ['.yaml', '.yml']:
-                with open(import_file, 'r', encoding='utf-8') as f:
+            if import_file.suffix.lower() in [".yaml", ".yml"]:
+                with open(import_file, encoding="utf-8") as f:
                     data = yaml.safe_load(f)
             else:
-                with open(import_file, 'r', encoding='utf-8') as f:
+                with open(import_file, encoding="utf-8") as f:
                     data = json.load(f)
 
             # Create new config and merge

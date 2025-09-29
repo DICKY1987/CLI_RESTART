@@ -9,4 +9,3 @@ Panel
 Files
 - `vscode-extension/src/webview.ts` – webview panel creation
 - `vscode-extension/media/app.js` – simple UI script
-

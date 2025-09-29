@@ -6,18 +6,17 @@ workflow execution, ensuring safe parallel execution with proper access controls
 """
 
 import json
-import hashlib
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Dict, List, Optional, Set, Any
-from enum import Enum
-from datetime import datetime
 import tempfile
-import os
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 
 class SecurityLevel(Enum):
     """Security isolation levels for workflow execution."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -26,6 +25,7 @@ class SecurityLevel(Enum):
 
 class AccessMode(Enum):
     """File access modes for security validation."""
+
     READ_ONLY = "read-only"
     WRITE_ONLY = "write-only"
     READ_WRITE = "read-write"
@@ -36,6 +36,7 @@ class AccessMode(Enum):
 @dataclass
 class SecurityContext:
     """Security context for workflow execution."""
+
     workflow_id: str
     security_level: SecurityLevel = SecurityLevel.MEDIUM
     allowed_paths: List[str] = None
@@ -46,7 +47,7 @@ class SecurityContext:
     network_access: bool = False
     temp_directory: Optional[str] = None
     max_file_size: int = 10_000_000  # 10MB default
-    max_execution_time: int = 1800    # 30 minutes default
+    max_execution_time: int = 1800  # 30 minutes default
 
     def __post_init__(self):
         if self.allowed_paths is None:
@@ -68,6 +69,7 @@ class SecurityContext:
 @dataclass
 class SecurityViolation:
     """Represents a security violation."""
+
     violation_type: str
     description: str
     workflow_id: str
@@ -85,6 +87,7 @@ class SecurityViolation:
 @dataclass
 class IsolationEnvironment:
     """Isolated execution environment for workflows."""
+
     environment_id: str
     workflow_id: str
     temp_directory: Path
@@ -100,9 +103,9 @@ class IsolationEnvironment:
             self.environment_variables = {}
         if self.resource_limits is None:
             self.resource_limits = {
-                'max_memory': 1024 * 1024 * 1024,  # 1GB
-                'max_cpu_time': 1800,               # 30 minutes
-                'max_open_files': 100
+                "max_memory": 1024 * 1024 * 1024,  # 1GB
+                "max_cpu_time": 1800,  # 30 minutes
+                "max_open_files": 100,
             }
 
 
@@ -116,32 +119,31 @@ class SecurityManager:
         self.active_environments: Dict[str, IsolationEnvironment] = {}
         self.violation_log = self.base_security_dir / "violations.jsonl"
 
-    def create_security_context(self, workflow_id: str, coordination_metadata: Dict[str, Any]) -> SecurityContext:
+    def create_security_context(
+        self, workflow_id: str, coordination_metadata: Dict[str, Any]
+    ) -> SecurityContext:
         """Create security context based on workflow coordination metadata."""
 
-        coordination = coordination_metadata.get('coordination', {})
-        risk_level = coordination.get('risk_level', 'medium')
+        coordination = coordination_metadata.get("coordination", {})
+        risk_level = coordination.get("risk_level", "medium")
 
         # Map risk level to security level
         security_level_map = {
-            'low': SecurityLevel.LOW,
-            'medium': SecurityLevel.MEDIUM,
-            'high': SecurityLevel.HIGH,
-            'critical': SecurityLevel.CRITICAL
+            "low": SecurityLevel.LOW,
+            "medium": SecurityLevel.MEDIUM,
+            "high": SecurityLevel.HIGH,
+            "critical": SecurityLevel.CRITICAL,
         }
         security_level = security_level_map.get(risk_level, SecurityLevel.MEDIUM)
 
         # Extract file scope for allowed paths
-        file_scope = coordination.get('file_scope', [])
+        file_scope = coordination.get("file_scope", [])
         allowed_paths = file_scope.copy()
 
         # Add safe default paths
-        allowed_paths.extend([
-            "artifacts/**",
-            "logs/**",
-            ".ai/coordination/**",
-            "temp/**"
-        ])
+        allowed_paths.extend(
+            ["artifacts/**", "logs/**", ".ai/coordination/**", "temp/**"]
+        )
 
         # Define forbidden paths based on security level
         forbidden_paths = self._get_forbidden_paths(security_level)
@@ -156,14 +158,15 @@ class SecurityManager:
             forbidden_paths=forbidden_paths,
             allowed_commands=allowed_commands,
             network_access=security_level in [SecurityLevel.LOW, SecurityLevel.MEDIUM],
-            max_execution_time=coordination.get('timeout_minutes', 30) * 60
+            max_execution_time=coordination.get("timeout_minutes", 30) * 60,
         )
 
         self.active_contexts[workflow_id] = context
         return context
 
-    def create_isolation_environment(self, workflow_id: str,
-                                   security_context: SecurityContext) -> IsolationEnvironment:
+    def create_isolation_environment(
+        self, workflow_id: str, security_context: SecurityContext
+    ) -> IsolationEnvironment:
         """Create isolated execution environment for workflow."""
 
         environment_id = f"env_{workflow_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -173,16 +176,19 @@ class SecurityManager:
 
         # Create sandbox root if high security
         sandbox_root = None
-        if security_context.security_level in [SecurityLevel.HIGH, SecurityLevel.CRITICAL]:
+        if security_context.security_level in [
+            SecurityLevel.HIGH,
+            SecurityLevel.CRITICAL,
+        ]:
             sandbox_root = temp_dir / "sandbox"
             sandbox_root.mkdir(parents=True, exist_ok=True)
 
         # Set up environment variables
         env_vars = {
-            'WORKFLOW_ID': workflow_id,
-            'SECURITY_LEVEL': security_context.security_level.value,
-            'TEMP_DIR': str(temp_dir),
-            'COORDINATION_MODE': 'true'
+            "WORKFLOW_ID": workflow_id,
+            "SECURITY_LEVEL": security_context.security_level.value,
+            "TEMP_DIR": str(temp_dir),
+            "COORDINATION_MODE": "true",
         }
 
         # Create allowed files set from security context
@@ -198,23 +204,26 @@ class SecurityManager:
             temp_directory=temp_dir,
             allowed_files=allowed_files,
             sandbox_root=sandbox_root,
-            environment_variables=env_vars
+            environment_variables=env_vars,
         )
 
         self.active_environments[workflow_id] = environment
         return environment
 
-    def validate_file_access(self, workflow_id: str, file_path: str,
-                           access_mode: AccessMode) -> bool:
+    def validate_file_access(
+        self, workflow_id: str, file_path: str, access_mode: AccessMode
+    ) -> bool:
         """Validate if workflow can access file with specified mode."""
 
         if workflow_id not in self.active_contexts:
-            self._log_violation(SecurityViolation(
-                violation_type="context_not_found",
-                description=f"No security context found for workflow {workflow_id}",
-                workflow_id=workflow_id,
-                severity="high"
-            ))
+            self._log_violation(
+                SecurityViolation(
+                    violation_type="context_not_found",
+                    description=f"No security context found for workflow {workflow_id}",
+                    workflow_id=workflow_id,
+                    severity="high",
+                )
+            )
             return False
 
         context = self.active_contexts[workflow_id]
@@ -222,13 +231,18 @@ class SecurityManager:
         # Check forbidden paths first
         for forbidden_pattern in context.forbidden_paths:
             if self._path_matches_pattern(file_path, forbidden_pattern):
-                self._log_violation(SecurityViolation(
-                    violation_type="forbidden_path",
-                    description=f"Access to forbidden path: {file_path}",
-                    workflow_id=workflow_id,
-                    severity="high",
-                    context={"file_path": file_path, "access_mode": access_mode.value}
-                ))
+                self._log_violation(
+                    SecurityViolation(
+                        violation_type="forbidden_path",
+                        description=f"Access to forbidden path: {file_path}",
+                        workflow_id=workflow_id,
+                        severity="high",
+                        context={
+                            "file_path": file_path,
+                            "access_mode": access_mode.value,
+                        },
+                    )
+                )
                 return False
 
         # Check allowed paths
@@ -239,30 +253,34 @@ class SecurityManager:
                 break
 
         if not allowed:
-            self._log_violation(SecurityViolation(
-                violation_type="unauthorized_path",
-                description=f"Access to unauthorized path: {file_path}",
-                workflow_id=workflow_id,
-                severity="medium",
-                context={"file_path": file_path, "access_mode": access_mode.value}
-            ))
+            self._log_violation(
+                SecurityViolation(
+                    violation_type="unauthorized_path",
+                    description=f"Access to unauthorized path: {file_path}",
+                    workflow_id=workflow_id,
+                    severity="medium",
+                    context={"file_path": file_path, "access_mode": access_mode.value},
+                )
+            )
             return False
 
         # Check specific access mode restrictions
         if file_path in context.file_access_modes:
             required_mode = context.file_access_modes[file_path]
             if not self._access_mode_compatible(required_mode, access_mode):
-                self._log_violation(SecurityViolation(
-                    violation_type="access_mode_violation",
-                    description=f"Incompatible access mode for {file_path}",
-                    workflow_id=workflow_id,
-                    severity="medium",
-                    context={
-                        "file_path": file_path,
-                        "required_mode": required_mode.value,
-                        "requested_mode": access_mode.value
-                    }
-                ))
+                self._log_violation(
+                    SecurityViolation(
+                        violation_type="access_mode_violation",
+                        description=f"Incompatible access mode for {file_path}",
+                        workflow_id=workflow_id,
+                        severity="medium",
+                        context={
+                            "file_path": file_path,
+                            "required_mode": required_mode.value,
+                            "requested_mode": access_mode.value,
+                        },
+                    )
+                )
                 return False
 
         return True
@@ -278,13 +296,15 @@ class SecurityManager:
         # Check forbidden commands
         for forbidden_cmd in context.forbidden_commands:
             if command.startswith(forbidden_cmd):
-                self._log_violation(SecurityViolation(
-                    violation_type="forbidden_command",
-                    description=f"Execution of forbidden command: {command}",
-                    workflow_id=workflow_id,
-                    severity="high",
-                    context={"command": command}
-                ))
+                self._log_violation(
+                    SecurityViolation(
+                        violation_type="forbidden_command",
+                        description=f"Execution of forbidden command: {command}",
+                        workflow_id=workflow_id,
+                        severity="high",
+                        context={"command": command},
+                    )
+                )
                 return False
 
         # Check allowed commands
@@ -296,13 +316,15 @@ class SecurityManager:
                     break
 
             if not allowed:
-                self._log_violation(SecurityViolation(
-                    violation_type="unauthorized_command",
-                    description=f"Execution of unauthorized command: {command}",
-                    workflow_id=workflow_id,
-                    severity="medium",
-                    context={"command": command}
-                ))
+                self._log_violation(
+                    SecurityViolation(
+                        violation_type="unauthorized_command",
+                        description=f"Execution of unauthorized command: {command}",
+                        workflow_id=workflow_id,
+                        severity="medium",
+                        context={"command": command},
+                    )
+                )
                 return False
 
         return True
@@ -317,6 +339,7 @@ class SecurityManager:
                 # Clean up temporary directory
                 if environment.temp_directory.exists():
                     import shutil
+
                     shutil.rmtree(environment.temp_directory, ignore_errors=True)
 
                 # Remove from active environments
@@ -329,13 +352,15 @@ class SecurityManager:
             return True
 
         except Exception as e:
-            self._log_violation(SecurityViolation(
-                violation_type="cleanup_error",
-                description=f"Failed to cleanup environment: {str(e)}",
-                workflow_id=workflow_id,
-                severity="low",
-                context={"error": str(e)}
-            ))
+            self._log_violation(
+                SecurityViolation(
+                    violation_type="cleanup_error",
+                    description=f"Failed to cleanup environment: {str(e)}",
+                    workflow_id=workflow_id,
+                    severity="low",
+                    context={"error": str(e)},
+                )
+            )
             return False
 
     def get_security_summary(self, coordination_id: str) -> Dict[str, Any]:
@@ -344,7 +369,7 @@ class SecurityManager:
         violations = []
         try:
             if self.violation_log.exists():
-                with open(self.violation_log, 'r') as f:
+                with open(self.violation_log) as f:
                     for line in f:
                         if line.strip():
                             violation_data = json.loads(line.strip())
@@ -354,13 +379,15 @@ class SecurityManager:
             pass
 
         return {
-            'coordination_id': coordination_id,
-            'active_contexts': len(self.active_contexts),
-            'active_environments': len(self.active_environments),
-            'total_violations': len(violations),
-            'high_severity_violations': len([v for v in violations if v.get('severity') == 'high']),
-            'violations': violations[-10:],  # Last 10 violations
-            'timestamp': datetime.now().isoformat()
+            "coordination_id": coordination_id,
+            "active_contexts": len(self.active_contexts),
+            "active_environments": len(self.active_environments),
+            "total_violations": len(violations),
+            "high_severity_violations": len(
+                [v for v in violations if v.get("severity") == "high"]
+            ),
+            "violations": violations[-10:],  # Last 10 violations
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _get_forbidden_paths(self, security_level: SecurityLevel) -> List[str]:
@@ -373,17 +400,19 @@ class SecurityManager:
             "/home/*/.aws/**",
             "**/.env",
             "**/secrets/**",
-            "**/credentials/**"
+            "**/credentials/**",
         ]
 
         if security_level in [SecurityLevel.HIGH, SecurityLevel.CRITICAL]:
-            base_forbidden.extend([
-                "/usr/bin/**",
-                "/bin/**",
-                "/sbin/**",
-                "**/.git/config",
-                "**/node_modules/**"
-            ])
+            base_forbidden.extend(
+                [
+                    "/usr/bin/**",
+                    "/bin/**",
+                    "/sbin/**",
+                    "**/.git/config",
+                    "**/node_modules/**",
+                ]
+            )
 
         return base_forbidden
 
@@ -408,27 +437,25 @@ class SecurityManager:
             "ruff",
             "black",
             "isort",
-            "mypy"
+            "mypy",
         ]
 
         if security_level == SecurityLevel.MEDIUM:
-            base_allowed.extend([
-                "git add",
-                "git commit",
-                "git checkout",
-                "mkdir",
-                "cp",
-                "mv"
-            ])
+            base_allowed.extend(
+                ["git add", "git commit", "git checkout", "mkdir", "cp", "mv"]
+            )
 
         return base_allowed
 
     def _path_matches_pattern(self, path: str, pattern: str) -> bool:
         """Check if path matches glob-like pattern."""
         import fnmatch
+
         return fnmatch.fnmatch(path, pattern)
 
-    def _access_mode_compatible(self, required: AccessMode, requested: AccessMode) -> bool:
+    def _access_mode_compatible(
+        self, required: AccessMode, requested: AccessMode
+    ) -> bool:
         """Check if requested access mode is compatible with required mode."""
 
         if required == AccessMode.READ_ONLY:
@@ -436,7 +463,11 @@ class SecurityManager:
         elif required == AccessMode.WRITE_ONLY:
             return requested in [AccessMode.WRITE_ONLY]
         elif required == AccessMode.READ_WRITE:
-            return requested in [AccessMode.READ_ONLY, AccessMode.WRITE_ONLY, AccessMode.READ_WRITE]
+            return requested in [
+                AccessMode.READ_ONLY,
+                AccessMode.WRITE_ONLY,
+                AccessMode.READ_WRITE,
+            ]
         elif required == AccessMode.EXECUTE:
             return requested == AccessMode.EXECUTE
         elif required == AccessMode.NONE:
@@ -448,26 +479,26 @@ class SecurityManager:
         """Log security violation to file."""
 
         try:
-            with open(self.violation_log, 'a') as f:
+            with open(self.violation_log, "a") as f:
                 violation_dict = {
-                    'violation_type': violation.violation_type,
-                    'description': violation.description,
-                    'workflow_id': violation.workflow_id,
-                    'severity': violation.severity,
-                    'timestamp': violation.timestamp,
-                    'context': violation.context
+                    "violation_type": violation.violation_type,
+                    "description": violation.description,
+                    "workflow_id": violation.workflow_id,
+                    "severity": violation.severity,
+                    "timestamp": violation.timestamp,
+                    "context": violation.context,
                 }
-                f.write(json.dumps(violation_dict) + '\n')
+                f.write(json.dumps(violation_dict) + "\n")
         except Exception:
             pass  # Best effort logging
 
 
 # Export main classes
 __all__ = [
-    'SecurityLevel',
-    'AccessMode',
-    'SecurityContext',
-    'SecurityViolation',
-    'IsolationEnvironment',
-    'SecurityManager'
+    "SecurityLevel",
+    "AccessMode",
+    "SecurityContext",
+    "SecurityViolation",
+    "IsolationEnvironment",
+    "SecurityManager",
 ]

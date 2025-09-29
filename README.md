@@ -163,3 +163,7 @@ See `VSCODE_SETUP.md` for available tasks, debug configurations, and how to opti
 ## Coordination
 See docs/coordination/COORDINATION_GUIDE.md for usage and configuration details.
 
+## CLI Orchestrator Simplified Mode
+For the CLI Multi-Rapid orchestrator embedded in this repository, a simplified,
+configuration-driven 25-operation workflow mode is available. See
+`docs/simplified-workflow-guide.md` for usage.

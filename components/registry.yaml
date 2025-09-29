@@ -83,11 +83,11 @@ groups:
   core:
     description: Essential runtime components
     components: [python, powershell, nodejs]
-  
+
   development:
     description: Development tools and CLI utilities
     components: [github-cli, gemini-cli]
-    
+
   containers:
     description: Container and orchestration tools
     components: [docker]

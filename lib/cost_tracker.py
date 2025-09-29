@@ -5,7 +5,6 @@ import time
 from pathlib import Path
 from typing import Any, Dict
 
-
 LEDGER = Path("state/cost_ledger.jsonl")
 
 
@@ -13,7 +12,9 @@ def _ensure_dirs() -> None:
     LEDGER.parent.mkdir(parents=True, exist_ok=True)
 
 
-def record_cost(task_id: str, tool: str, action: str, tokens: int | None, amount: float) -> None:
+def record_cost(
+    task_id: str, tool: str, action: str, tokens: int | None, amount: float
+) -> None:
     _ensure_dirs()
     entry: Dict[str, Any] = {
         "ts": int(time.time()),
@@ -54,5 +55,10 @@ def record_gdw_cost(workflow_id: str, step_id: str | None, amount: float) -> Non
     """
     tid = f"gdw:{workflow_id}"
     action = "gdw_step" if step_id else "gdw"
-    record_cost(task_id=tid, tool="gdw_runner", action=f"{action}:{step_id or 'all'}", tokens=None, amount=amount)
-
+    record_cost(
+        task_id=tid,
+        tool="gdw_runner",
+        action=f"{action}:{step_id or 'all'}",
+        tokens=None,
+        amount=amount,
+    )

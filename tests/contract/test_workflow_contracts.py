@@ -11,7 +11,6 @@ import json
 import pytest
 
 
-
 @pytest.mark.contract
 class TestWorkflowSchemaContracts:
     """Test workflow schema contract compliance."""

@@ -3,19 +3,19 @@ Status Bar Implementation
 Enhanced status bar with session information and system metrics
 """
 
-import os
 import logging
-from typing import Dict, Any, Optional
+import os
+from typing import Any, Dict
 
 try:
-    from PyQt6.QtWidgets import QStatusBar, QLabel, QProgressBar, QWidget, QHBoxLayout
     from PyQt6.QtCore import Qt, QTimer
     from PyQt6.QtGui import QFont
+    from PyQt6.QtWidgets import QHBoxLayout, QLabel, QProgressBar, QStatusBar, QWidget
+
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtWidgets import QStatusBar, QLabel, QProgressBar, QWidget, QHBoxLayout
-    from PyQt5.QtCore import Qt, QTimer
-    from PyQt5.QtGui import QFont
+    from PyQt5.QtWidgets import QHBoxLayout, QLabel, QProgressBar, QStatusBar, QWidget
+
     PYQT_VERSION = 5
 
 logger = logging.getLogger(__name__)
@@ -68,18 +68,22 @@ class StatusBar(QStatusBar):
 
     def update_session_info(self, session_info: Dict[str, Any]):
         """Update session information display"""
-        if session_info.get('active', False):
-            uptime = session_info.get('uptime', 0)
-            command_count = session_info.get('command_count', 0)
-            self.session_label.setText(f"Session: {uptime:.0f}s, Commands: {command_count}")
+        if session_info.get("active", False):
+            uptime = session_info.get("uptime", 0)
+            command_count = session_info.get("command_count", 0)
+            self.session_label.setText(
+                f"Session: {uptime:.0f}s, Commands: {command_count}"
+            )
             self.session_label.setStyleSheet("color: green")
         else:
             self.session_label.setText("No session")
             self.session_label.setStyleSheet("")
 
         # Update working directory
-        cwd = session_info.get('working_directory', os.getcwd())
-        self.cwd_label.setText(f"CWD: {os.path.basename(cwd) if len(cwd) > 30 else cwd}")
+        cwd = session_info.get("working_directory", os.getcwd())
+        self.cwd_label.setText(
+            f"CWD: {os.path.basename(cwd) if len(cwd) > 30 else cwd}"
+        )
 
     def update_security_status(self, enabled: bool, violations: int = 0):
         """Update security status"""
@@ -109,7 +113,9 @@ class StatusBar(QStatusBar):
     def update_connection_status(self, connected: bool, service: str = ""):
         """Update platform connection status"""
         if connected:
-            self.connection_label.setText(f"Connected ({service})" if service else "Connected")
+            self.connection_label.setText(
+                f"Connected ({service})" if service else "Connected"
+            )
             self.connection_label.setStyleSheet("color: green")
         else:
             self.connection_label.setText("Disconnected")

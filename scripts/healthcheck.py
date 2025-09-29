@@ -1,7 +1,8 @@
 from __future__ import annotations
-import time
+
 import json
 import sys
+import time
 from urllib.request import urlopen
 
 
@@ -30,4 +31,3 @@ def check(url: str, timeout_s: int = 30) -> int:
 if __name__ == "__main__":
     url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5055/health"
     raise SystemExit(check(url))
-

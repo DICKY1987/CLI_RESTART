@@ -14,7 +14,7 @@ $Shortcut.Save()
 
 Write-Host "Updated PowerShell shortcut to show interface menu" -ForegroundColor Green
 
-# Create a direct VS Code shortcut  
+# Create a direct VS Code shortcut
 $VSCodeShortcut = $WshShell.CreateShortcut("$Desktop\🚀 CLI Multi-Rapid VS Code.lnk")
 $VSCodeShortcut.TargetPath = "code.exe"
 $VSCodeShortcut.Arguments = "`"C:\Users\Richard Wilks\cli_multi_rapid_DEV`""

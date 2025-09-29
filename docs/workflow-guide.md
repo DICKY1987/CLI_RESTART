@@ -25,7 +25,7 @@ Every workflow is **completely defined** in YAML - no runtime decisions about pr
 # The workflow ALWAYS follows these exact steps
 steps:
   - Initialize Context (always)
-  - Evaluate Constraints (always) 
+  - Evaluate Constraints (always)
   - Route to Tool (deterministic based on constraints)
   - Execute Edit (tool-specific but predetermined)
   - Validate Quality (always)
@@ -40,7 +40,7 @@ Files: src/auth.py, src/user.py (2 files, 450 lines total)
 Constraints: ✅ Git clean, ✅ Paths allowed, ✅ Size OK, ✅ Syntax valid
 Result: → aider_local (predetermined choice for this scenario)
 
-Files: src/*.py (15 files, 3000 lines total)  
+Files: src/*.py (15 files, 3000 lines total)
 Constraints: ✅ Git clean, ❌ Too many files
 Result: → vscode_editor (predetermined fallback)
 ```
@@ -123,9 +123,9 @@ Implement new constraint evaluators in `constraint-engine.ps1`:
 ```powershell
 [hashtable] CheckTestCoverage([string[]]$files, [hashtable]$params) {
     $result = @{ passed = $true; message = ""; reasoning = "" }
-    
+
     $logicFiles = $files | Where-Object { $_ -like "src/models/*" -or $_ -like "src/api/*" }
-    
+
     foreach ($file in $logicFiles) {
         $testFile = $file -replace "src/", "tests/" -replace "\.py$", "_test.py"
         if (-not (Test-Path $testFile)) {
@@ -135,7 +135,7 @@ Implement new constraint evaluators in `constraint-engine.ps1`:
             break
         }
     }
-    
+
     return $result
 }
 ```
@@ -172,8 +172,8 @@ steps:
     actions:
       - type: validate_openapi_schema
       - type: check_breaking_changes
-  
-  - id: "1.002" 
+
+  - id: "1.002"
     name: "Update API Implementation"
     actor: "{{selected_tool}}"
     # ... rest of workflow
@@ -201,13 +201,13 @@ composed_workflows:
     inputs:
       files: "{{feature_files}}"
       prompt: "{{implementation_prompt}}"
-  
-  - workflow: API_UPDATE  
+
+  - workflow: API_UPDATE
     stage: api_changes
     inputs:
       api_files: "{{api_files}}"
       update_type: "new_endpoint"
-  
+
   - workflow: SECURITY_SCAN
     stage: validation
     inputs:
@@ -240,17 +240,17 @@ pwsh scripts/constraint-engine.ps1 -ConstraintSet pre_execution \
 # Output shows decision reasoning:
 # 🔍 Evaluating constraint set: pre_execution
 # 📁 Files: src/complex_module.py
-# 
+#
 # 📊 Constraint Evaluation Results:
 #   Selected Tool: claude_code
 #   Violations: 0
 #   Warnings: 2
 #   Duration: 1,234ms
-# 
+#
 # ⚠️  Warnings:
 #   [SOFT_WARN] complexity.cyclomatic: Function 'process_data' complexity: 12 > 10
 #   [SOFT_WARN] quality.type_hints: Missing type hints in 3 functions
-# 
+#
 # 🧠 Reasoning:
 #   [git.clean_worktree] Git worktree is clean
 #   [files.count_limit] File count (1) within limit (12)
@@ -265,14 +265,14 @@ pwsh scripts/orchestrator.ps1 -Command metrics -Days 7
 
 # Tool Selection Frequency (Last 7 Days):
 #   aider_local: 67% (134 workflows)
-#   vscode_editor: 28% (56 workflows)  
+#   vscode_editor: 28% (56 workflows)
 #   claude_code: 5% (10 workflows)
-# 
+#
 # Average Duration by Tool:
 #   aider_local: 2m 14s
 #   claude_code: 4m 32s
 #   vscode_editor: 15m 27s (includes manual time)
-# 
+#
 # Constraint Violation Rate: 12%
 #   Most Common: files.count_limit (8%)
 #   Second: git.clean_worktree (3%)
@@ -292,7 +292,7 @@ pwsh scripts/orchestrator.ps1 -Command metrics -Days 7
 
 ### 3. Tool Selection Logic
 - **aider_local**: Simple edits, <5 files, <1000 lines total
-- **claude_code**: Complex logic, >5 files, >1000 lines total  
+- **claude_code**: Complex logic, >5 files, >1000 lines total
 - **vscode_editor**: Any constraint violations or special cases
 
 ### 4. Monitoring

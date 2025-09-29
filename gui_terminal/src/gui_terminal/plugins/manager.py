@@ -65,4 +65,3 @@ class PluginManager:
                     rec.instance.deactivate()
             except Exception:
                 pass
-

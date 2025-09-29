@@ -5,20 +5,22 @@ Tests the complete workflow from adapter discovery to execution.
 """
 
 import json
-import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch
 
 # Add src to path for imports
 import sys
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from cli_multi_rapid.adapters import (
-    BaseAdapter,
     AdapterRegistry,
-    VSCodeDiagnosticsAdapter,
+    BaseAdapter,
     CodeFixersAdapter,
     PytestRunnerAdapter,
+    VSCodeDiagnosticsAdapter,
 )
 from cli_multi_rapid.router import Router
 from cli_multi_rapid.workflow_runner import WorkflowRunner
@@ -67,7 +69,7 @@ class TestAdapterIntegration:
             "name": "Test Diagnostics",
             "actor": "vscode_diagnostics",
             "with": {"analyzers": ["ruff"]},
-            "emits": ["artifacts/test.json"]
+            "emits": ["artifacts/test.json"],
         }
 
         # Should route to vscode_diagnostics adapter
@@ -80,10 +82,7 @@ class TestAdapterIntegration:
         workflow = {
             "name": "Integration Test Workflow",
             "inputs": {"files": ["src/**/*.py"]},
-            "policy": {
-                "max_tokens": 1000,
-                "prefer_deterministic": True
-            },
+            "policy": {"max_tokens": 1000, "prefer_deterministic": True},
             "steps": [
                 {
                     "id": "1.001",
@@ -91,24 +90,22 @@ class TestAdapterIntegration:
                     "actor": "vscode_diagnostics",
                     "with": {
                         "analyzers": ["ruff"],
-                        "files": "src/cli_multi_rapid/__init__.py"
+                        "files": "src/cli_multi_rapid/__init__.py",
                     },
-                    "emits": ["artifacts/integration-test.json"]
+                    "emits": ["artifacts/integration-test.json"],
                 }
-            ]
+            ],
         }
 
         runner = WorkflowRunner()
 
         # Execute workflow (dry run)
-        with patch('cli_multi_rapid.workflow_runner.Path') as mock_path:
+        with patch("cli_multi_rapid.workflow_runner.Path") as mock_path:
             # Mock file existence
             mock_path.return_value.exists.return_value = True
 
             result = runner.execute_workflow(
-                workflow,
-                files="src/cli_multi_rapid/__init__.py",
-                dry_run=True
+                workflow, files="src/cli_multi_rapid/__init__.py", dry_run=True
             )
 
             # Should complete without errors
@@ -126,14 +123,14 @@ class TestAdapterIntegration:
             "name": "Invalid Test",
             "actor": "vscode_diagnostics",
             "with": {"invalid_param": "test"},
-            "emits": []
+            "emits": [],
         }
 
         # Should handle gracefully
         try:
             result = adapter.execute(invalid_step)
             # Result should indicate failure but not crash
-            assert hasattr(result, 'success')
+            assert hasattr(result, "success")
         except Exception as e:
             pytest.fail(f"Adapter should handle errors gracefully: {e}")
 
@@ -142,33 +139,24 @@ class TestAdapterIntegration:
         workflow = {
             "name": "Multi-Adapter Workflow",
             "inputs": {"files": ["src/**/*.py"]},
-            "policy": {
-                "max_tokens": 5000,
-                "prefer_deterministic": True
-            },
+            "policy": {"max_tokens": 5000, "prefer_deterministic": True},
             "steps": [
                 {
                     "id": "1.001",
                     "name": "Diagnostic Analysis",
                     "actor": "vscode_diagnostics",
-                    "with": {
-                        "analyzers": ["ruff"],
-                        "min_severity": "warning"
-                    },
-                    "emits": ["artifacts/diagnostics.json"]
+                    "with": {"analyzers": ["ruff"], "min_severity": "warning"},
+                    "emits": ["artifacts/diagnostics.json"],
                 },
                 {
                     "id": "2.001",
                     "name": "Code Fixes",
                     "actor": "code_fixers",
-                    "with": {
-                        "tools": ["ruff"],
-                        "fix_mode": True
-                    },
+                    "with": {"tools": ["ruff"], "fix_mode": True},
                     "emits": ["artifacts/fixes.json"],
-                    "when": "artifacts/diagnostics.json exists"
-                }
-            ]
+                    "when": "artifacts/diagnostics.json exists",
+                },
+            ],
         }
 
         runner = WorkflowRunner()
@@ -187,7 +175,8 @@ class TestAdapterIntegration:
         """Test adapter with real Python file (slower integration test)."""
         # Create a test Python file with known issues
         test_file = tmp_path / "test_analysis.py"
-        test_file.write_text('''
+        test_file.write_text(
+            '''
 import os
 import sys
 
@@ -206,7 +195,8 @@ def test_function(data):
 if __name__ == "__main__":
     sample_data = {"name": "test", "value": 123}
     print(test_function(sample_data))
-''')
+'''
+        )
 
         # Test vscode_diagnostics adapter
         registry = AdapterRegistry()
@@ -217,17 +207,14 @@ if __name__ == "__main__":
                 "id": "1.001",
                 "name": "Real File Analysis",
                 "actor": "vscode_diagnostics",
-                "with": {
-                    "analyzers": ["ruff"],
-                    "files": str(test_file)
-                },
-                "emits": ["artifacts/real-test.json"]
+                "with": {"analyzers": ["ruff"], "files": str(test_file)},
+                "emits": ["artifacts/real-test.json"],
             }
 
             result = adapter.execute(step, files=str(test_file))
 
             # Should complete successfully
-            assert hasattr(result, 'success')
+            assert hasattr(result, "success")
 
             # Should detect unused imports
             if result.success and result.metadata:
@@ -249,7 +236,7 @@ if __name__ == "__main__":
                 "name": f"Test {adapter_name}",
                 "actor": adapter_name,
                 "with": {},
-                "emits": []
+                "emits": [],
             }
 
             cost = adapter.estimate_cost(step)

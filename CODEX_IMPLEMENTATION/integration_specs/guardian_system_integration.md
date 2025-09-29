@@ -10,7 +10,7 @@ Technical specification for integrating the Automated Recovery System with the e
 src/eafix/guardian/
 ├── agents/
 │   ├── risk_agent.py           # Risk monitoring and analysis
-│   ├── market_agent.py         # Market condition monitoring  
+│   ├── market_agent.py         # Market condition monitoring
 │   ├── system_agent.py         # System health monitoring
 │   ├── compliance_agent.py     # Compliance validation
 │   ├── execution_agent.py      # Trade execution monitoring
@@ -29,7 +29,7 @@ src/eafix/guardian/
 ### Current Alert Flow
 1. Agent detects issue → 2. Logs alert → 3. Updates monitoring tiles → 4. **Manual intervention required**
 
-### Target Recovery Flow  
+### Target Recovery Flow
 1. Agent detects issue → 2. Triggers automated recovery → 3. Executes remediation → 4. Verifies success → 5. Updates status
 
 ## Integration Points
@@ -45,23 +45,23 @@ import asyncio
 
 class BaseGuardianAgent(ABC):
     """Base class for all Guardian agents with recovery integration."""
-    
+
     def __init__(self):
         self.recovery_system = AutomatedRecoverySystem()
         self.agent_id = self.__class__.__name__.lower()
-        
+
     async def handle_issue(self, issue_data: dict) -> dict:
         """Enhanced issue handling with automatic recovery."""
         # Log the issue (existing behavior)
         self.log_issue(issue_data)
-        
+
         # Try automated recovery (new behavior)
         if self.should_attempt_recovery(issue_data):
             recovery_id = await self.execute_recovery(issue_data)
             issue_data['recovery_execution_id'] = recovery_id
-            
+
         return issue_data
-    
+
     async def execute_recovery(self, issue_data: dict) -> str:
         """Execute automated recovery for the issue."""
         recovery_data = self.map_issue_to_recovery_data(issue_data)
@@ -69,12 +69,12 @@ class BaseGuardianAgent(ABC):
             error_id=f"{self.agent_id}_{issue_data.get('id', 'unknown')}",
             error_data=recovery_data
         )
-    
+
     @abstractmethod
     def map_issue_to_recovery_data(self, issue_data: dict) -> dict:
         """Map agent-specific issue data to recovery system format."""
         pass
-        
+
     def should_attempt_recovery(self, issue_data: dict) -> bool:
         """Determine if automated recovery should be attempted."""
         severity = issue_data.get('severity', 'low')
@@ -90,11 +90,11 @@ from .base_agent import BaseGuardianAgent
 
 class RiskAgent(BaseGuardianAgent):
     """Risk monitoring with automated recovery capabilities."""
-    
+
     def map_issue_to_recovery_data(self, issue_data: dict) -> dict:
         """Map risk issues to recovery format."""
         risk_type = issue_data.get('risk_type', 'unknown')
-        
+
         recovery_mapping = {
             'position_limit_exceeded': {
                 'error_message': f"Position limit exceeded: {issue_data.get('details', '')}",
@@ -106,7 +106,7 @@ class RiskAgent(BaseGuardianAgent):
             },
             'margin_call': {
                 'error_message': f"Margin call triggered: {issue_data.get('details', '')}",
-                'system': 'risk_management', 
+                'system': 'risk_management',
                 'service_name': 'margin_monitor',
                 'account_balance': issue_data.get('account_balance'),
                 'required_margin': issue_data.get('required_margin')
@@ -119,7 +119,7 @@ class RiskAgent(BaseGuardianAgent):
                 'max_drawdown': issue_data.get('max_drawdown')
             }
         }
-        
+
         return recovery_mapping.get(risk_type, {
             'error_message': f"Unknown risk issue: {risk_type}",
             'system': 'risk_management',
@@ -127,7 +127,7 @@ class RiskAgent(BaseGuardianAgent):
         })
 ```
 
-### 3. System Agent Integration  
+### 3. System Agent Integration
 
 **File**: `src/eafix/guardian/agents/system_agent.py` (modify existing)
 
@@ -136,11 +136,11 @@ from .base_agent import BaseGuardianAgent
 
 class SystemAgent(BaseGuardianAgent):
     """System health monitoring with automated recovery."""
-    
+
     def map_issue_to_recovery_data(self, issue_data: dict) -> dict:
         """Map system issues to recovery format."""
         system_issue = issue_data.get('system_issue_type', 'unknown')
-        
+
         recovery_mapping = {
             'high_cpu_usage': {
                 'error_message': f"High CPU usage detected: {issue_data.get('cpu_usage', 0)}%",
@@ -150,7 +150,7 @@ class SystemAgent(BaseGuardianAgent):
                 'threshold': issue_data.get('cpu_threshold', 80)
             },
             'memory_exhaustion': {
-                'error_message': f"Memory usage critical: {issue_data.get('memory_usage', 0)}%", 
+                'error_message': f"Memory usage critical: {issue_data.get('memory_usage', 0)}%",
                 'system': 'system_resources',
                 'service_name': issue_data.get('service_name', 'system'),
                 'memory_usage': issue_data.get('memory_usage'),
@@ -158,7 +158,7 @@ class SystemAgent(BaseGuardianAgent):
             },
             'disk_space_low': {
                 'error_message': f"Disk space low: {issue_data.get('free_space', 0)}MB remaining",
-                'system': 'system_resources', 
+                'system': 'system_resources',
                 'service_name': 'disk_monitor',
                 'free_space_mb': issue_data.get('free_space'),
                 'threshold_mb': issue_data.get('disk_threshold', 1000)
@@ -171,7 +171,7 @@ class SystemAgent(BaseGuardianAgent):
                 'health_check_url': issue_data.get('health_check_url')
             }
         }
-        
+
         return recovery_mapping.get(system_issue, {
             'error_message': f"Unknown system issue: {system_issue}",
             'system': 'system_management',
@@ -277,12 +277,12 @@ class SystemAgent(BaseGuardianAgent):
 ```python
 class ConstraintRepository:
     """Enhanced constraint repository with recovery integration."""
-    
+
     def __init__(self):
         # Existing initialization
         self.recovery_system = AutomatedRecoverySystem()
         self.constraint_recovery_mapping = self._initialize_constraint_recovery_mapping()
-    
+
     def _initialize_constraint_recovery_mapping(self) -> dict:
         """Map constraint types to recovery runbook IDs."""
         return {
@@ -294,28 +294,28 @@ class ConstraintRepository:
             'disk_space_limit': 'disk_space_low',
             'service_availability': 'service_down'
         }
-    
+
     async def handle_constraint_violation(self, constraint: dict, violation_data: dict) -> dict:
         """Handle constraint violation with automatic recovery."""
         # Existing violation handling
         violation_result = self._process_violation(constraint, violation_data)
-        
+
         # Attempt automated recovery
         constraint_type = constraint.get('type')
         if constraint_type in self.constraint_recovery_mapping:
             recovery_data = self._map_constraint_to_recovery_data(
                 constraint, violation_data
             )
-            
+
             execution_id = await self.recovery_system.execute_recovery(
                 error_id=f"constraint_{constraint['id']}",
                 error_data=recovery_data
             )
-            
+
             violation_result['recovery_execution_id'] = execution_id
-            
+
         return violation_result
-    
+
     def _map_constraint_to_recovery_data(self, constraint: dict, violation_data: dict) -> dict:
         """Map constraint violation to recovery system format."""
         return {
@@ -336,30 +336,30 @@ class ConstraintRepository:
 ```python
 class MonitoringTiles:
     """Enhanced monitoring tiles showing recovery status."""
-    
+
     def __init__(self):
         # Existing initialization
         self.recovery_system = AutomatedRecoverySystem()
-    
+
     def create_recovery_status_tile(self) -> tk.Frame:
         """Create tile showing active recoveries."""
         tile = tk.Frame(self.master, **self.tile_style)
-        
+
         # Title
         title_label = tk.Label(tile, text="Recovery Status", **self.title_style)
         title_label.pack()
-        
+
         # Active recoveries count
         stats = self.recovery_system.get_recovery_statistics()
         active_recoveries = stats.get('active_executions', 0)
-        
+
         active_label = tk.Label(
-            tile, 
+            tile,
             text=f"Active: {active_recoveries}",
             **self.value_style
         )
         active_label.pack()
-        
+
         # Success rate
         success_rate = stats.get('success_rate', 0) * 100
         success_label = tk.Label(
@@ -368,7 +368,7 @@ class MonitoringTiles:
             **self.value_style
         )
         success_label.pack()
-        
+
         # Recent executions button
         recent_button = tk.Button(
             tile,
@@ -376,18 +376,18 @@ class MonitoringTiles:
             command=self.show_recent_recoveries
         )
         recent_button.pack()
-        
+
         return tile
-    
+
     def show_recent_recoveries(self):
         """Show popup with recent recovery executions."""
         popup = tk.Toplevel(self.master)
         popup.title("Recent Recovery Executions")
         popup.geometry("600x400")
-        
+
         # Get recent executions
         recent_executions = self.recovery_system.execution_history[-10:]
-        
+
         # Create treeview with execution details
         tree = ttk.Treeview(popup, columns=('id', 'status', 'success_rate', 'start_time'))
         tree.heading('#0', text='Runbook')
@@ -395,9 +395,9 @@ class MonitoringTiles:
         tree.heading('status', text='Status')
         tree.heading('success_rate', text='Success Rate')
         tree.heading('start_time', text='Start Time')
-        
+
         for execution in recent_executions:
-            tree.insert('', 'end', 
+            tree.insert('', 'end',
                 text=execution.runbook_id,
                 values=(
                     execution.id[:8],
@@ -406,7 +406,7 @@ class MonitoringTiles:
                     execution.start_time.strftime("%H:%M:%S")
                 )
             )
-        
+
         tree.pack(fill='both', expand=True)
 ```
 
@@ -426,7 +426,7 @@ from src.eafix.guardian.agents.system_agent import SystemAgent
 async def test_risk_agent_recovery_integration():
     """Test risk agent triggers recovery correctly."""
     agent = RiskAgent()
-    
+
     issue_data = {
         'id': 'test_position_limit',
         'risk_type': 'position_limit_exceeded',
@@ -435,17 +435,17 @@ async def test_risk_agent_recovery_integration():
         'limit_threshold': 100000,
         'details': 'Position limit exceeded by 50%'
     }
-    
+
     result = await agent.handle_issue(issue_data)
-    
+
     assert 'recovery_execution_id' in result
     assert result['recovery_execution_id'] is not None
 
-@pytest.mark.asyncio  
+@pytest.mark.asyncio
 async def test_system_agent_recovery_integration():
     """Test system agent triggers recovery correctly."""
     agent = SystemAgent()
-    
+
     issue_data = {
         'id': 'test_high_cpu',
         'system_issue_type': 'high_cpu_usage',
@@ -454,9 +454,9 @@ async def test_system_agent_recovery_integration():
         'cpu_threshold': 80,
         'service_name': 'trading_engine'
     }
-    
+
     result = await agent.handle_issue(issue_data)
-    
+
     assert 'recovery_execution_id' in result
     assert result['recovery_execution_id'] is not None
 ```
@@ -474,35 +474,35 @@ from src.eafix.guardian.constraints.constraint_repository import ConstraintRepos
 async def test_end_to_end_constraint_recovery():
     """Test complete flow from constraint violation to recovery."""
     repo = ConstraintRepository()
-    
+
     # Define test constraint
     constraint = {
         'id': 'test_cpu_limit',
-        'type': 'cpu_usage_limit', 
+        'type': 'cpu_usage_limit',
         'name': 'CPU Usage Limit',
         'limit': 80
     }
-    
+
     # Simulate violation
     violation_data = {
         'current_value': 95,
         'service_name': 'api_server'
     }
-    
+
     result = await repo.handle_constraint_violation(constraint, violation_data)
-    
+
     assert 'recovery_execution_id' in result
-    
+
     # Wait for recovery to complete (with timeout)
     execution_id = result['recovery_execution_id']
     recovery_system = repo.recovery_system
-    
+
     for _ in range(30):  # 30 second timeout
         status = recovery_system.get_execution_status(execution_id)
         if status and status.status in ['success', 'failed', 'partial']:
             break
         await asyncio.sleep(1)
-    
+
     final_status = recovery_system.get_execution_status(execution_id)
     assert final_status.status == 'success'
 ```

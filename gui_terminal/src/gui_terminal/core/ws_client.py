@@ -43,4 +43,3 @@ class PlatformEventClient:
         if self._ws:
             await self._ws.close()
             self._ws = None
-

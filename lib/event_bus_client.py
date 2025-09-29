@@ -26,4 +26,3 @@ def publish_event(event: Dict[str, Any]) -> bool:
         return resp.ok
     except Exception:
         return False
-

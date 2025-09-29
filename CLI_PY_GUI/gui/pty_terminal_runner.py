@@ -11,23 +11,39 @@ Note: This file is designed to *run* when dependencies are installed, but also s
 """
 
 from __future__ import annotations
-import os, sys, shlex, time, json, shutil, threading, queue, platform, signal, re
-from dataclasses import dataclass, asdict, field
+
+import os
+import queue
+import re
+import shlex
+import shutil
+import signal
+import sys
+import threading
+import time
+from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 # GUI imports are lazy; file can be inspected without PyQt installed
-from PyQt6.QtCore import Qt, QTimer, QSize, pyqtSignal, QObject
+from PyQt6.QtCore import QObject, QSize, Qt, QTimer, QUrl, pyqtSignal
+from PyQt6.QtGui import QColor, QDesktopServices, QFont, QTextCursor
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QMainWindow, QTextEdit, QLineEdit, QVBoxLayout,
-    QHBoxLayout, QPushButton, QLabel, QTabWidget, QFileDialog, QSplitter,
-    QListWidget, QListWidgetItem, QStyle, QFrame, QMessageBox
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMainWindow,
+    QPushButton,
+    QSplitter,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtGui import QFont, QTextCursor, QDesktopServices, QColor
-from PyQt6.QtCore import QUrl
-from config import GUIConfig
-from audit_logger import write_event
-from plugin_manager import PluginManager
 
+from config import GUIConfig
 
 # Platform-specific PTY
 IS_WIN = os.name == "nt"
@@ -37,7 +53,8 @@ if IS_WIN:
     except Exception:
         winpty = None
 else:
-    import pty, tty, termios
+    import pty
+    import termios
 
 # Optional deps (ok if missing at import-time)
 try:
@@ -47,32 +64,42 @@ except Exception:
 
 # ---- Small Event Bus ----
 
+
 def open_system_terminal_here(path: str):
     """Open a native system terminal at the given path."""
     try:
         if IS_WIN:
-            import shutil, subprocess
+            import shutil
+            import subprocess
+
             wt = shutil.which("wt")
             pwsh = shutil.which("pwsh") or shutil.which("powershell")
             if wt:
                 subprocess.Popen([wt, "-d", path])
             elif pwsh:
-                subprocess.Popen([pwsh, "-NoExit", "-Command", f"Set-Location '{path}'"])
+                subprocess.Popen(
+                    [pwsh, "-NoExit", "-Command", f"Set-Location '{path}'"]
+                )
             else:
                 subprocess.Popen(["cmd.exe", "/K", f"cd /d {path}"])
         elif sys.platform == "darwin":
             import subprocess
+
             apple_script = f"""tell application "Terminal"
     do script "cd {path}"
     activate
 end tell"""
             subprocess.Popen(["osascript", "-e", apple_script])
         else:
-            import shutil, subprocess
-            term = (shutil.which("x-terminal-emulator") or
-                    shutil.which("gnome-terminal") or
-                    shutil.which("konsole") or
-                    shutil.which("xterm"))
+            import shutil
+            import subprocess
+
+            term = (
+                shutil.which("x-terminal-emulator")
+                or shutil.which("gnome-terminal")
+                or shutil.which("konsole")
+                or shutil.which("xterm")
+            )
             if term and "gnome-terminal" in term:
                 subprocess.Popen([term, "--", "bash", "-lc", f"cd '{path}'; exec bash"])
             elif term:
@@ -82,10 +109,13 @@ end tell"""
     except Exception:
         pass
 
+
 class EventBus(QObject):
     published = pyqtSignal(dict)
+
     def publish(self, event: dict):
         self.published.emit(event)
+
 
 # ---- Dataclasses for Contract ----
 @dataclass
@@ -98,6 +128,7 @@ class CommandRequest:
     interactive: bool = True
     command_preview: str = ""  # exact string that will be executed (display-only)
 
+
 @dataclass
 class CommandResponse:
     exit_code: Optional[int] = None
@@ -106,9 +137,11 @@ class CommandResponse:
     ended_at: float = 0.0
     error: Optional[str] = None
 
+
 # ---- Minimal ANSI Handler (line-oriented) ----
 CSI = "\x1b["
 CSI_ERASE_IN_LINE = re.compile(r"\x1b\[(\d*)K")
+
 
 def apply_ansi_line_mutations(current: str, incoming: str) -> str:
     """
@@ -159,9 +192,16 @@ def apply_ansi_line_mutations(current: str, incoming: str) -> str:
             i += 1
     return buf
 
+
 # ---- PTY Worker Thread ----
 class PTYWorker(threading.Thread):
-    def __init__(self, req: CommandRequest, output_queue: queue.Queue, cols: int = 120, rows: int = 32):
+    def __init__(
+        self,
+        req: CommandRequest,
+        output_queue: queue.Queue,
+        cols: int = 120,
+        rows: int = 32,
+    ):
         super().__init__(daemon=True)
         self.req = req
         self.q = output_queue
@@ -179,7 +219,9 @@ class PTYWorker(threading.Thread):
         else:
             argv = shlex.split(req.tool, posix=(not IS_WIN))
         self.argv = argv
-        self.req.command_preview = " ".join([shlex.quote(x) if not IS_WIN else x for x in argv])
+        self.req.command_preview = " ".join(
+            [shlex.quote(x) if not IS_WIN else x for x in argv]
+        )
 
     def write_input(self, b: bytes):
         try:
@@ -195,7 +237,7 @@ class PTYWorker(threading.Thread):
         except Exception as e:
             self.q.put(("[error]", f"write error: {e}\n"))
 
-    def resize_pty(self, cols:int, rows:int):
+    def resize_pty(self, cols: int, rows: int):
         if IS_WIN:
             # pywinpty can resize via .set_size(rows, cols)
             try:
@@ -205,10 +247,17 @@ class PTYWorker(threading.Thread):
                 pass
         else:
             try:
-                import fcntl, struct, termios as _t
+                import fcntl
+                import struct
+                import termios as _t
+
                 if hasattr(self, "_slave_fd"):
-                    TIOCSWINSZ = getattr(_t, 'TIOCSWINSZ', 0x5414)
-                    fcntl.ioctl(self._slave_fd, TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
+                    TIOCSWINSZ = getattr(_t, "TIOCSWINSZ", 0x5414)
+                    fcntl.ioctl(
+                        self._slave_fd,
+                        TIOCSWINSZ,
+                        struct.pack("HHHH", rows, cols, 0, 0),
+                    )
             except Exception:
                 pass
 
@@ -226,7 +275,9 @@ class PTYWorker(threading.Thread):
             self.q.put(("[error]", f"{type(e).__name__}: {e}\n"))
         finally:
             self.ended = time.time()
-            self.q.put(("[exit]", str(self.exit_code if self.exit_code is not None else -1)))
+            self.q.put(
+                ("[exit]", str(self.exit_code if self.exit_code is not None else -1))
+            )
 
     # --- UNIX PTY ---
     def _run_unix(self):
@@ -235,9 +286,13 @@ class PTYWorker(threading.Thread):
         self._slave_fd = slave_fd
         # Set window size if possible
         try:
-            import fcntl, struct
-            TIOCSWINSZ = getattr(termios, 'TIOCSWINSZ', 0x5414)
-            fcntl.ioctl(slave_fd, TIOCSWINSZ, struct.pack("HHHH", self.rows, self.cols, 0, 0))
+            import fcntl
+            import struct
+
+            TIOCSWINSZ = getattr(termios, "TIOCSWINSZ", 0x5414)
+            fcntl.ioctl(
+                slave_fd, TIOCSWINSZ, struct.pack("HHHH", self.rows, self.cols, 0, 0)
+            )
         except Exception:
             pass
 
@@ -276,7 +331,9 @@ class PTYWorker(threading.Thread):
     # --- Windows ConPTY via winpty ---
     def _run_windows(self):
         if winpty is None:
-            raise RuntimeError("winpty module not available; install pywinpty/winpty for Windows support.")
+            raise RuntimeError(
+                "winpty module not available; install pywinpty/winpty for Windows support."
+            )
         p = winpty.PtyProcess.spawn(self.argv, dimensions=(self.rows, self.cols))
         self._winpty = p
         self.pid = p.pid
@@ -292,7 +349,8 @@ class PTYWorker(threading.Thread):
 
     # ---- Signals ----
     def send_sigint(self):
-        if self.pid is None: return
+        if self.pid is None:
+            return
         try:
             if IS_WIN:
                 # winpty doesn't expose Ctrl-C directly; emulate by sending 0x03
@@ -319,16 +377,19 @@ class PTYWorker(threading.Thread):
 
     def terminate(self):
         self.stop_requested = True
-        if self.pid is None: return
+        if self.pid is None:
+            return
         try:
             if IS_WIN:
                 # Best-effort terminate
                 import ctypes
+
                 ctypes.windll.kernel32.GenerateConsoleCtrlEvent(0, self.pid)
             else:
                 os.kill(self.pid, signal.SIGTERM)
         except Exception:
             pass
+
 
 # ---- Terminal Widget ----
 class TerminalWidget(QTextEdit):
@@ -337,9 +398,10 @@ class TerminalWidget(QTextEdit):
         self.setReadOnly(True)
         self.setFont(QFont("Consolas" if IS_WIN else "Menlo", 11))
         self.line_buffer = ""
-        self.ansi_passthrough = False  # when using real widget, set True and avoid mutation
+        self.ansi_passthrough = (
+            False  # when using real widget, set True and avoid mutation
+        )
         self.max_buffer_chars = 1_000_000  # overridden by config
-
 
     def append_bytes(self, data: bytes):
         text = data.decode("utf-8", "replace")
@@ -368,7 +430,11 @@ class TerminalWidget(QTextEdit):
         if doc.characterCount() > self.max_buffer_chars:
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.MoveOperation.Start)
-            cursor.movePosition(QTextCursor.MoveOperation.Right, QTextCursor.MoveMode.KeepAnchor, int(doc.characterCount()*0.1))
+            cursor.movePosition(
+                QTextCursor.MoveOperation.Right,
+                QTextCursor.MoveMode.KeepAnchor,
+                int(doc.characterCount() * 0.1),
+            )
             cursor.removeSelectedText()
         self.moveCursor(QTextCursor.MoveOperation.End)
 
@@ -383,7 +449,9 @@ class TerminalWidget(QTextEdit):
         rows = max(16, self.viewport().height() // char_h)
         return cols, rows
 
+
 # ---- Main Tab ----
+
 
 class HistoryLineEdit(QLineEdit):
     def __init__(self, parent=None):
@@ -404,7 +472,7 @@ class HistoryLineEdit(QLineEdit):
                 self.setCursorPosition(len(self.text()))
                 return
         elif e.key() == Qt.Key.Key_Down:
-            if self.history and self.idx < len(self.history)-1:
+            if self.history and self.idx < len(self.history) - 1:
                 self.idx += 1
                 self.setText(self.history[self.idx])
                 self.setCursorPosition(len(self.text()))
@@ -414,6 +482,7 @@ class HistoryLineEdit(QLineEdit):
                 self.clear()
                 return
         super().keyPressEvent(e)
+
 
 class TerminalTab(QWidget):
     def __init__(self, event_bus: EventBus, cwd: Optional[str] = None, parent=None):
@@ -439,14 +508,21 @@ class TerminalTab(QWidget):
         top = QVBoxLayout(self)
         top.addWidget(self.preview_lbl)
 
-        center_split = QSplitter(); center_split.setOrientation(Qt.Orientation.Horizontal)
-        self.artifacts = QListWidget(); self.artifacts.setMinimumWidth(220)
+        center_split = QSplitter()
+        center_split.setOrientation(Qt.Orientation.Horizontal)
+        self.artifacts = QListWidget()
+        self.artifacts.setMinimumWidth(220)
         self.artifacts_label = QLabel("Artifacts")
-        left = QVBoxLayout(); leftw = QWidget(); left.addWidget(self.artifacts_label); left.addWidget(self.artifacts, 1); leftw.setLayout(left)
+        left = QVBoxLayout()
+        leftw = QWidget()
+        left.addWidget(self.artifacts_label)
+        left.addWidget(self.artifacts, 1)
+        leftw.setLayout(left)
         center_split.addWidget(leftw)
         center_split.addWidget(self.terminal)
         center_split.setStretchFactor(1, 1)
-        outer = QSplitter(); outer.setOrientation(Qt.Orientation.Horizontal)
+        outer = QSplitter()
+        outer.setOrientation(Qt.Orientation.Horizontal)
         outer.addWidget(center_split)
         self.sidebar = CostHealthSidebar()
         outer.addWidget(self.sidebar)
@@ -473,15 +549,17 @@ class TerminalTab(QWidget):
         self.btn_kill.clicked.connect(self._kill)
         self.btn_open_sys.clicked.connect(self._open_sys_term)
 
-        self.poll_timer = QTimer(self); self.poll_timer.setInterval(30); self.poll_timer.timeout.connect(self._poll)
+        self.poll_timer = QTimer(self)
+        self.poll_timer.setInterval(30)
+        self.poll_timer.timeout.connect(self._poll)
         self.poll_timer.start()
         # Artifact watcher setup
-        self.art_scan_timer = QTimer(self); self.art_scan_timer.setInterval(500)
+        self.art_scan_timer = QTimer(self)
+        self.art_scan_timer.setInterval(500)
         self.art_scan_timer.timeout.connect(self._scan_artifacts)
         self._artifact_baseline = set()
         self._artifact_new = set()
         self.artifacts.itemDoubleClicked.connect(self._open_artifact)
-
 
     def sizeHint(self) -> QSize:
         return QSize(1024, 640)
@@ -501,7 +579,9 @@ class TerminalTab(QWidget):
             for root, dirs, files in os.walk(self.cwd):
                 for f in files:
                     current.add(os.path.join(root, f))
-            new_files = [p for p in current - self._artifact_baseline - self._artifact_new]
+            new_files = [
+                p for p in current - self._artifact_baseline - self._artifact_new
+            ]
             for p in sorted(new_files):
                 self._artifact_new.add(p)
                 item = QListWidgetItem(os.path.relpath(p, self.cwd))
@@ -511,7 +591,11 @@ class TerminalTab(QWidget):
             pass
 
     def _open_artifact(self, item: QListWidgetItem):
-        abspath = os.path.join(self.cwd, item.text()) if not os.path.isabs(item.text()) else item.text()
+        abspath = (
+            os.path.join(self.cwd, item.text())
+            if not os.path.isabs(item.text())
+            else item.text()
+        )
         QDesktopServices.openUrl(QUrl.fromLocalFile(abspath))
 
     def start_command(self, req: CommandRequest):
@@ -520,22 +604,34 @@ class TerminalTab(QWidget):
             argv = [req.tool] + list(req.args)
         else:
             argv = shlex.split(req.tool, posix=(not IS_WIN))
-        req.command_preview = " ".join([shlex.quote(x) if not IS_WIN else x for x in argv])
+        req.command_preview = " ".join(
+            [shlex.quote(x) if not IS_WIN else x for x in argv]
+        )
         self.preview_lbl.setText(req.command_preview)
 
         cols, rows = self.terminal.estimate_cols_rows()
         self._snapshot_artifacts()
-        self.artifacts.clear(); self._artifact_new = set()
+        self.artifacts.clear()
+        self._artifact_new = set()
         self.art_scan_timer.start()
         self.worker = PTYWorker(req, self.output_q, cols=cols, rows=rows)
         self.started = time.time()
         self.status_lbl.setText(f"Running… {req.command_preview}")
         self.worker.start()
-        self.bus.publish({"type":"run.started","preview":req.command_preview,"cwd":req.cwd,"cols":cols,"rows":rows})
+        self.bus.publish(
+            {
+                "type": "run.started",
+                "preview": req.command_preview,
+                "cwd": req.cwd,
+                "cols": cols,
+                "rows": rows,
+            }
+        )
 
     def _send_line(self):
         txt = self.input_line.text()
-        if not txt: txt = ""
+        if not txt:
+            txt = ""
         self.input_line.clear()
         # Send as user keystrokes (we just echo locally to improve feel)
         if self.worker:
@@ -543,19 +639,19 @@ class TerminalTab(QWidget):
                 self.worker.write_input((txt + "\n").encode("utf-8"))
             except Exception:
                 pass
-            if hasattr(self.input_line, 'add'):
+            if hasattr(self.input_line, "add"):
                 self.input_line.add(txt)
-            self.bus.publish({"type":"input.sent","chars":txt+"\n"})
+            self.bus.publish({"type": "input.sent", "chars": txt + "\n"})
 
     def _send_sigint(self):
         if self.worker:
             self.worker.send_sigint()
-            self.bus.publish({"type":"signal.sent","name":"SIGINT"})
+            self.bus.publish({"type": "signal.sent", "name": "SIGINT"})
 
     def _send_eof(self):
         if self.worker:
             self.worker.send_eof()
-            self.bus.publish({"type":"signal.sent","name":"EOF"})
+            self.bus.publish({"type": "signal.sent", "name": "EOF"})
 
     def _open_sys_term(self):
         try:
@@ -566,7 +662,7 @@ class TerminalTab(QWidget):
     def _kill(self):
         if self.worker:
             self.worker.terminate()
-            self.bus.publish({"type":"signal.sent","name":"KILL"})
+            self.bus.publish({"type": "signal.sent", "name": "KILL"})
 
     def _poll(self):
         # Drain output
@@ -587,7 +683,9 @@ class TerminalTab(QWidget):
                 elapsed = time.time() - self.started if self.started else 0.0
                 self.status_lbl.setText(f"Exit {exit_code} • {elapsed:0.1f}s")
                 self.art_scan_timer.stop()
-                self.bus.publish({"type":"run.exited","exit_code":exit_code,"elapsed":elapsed})
+                self.bus.publish(
+                    {"type": "run.exited", "exit_code": exit_code, "elapsed": elapsed}
+                )
         if drained:
             self.terminal.ensureCursorVisible()
 
@@ -598,14 +696,17 @@ class TerminalTab(QWidget):
         cols, rows = self.terminal.estimate_cols_rows()
         if self.worker:
             self.worker.resize_pty(cols, rows)
-        self.bus.publish({"type":"terminal.resized","cols":cols,"rows":rows})
+        self.bus.publish({"type": "terminal.resized", "cols": cols, "rows": rows})
+
 
 # ---- Main Window ----
 
+
 class CostHealthSidebar(QWidget):
     """Simple sidebar showing plan budget/burn and tool health.
-       Auto-refreshes from ~/.python_cockpit/health.json if present.
+    Auto-refreshes from ~/.python_cockpit/health.json if present.
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumWidth(240)
@@ -633,23 +734,41 @@ class CostHealthSidebar(QWidget):
             if not os.path.exists(path):
                 return
             import json
-            data = json.load(open(path, "r", encoding="utf-8"))
+
+            data = json.load(open(path, encoding="utf-8"))
             budget = data.get("plan_budget_usd")
             burn = data.get("plan_burn_usd")
             conc = data.get("concurrency")
-            self.lbl_budget.setText(f"Budget: ${budget:.2f}" if budget is not None else "Budget: –")
-            self.lbl_burn.setText(f"Burn: ${burn:.2f}" if burn is not None else "Burn: –")
-            self.lbl_conc.setText(f"Concurrency: {conc}" if conc is not None else "Concurrency: –")
+            self.lbl_budget.setText(
+                f"Budget: ${budget:.2f}" if budget is not None else "Budget: –"
+            )
+            self.lbl_burn.setText(
+                f"Burn: ${burn:.2f}" if burn is not None else "Burn: –"
+            )
+            self.lbl_conc.setText(
+                f"Concurrency: {conc}" if conc is not None else "Concurrency: –"
+            )
             self.list_tools.clear()
             for t in data.get("tools", []):
-                item = QListWidgetItem(f"{t.get('name','?')}: {t.get('status','unknown')}")
-                st = (t.get("status","unknown") or "").lower()
-                color = "#4caf50" if st=="healthy" else "#ff9800" if st=="degraded" else "#f44336" if st=="unhealthy" else "#9e9e9e"
+                item = QListWidgetItem(
+                    f"{t.get('name','?')}: {t.get('status','unknown')}"
+                )
+                st = (t.get("status", "unknown") or "").lower()
+                color = (
+                    "#4caf50"
+                    if st == "healthy"
+                    else (
+                        "#ff9800"
+                        if st == "degraded"
+                        else "#f44336" if st == "unhealthy" else "#9e9e9e"
+                    )
+                )
                 # Apply background color
                 item.setBackground(QColor(color))
                 self.list_tools.addItem(item)
         except Exception:
             pass
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -666,20 +785,29 @@ class MainWindow(QMainWindow):
     def new_tab(self, cwd: Optional[str] = None):
         tab = TerminalTab(self.bus, cwd=cwd, parent=self)
         # apply appearance/perf config
-        tab.terminal.setFont(QFont(self.cfg.appearance.font_family, self.cfg.appearance.font_size))
+        tab.terminal.setFont(
+            QFont(self.cfg.appearance.font_family, self.cfg.appearance.font_size)
+        )
         tab.terminal.max_buffer_chars = self.cfg.performance.max_buffer_chars
         self.tabs.addTab(tab, "Terminal")
         return tab
 
+
 def main():
     app = QApplication(sys.argv)
-    win = MainWindow(); win.show()
+    win = MainWindow()
+    win.show()
     # Example: start shell directly
     tab: TerminalTab = win.tabs.widget(0)
-    shell = shutil.which("pwsh") or shutil.which("powershell") if IS_WIN else shutil.which("bash") or shutil.which("zsh") or "/bin/sh"
+    shell = (
+        shutil.which("pwsh") or shutil.which("powershell")
+        if IS_WIN
+        else shutil.which("bash") or shutil.which("zsh") or "/bin/sh"
+    )
     req = CommandRequest(tool=shell or "bash", args=[], cwd=os.getcwd())
     tab.start_command(req)
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

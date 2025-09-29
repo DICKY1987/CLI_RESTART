@@ -42,7 +42,7 @@ pwsh ./orchestrator.ps1 -Command init -ConfigPath ".ai/framework-config.json"
 ### Step 1.2: Repository Analysis Engine
 ```bash
 # Process Owner: Analysis Engine
-# Duration: 45 seconds  
+# Duration: 45 seconds
 # Cost: $0 (uses local analysis)
 
 pwsh ./orchestrator.ps1 -Command analyze-repo -Files "**/*.py" -Docs "docs/api_spec.md"
@@ -257,7 +257,7 @@ git rebase origin/main
 **Step 3.2b: Execute Moderate Tasks with Aider**
 ```bash
 # Process Owner: Aider Agent + Ollama
-# Duration: 45 minutes  
+# Duration: 45 minutes
 # Cost: $0 (unlimited local usage)
 
 aider --model ollama/codellama:7b-instruct \
@@ -269,7 +269,7 @@ aider --model ollama/codellama:7b-instruct \
 ```
 Aider analyzing files...
 📁 src/api/users.py (120 lines) - needs password_reset endpoint
-📁 src/database/models.py (200 lines) - needs relationships & validation  
+📁 src/database/models.py (200 lines) - needs relationships & validation
 📁 src/database/operations.py (80 lines) - needs CRUD operations
 
 🧠 Planning changes across 3 files...
@@ -288,10 +288,10 @@ async def request_password_reset(
     if not user:
         # Return success even for non-existent users (security)
         return {"message": "If email exists, reset instructions sent"}
-    
+
     reset_token = generate_reset_token(user.id)
     await send_password_reset_email(user.email, reset_token)
-    
+
     return {"message": "Password reset instructions sent"}
 ```
 
@@ -300,14 +300,14 @@ async def request_password_reset(
 # Aider modifies src/database/models.py
 class User(Base):
     __tablename__ = "users"
-    
+
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, nullable=False)
-    
+
     # New relationships added by Aider
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")
-    
+
     @validates('email')
     def validate_email(self, key, email):
         if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
@@ -325,11 +325,11 @@ pytest src/database/test_models.py -v
 git add src/database/models.py
 git commit -m "feat(database): add user relationships and email validation
 
-- Add cascade delete relationships for sessions/payments  
+- Add cascade delete relationships for sessions/payments
 - Implement email validation with regex
 - Update model tests for new functionality
 
-Tool: aider_local  
+Tool: aider_local
 Task: T004
 Job: 2025-08-23T14:45:22Z"
 ```
@@ -358,7 +358,7 @@ claude code --files src/api/auth.py --thinking-mode ultrathink \
 I need to implement a comprehensive authentication system with:
 
 1. OAuth2 integration (Google + GitHub providers)
-2. JWT token generation and validation  
+2. JWT token generation and validation
 3. Refresh token rotation for security
 4. Password-based authentication fallback
 5. Proper error handling and security measures
@@ -367,7 +367,7 @@ Let me analyze the API specification...
 
 The auth endpoints needed:
 - POST /auth/login (email/password)
-- POST /auth/oauth/{provider} (OAuth2 flow)  
+- POST /auth/oauth/{provider} (OAuth2 flow)
 - POST /auth/refresh (token refresh)
 - POST /auth/logout (token revocation)
 
@@ -399,7 +399,7 @@ class OAuth2Manager:
     def __init__(self):
         self.oauth = OAuth()
         self._configure_providers()
-    
+
     def _configure_providers(self):
         # Google OAuth2
         self.oauth.register(
@@ -409,8 +409,8 @@ class OAuth2Manager:
             server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
             client_kwargs={'scope': 'openid email profile'}
         )
-        
-        # GitHub OAuth2  
+
+        # GitHub OAuth2
         self.oauth.register(
             name='github',
             client_id=settings.GITHUB_CLIENT_ID,
@@ -427,19 +427,19 @@ class JWTManager:
         self.algorithm = "HS256"
         self.access_token_expire = timedelta(hours=24)
         self.refresh_token_expire = timedelta(days=7)
-    
+
     def create_access_token(self, data: dict) -> str:
         to_encode = data.copy()
         expire = datetime.utcnow() + self.access_token_expire
         to_encode.update({"exp": expire, "type": "access"})
         return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
-    
+
     def create_refresh_token(self, data: dict) -> str:
         to_encode = data.copy()
-        expire = datetime.utcnow() + self.refresh_token_expire  
+        expire = datetime.utcnow() + self.refresh_token_expire
         to_encode.update({"exp": expire, "type": "refresh"})
         return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
-    
+
     def verify_token(self, token: str, token_type: str = "access") -> dict:
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
@@ -462,14 +462,14 @@ async def login(
     user = authenticate_user(db, credentials.email, credentials.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
     # Generate tokens
     access_token = jwt_manager.create_access_token({"sub": str(user.id)})
     refresh_token = jwt_manager.create_refresh_token({"sub": str(user.id)})
-    
+
     # Store refresh token (with rotation)
     await store_refresh_token(db, user.id, refresh_token)
-    
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -477,7 +477,7 @@ async def login(
         "expires_in": 86400  # 24 hours
     }
 
-@router.post("/auth/oauth/{provider}")  
+@router.post("/auth/oauth/{provider}")
 async def oauth_login(
     provider: str,
     code: str,
@@ -487,21 +487,21 @@ async def oauth_login(
     # Validate state parameter (CSRF protection)
     if not validate_oauth_state(state):
         raise HTTPException(status_code=400, detail="Invalid state parameter")
-    
+
     # Exchange code for tokens
     oauth_client = oauth2_manager.oauth.create_client(provider)
     token_response = await oauth_client.fetch_token(code=code)
-    
+
     # Get user info from provider
     user_info = await oauth_client.parse_id_token(token_response)
-    
+
     # Get or create user
     user = get_or_create_oauth_user(db, user_info, provider)
-    
+
     # Generate our tokens
     access_token = jwt_manager.create_access_token({"sub": str(user.id)})
     refresh_token = jwt_manager.create_refresh_token({"sub": str(user.id)})
-    
+
     return {"access_token": access_token, "refresh_token": refresh_token}
 ```
 
@@ -512,7 +512,7 @@ pytest src/tests/test_auth_integration.py -v --tb=short
 
 # Results:
 test_login_success ✅
-test_login_invalid_credentials ✅  
+test_login_invalid_credentials ✅
 test_oauth_google_flow ✅
 test_oauth_github_flow ✅
 test_jwt_token_validation ✅
@@ -524,7 +524,7 @@ git add src/api/auth.py src/tests/test_auth_integration.py
 git commit -m "feat(auth): implement complete OAuth2 + JWT system
 
 - Add OAuth2 support for Google and GitHub providers
-- Implement JWT access/refresh token generation and validation  
+- Implement JWT access/refresh token generation and validation
 - Add refresh token rotation for enhanced security
 - Include comprehensive error handling and CSRF protection
 - Add full integration test suite
@@ -532,7 +532,7 @@ git commit -m "feat(auth): implement complete OAuth2 + JWT system
 Closes T006
 
 Tool: claude_code
-Task: T006  
+Task: T006
 Cost: $1.50
 Job: 2025-08-23T15:12:45Z"
 ```
@@ -558,7 +558,7 @@ pwsh .ai/scripts/orchestrate.ps1 -Command start-triage \
   "items": [
     {
       "file": "src/api/auth.py",
-      "analyzer": "mypy", 
+      "analyzer": "mypy",
       "code": "assignment",
       "severity": "error",
       "message": "Cannot assign to method",
@@ -569,7 +569,7 @@ pwsh .ai/scripts/orchestrate.ps1 -Command start-triage \
     {
       "file": "src/database/models.py",
       "analyzer": "ruff",
-      "code": "F401", 
+      "code": "F401",
       "severity": "warning",
       "message": "Unused import: typing.Optional",
       "category": "import",
@@ -600,10 +600,10 @@ pwsh .ai/scripts/orchestrate.ps1 -Command start-triage \
 ```bash
 # Auto-fixer handles simple issues
 ruff check --fix src/database/models.py
-isort src/database/models.py  
+isort src/database/models.py
 black src/database/models.py
 
-# Aider handles moderate complexity issues  
+# Aider handles moderate complexity issues
 aider --model ollama/codellama:7b-instruct \
   --file src/api/auth.py \
   --message "Fix mypy type assignment error on line 45"
@@ -631,7 +631,7 @@ pwsh ./orchestrator.ps1 -Command resolve-dependencies
 # Analyze cross-file dependencies
 $dependencies = @{
     "src/api/auth.py" = @("src/database/models.py", "src/utils/helpers.py")
-    "src/api/users.py" = @("src/database/operations.py", "src/services/email.py")  
+    "src/api/users.py" = @("src/database/operations.py", "src/services/email.py")
     "src/services/payment.py" = @("src/database/models.py", "src/api/auth.py")
 }
 
@@ -656,7 +656,7 @@ pytest tests/ --integration --coverage --html=coverage.html
 collected 47 items
 
 tests/test_auth_integration.py::test_complete_auth_flow ✅
-tests/test_api_endpoints.py::test_user_crud_operations ✅  
+tests/test_api_endpoints.py::test_user_crud_operations ✅
 tests/test_payment_integration.py::test_stripe_webhook ✅
 tests/test_email_service.py::test_password_reset_flow ✅
 tests/test_database_operations.py::test_transaction_rollback ✅
@@ -668,7 +668,7 @@ Coverage: 89% (target: 80% ✅)
 ### Step 4.3: Security Validation Pipeline
 ```bash
 # Process Owner: Security Scanner
-# Duration: 5 minutes  
+# Duration: 5 minutes
 # Cost: $0
 
 # Multi-tool security scan
@@ -685,7 +685,7 @@ trivy fs . --security-checks vuln,secret,config
     "warnings": 2,
     "issues": [
       {
-        "test_id": "B106", 
+        "test_id": "B106",
         "issue": "Possible hardcoded password",
         "filename": "src/config.py",
         "line": 15,
@@ -715,7 +715,7 @@ git checkout main
 # 1. Simple fixes first (foundation)
 git merge feat/simple-fixes --no-ff -m "Merge simple fixes: utilities and helpers"
 
-# 2. Database and API layer  
+# 2. Database and API layer
 git merge feat/moderate-impl --no-ff -m "Merge moderate implementations: CRUD, models, email"
 
 # 3. Complex authentication system
@@ -737,7 +737,7 @@ pytest tests/ --system --slow
 **System Test Results:**
 ```
 System Tests: ✅ All Pass
-- Authentication flows: ✅ Google OAuth, GitHub OAuth, Password login  
+- Authentication flows: ✅ Google OAuth, GitHub OAuth, Password login
 - API endpoints: ✅ All CRUD operations functional
 - Database operations: ✅ Transactions, relationships, migrations
 - Payment system: ✅ Stripe integration, webhooks
@@ -746,7 +746,7 @@ System Tests: ✅ All Pass
 
 Performance Benchmarks:
 - API response time: 95ms average (target: <100ms) ✅
-- Database query time: 15ms average (target: <50ms) ✅  
+- Database query time: 15ms average (target: <50ms) ✅
 - Authentication flow: 250ms (target: <500ms) ✅
 ```
 
@@ -773,14 +773,14 @@ Performance Benchmarks:
 {
   "gemini_cli": {
     "tasks": 3,
-    "duration": "15m", 
+    "duration": "15m",
     "cost": "$0.00",
     "requests_used": "3/1000 daily"
   },
   "aider_local": {
-    "tasks": 5, 
+    "tasks": 5,
     "duration": "45m",
-    "cost": "$0.00", 
+    "cost": "$0.00",
     "model": "ollama/codellama:7b-instruct"
   },
   "claude_code": {
@@ -791,7 +791,7 @@ Performance Benchmarks:
   },
   "vscode_triage": {
     "issues_fixed": 12,
-    "duration": "10m", 
+    "duration": "10m",
     "cost": "$0.00",
     "auto_fixes": 8,
     "manual_reviews": 1
@@ -816,7 +816,7 @@ Performance Benchmarks:
   },
   "test_metrics": {
     "unit_tests": 34,
-    "integration_tests": 13, 
+    "integration_tests": 13,
     "coverage_percentage": 89,
     "performance_tests": 6
   }

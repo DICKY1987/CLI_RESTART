@@ -25,7 +25,7 @@ scrape_configs:
       - targets: ['redis:6379']
     scrape_interval: 30s
 
-  # PostgreSQL metrics (if postgres_exporter is added)  
+  # PostgreSQL metrics (if postgres_exporter is added)
   - job_name: 'postgres'
     static_configs:
       - targets: ['postgres:5432']

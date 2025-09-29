@@ -41,4 +41,3 @@ plugins:
   plugin_directories:
     - "~/.gui_terminal/plugins"
     - "/opt/gui_terminal/plugins"
-

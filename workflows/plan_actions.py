@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import json
-import os
 import sys
 from pathlib import Path
 from typing import Any, Dict
 
 
-def guard_requirements_windows(requirements_path: str = "requirements.txt") -> Dict[str, Any]:
+def guard_requirements_windows(
+    requirements_path: str = "requirements.txt",
+) -> Dict[str, Any]:
     """Make dev deps Windows-friendly (skip semgrep on win32).
 
     - If a plain `semgrep` requirement exists, add an environment marker so it
@@ -18,17 +18,24 @@ def guard_requirements_windows(requirements_path: str = "requirements.txt") -> D
     repo_root = Path.cwd()
     req_file = repo_root / requirements_path
     if not req_file.exists():
-        return {"changed": False, "reason": f"requirements file not found: {requirements_path}"}
+        return {
+            "changed": False,
+            "reason": f"requirements file not found: {requirements_path}",
+        }
 
     original = req_file.read_text(encoding="utf-8").splitlines()
     changed = False
     updated_lines = []
     for line in original:
         stripped = line.strip()
-        if stripped and not stripped.startswith("#") and stripped.split("==")[0].split(">=")[0].strip() == "semgrep":
+        if (
+            stripped
+            and not stripped.startswith("#")
+            and stripped.split("==")[0].split(">=")[0].strip() == "semgrep"
+        ):
             # If a marker is already present, keep as-is
             if ";" not in stripped:
-                updated_lines.append("semgrep; sys_platform != \"win32\"")
+                updated_lines.append('semgrep; sys_platform != "win32"')
                 changed = True
                 continue
         updated_lines.append(line)
@@ -66,4 +73,3 @@ def orchestrator_status_action() -> Dict[str, Any]:
     streams = orch.list_streams()
     status = orch.get_status_report()
     return {"streams": streams, "status": status}
-

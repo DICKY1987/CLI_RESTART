@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -429,7 +428,9 @@ def has_template(name: str) -> bool:
     return name in _TEMPLATES
 
 
-def render_template(name: str, context: Optional[Dict[str, str]] = None) -> RenderResult:
+def render_template(
+    name: str, context: Optional[Dict[str, str]] = None
+) -> RenderResult:
     if name not in _TEMPLATES:
         raise KeyError(f"Unknown template: {name}")
     raw = _TEMPLATES[name]

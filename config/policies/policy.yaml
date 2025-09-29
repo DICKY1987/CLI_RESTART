@@ -32,18 +32,18 @@ security:
     - 'shell=True'
     - 'import os'
     - '__import__'
-  
+
   allowed_imports:
     - 'pathlib'
     - 'typing'
     - 'dataclasses'
     - 'fastapi'
     - 'pydantic'
-  
+
   secret_scanning:
     enabled: true
     block_on_secrets: true
-  
+
   vulnerability_scanning:
     enabled: true
     block_critical: true
@@ -78,7 +78,7 @@ environments:
     security:
       secret_scanning:
         block_on_secrets: false
-  
+
   production:
     compliance:
       artifact_signing: true

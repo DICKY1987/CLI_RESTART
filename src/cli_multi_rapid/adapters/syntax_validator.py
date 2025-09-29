@@ -41,8 +41,7 @@ class SyntaxValidatorAdapter(BaseAdapter):
 
             if not target_files:
                 return AdapterResult(
-                    success=False,
-                    error="Missing required parameter: target_files"
+                    success=False, error="Missing required parameter: target_files"
                 )
 
             validation_results = {
@@ -55,8 +54,8 @@ class SyntaxValidatorAdapter(BaseAdapter):
                     "total_files": 0,
                     "valid_files": 0,
                     "invalid_files": 0,
-                    "error_count": 0
-                }
+                    "error_count": 0,
+                },
             }
 
             # Validate each file
@@ -69,7 +68,9 @@ class SyntaxValidatorAdapter(BaseAdapter):
                     validation_results["summary"]["valid_files"] += 1
                 else:
                     validation_results["summary"]["invalid_files"] += 1
-                    validation_results["summary"]["error_count"] += len(file_validation.get("errors", []))
+                    validation_results["summary"]["error_count"] += len(
+                        file_validation.get("errors", [])
+                    )
 
                 # Fail fast if requested and validation failed
                 if fail_fast and not file_validation["valid"]:
@@ -88,19 +89,22 @@ class SyntaxValidatorAdapter(BaseAdapter):
                     artifact_path = Path(emit_path)
                     artifact_path.parent.mkdir(parents=True, exist_ok=True)
 
-                    with open(artifact_path, 'w', encoding='utf-8') as f:
+                    with open(artifact_path, "w", encoding="utf-8") as f:
                         import json
+
                         json.dump(validation_results, f, indent=2)
 
                     artifacts.append(str(artifact_path))
-                    self.logger.info(f"Syntax validation results written to: {artifact_path}")
+                    self.logger.info(
+                        f"Syntax validation results written to: {artifact_path}"
+                    )
 
             result = AdapterResult(
                 success=overall_success,
                 tokens_used=0,  # Deterministic operation
                 artifacts=artifacts,
                 output=f"Validated {validation_results['summary']['total_files']} files, {validation_results['summary']['valid_files']} valid, {validation_results['summary']['invalid_files']} invalid",
-                metadata=validation_results
+                metadata=validation_results,
             )
 
             self._log_execution_complete(result)
@@ -112,7 +116,7 @@ class SyntaxValidatorAdapter(BaseAdapter):
             return AdapterResult(
                 success=False,
                 error=error_msg,
-                metadata={"exception_type": type(e).__name__}
+                metadata={"exception_type": type(e).__name__},
             )
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
@@ -129,14 +133,16 @@ class SyntaxValidatorAdapter(BaseAdapter):
         # Basic availability check - Python AST parsing is always available
         return True
 
-    def _validate_file_syntax(self, file_path: str, languages: List[str]) -> Dict[str, Any]:
+    def _validate_file_syntax(
+        self, file_path: str, languages: List[str]
+    ) -> Dict[str, Any]:
         """Validate syntax for a single file."""
         file_validation = {
             "file_path": file_path,
             "valid": True,
             "language": None,
             "errors": [],
-            "warnings": []
+            "warnings": [],
         }
 
         try:
@@ -159,9 +165,13 @@ class SyntaxValidatorAdapter(BaseAdapter):
             # Validate based on detected language
             if language == "python" and ("python" in languages or "auto" in languages):
                 self._validate_python_syntax(target_file, file_validation)
-            elif language == "javascript" and ("javascript" in languages or "auto" in languages):
+            elif language == "javascript" and (
+                "javascript" in languages or "auto" in languages
+            ):
                 self._validate_javascript_syntax(target_file, file_validation)
-            elif language == "typescript" and ("typescript" in languages or "auto" in languages):
+            elif language == "typescript" and (
+                "typescript" in languages or "auto" in languages
+            ):
                 self._validate_typescript_syntax(target_file, file_validation)
             elif language == "json" and ("json" in languages or "auto" in languages):
                 self._validate_json_syntax(target_file, file_validation)
@@ -193,15 +203,17 @@ class SyntaxValidatorAdapter(BaseAdapter):
             ".sh": "shell",
             ".bash": "shell",
             ".bat": "batch",
-            ".ps1": "powershell"
+            ".ps1": "powershell",
         }
 
         return language_map.get(extension, "unknown")
 
-    def _validate_python_syntax(self, file_path: Path, validation: Dict[str, Any]) -> None:
+    def _validate_python_syntax(
+        self, file_path: Path, validation: Dict[str, Any]
+    ) -> None:
         """Validate Python syntax using AST."""
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 source_code = f.read()
 
             # Try to parse the AST
@@ -209,21 +221,22 @@ class SyntaxValidatorAdapter(BaseAdapter):
 
         except SyntaxError as e:
             validation["valid"] = False
-            validation["errors"].append({
-                "type": "SyntaxError",
-                "message": str(e.msg),
-                "line": e.lineno,
-                "column": e.offset,
-                "text": e.text.strip() if e.text else None
-            })
+            validation["errors"].append(
+                {
+                    "type": "SyntaxError",
+                    "message": str(e.msg),
+                    "line": e.lineno,
+                    "column": e.offset,
+                    "text": e.text.strip() if e.text else None,
+                }
+            )
         except Exception as e:
             validation["valid"] = False
-            validation["errors"].append({
-                "type": "ParseError",
-                "message": str(e)
-            })
+            validation["errors"].append({"type": "ParseError", "message": str(e)})
 
-    def _validate_javascript_syntax(self, file_path: Path, validation: Dict[str, Any]) -> None:
+    def _validate_javascript_syntax(
+        self, file_path: Path, validation: Dict[str, Any]
+    ) -> None:
         """Validate JavaScript syntax using Node.js."""
         try:
             # Try to validate with Node.js if available
@@ -231,21 +244,22 @@ class SyntaxValidatorAdapter(BaseAdapter):
                 ["node", "-c", str(file_path)],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             if result.returncode != 0:
                 validation["valid"] = False
-                validation["errors"].append({
-                    "type": "JavaScriptSyntaxError",
-                    "message": result.stderr.strip()
-                })
+                validation["errors"].append(
+                    {"type": "JavaScriptSyntaxError", "message": result.stderr.strip()}
+                )
 
         except (subprocess.TimeoutExpired, FileNotFoundError):
             # Fallback: basic bracket/quote matching
             self._basic_syntax_check(file_path, validation, "javascript")
 
-    def _validate_typescript_syntax(self, file_path: Path, validation: Dict[str, Any]) -> None:
+    def _validate_typescript_syntax(
+        self, file_path: Path, validation: Dict[str, Any]
+    ) -> None:
         """Validate TypeScript syntax using tsc."""
         try:
             # Try to validate with TypeScript compiler if available
@@ -253,70 +267,70 @@ class SyntaxValidatorAdapter(BaseAdapter):
                 ["tsc", "--noEmit", "--skipLibCheck", str(file_path)],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             if result.returncode != 0:
                 validation["valid"] = False
-                validation["errors"].append({
-                    "type": "TypeScriptError",
-                    "message": result.stderr.strip()
-                })
+                validation["errors"].append(
+                    {"type": "TypeScriptError", "message": result.stderr.strip()}
+                )
 
         except (subprocess.TimeoutExpired, FileNotFoundError):
             # Fallback to JavaScript validation
             self._validate_javascript_syntax(file_path, validation)
 
-    def _validate_json_syntax(self, file_path: Path, validation: Dict[str, Any]) -> None:
+    def _validate_json_syntax(
+        self, file_path: Path, validation: Dict[str, Any]
+    ) -> None:
         """Validate JSON syntax."""
         try:
             import json
-            with open(file_path, encoding='utf-8') as f:
+
+            with open(file_path, encoding="utf-8") as f:
                 json.load(f)
 
         except json.JSONDecodeError as e:
             validation["valid"] = False
-            validation["errors"].append({
-                "type": "JSONDecodeError",
-                "message": e.msg,
-                "line": e.lineno,
-                "column": e.colno
-            })
+            validation["errors"].append(
+                {
+                    "type": "JSONDecodeError",
+                    "message": e.msg,
+                    "line": e.lineno,
+                    "column": e.colno,
+                }
+            )
         except Exception as e:
             validation["valid"] = False
-            validation["errors"].append({
-                "type": "JSONError",
-                "message": str(e)
-            })
+            validation["errors"].append({"type": "JSONError", "message": str(e)})
 
-    def _validate_yaml_syntax(self, file_path: Path, validation: Dict[str, Any]) -> None:
+    def _validate_yaml_syntax(
+        self, file_path: Path, validation: Dict[str, Any]
+    ) -> None:
         """Validate YAML syntax."""
         try:
             import yaml
-            with open(file_path, encoding='utf-8') as f:
+
+            with open(file_path, encoding="utf-8") as f:
                 yaml.safe_load(f)
 
         except yaml.YAMLError as e:
             validation["valid"] = False
-            validation["errors"].append({
-                "type": "YAMLError",
-                "message": str(e)
-            })
+            validation["errors"].append({"type": "YAMLError", "message": str(e)})
         except Exception as e:
             validation["valid"] = False
-            validation["errors"].append({
-                "type": "YAMLParseError",
-                "message": str(e)
-            })
+            validation["errors"].append({"type": "YAMLParseError", "message": str(e)})
 
-    def _basic_syntax_check(self, file_path: Path, validation: Dict[str, Any], language: str) -> None:
+    def _basic_syntax_check(
+        self, file_path: Path, validation: Dict[str, Any], language: str
+    ) -> None:
         """Perform basic syntax validation for unsupported languages."""
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Basic bracket/brace matching
-            brackets = {'(': ')', '[': ']', '{': '}'}
+            brackets = {"(": ")", "[": "]", "{": "}"}
             stack = []
 
             for i, char in enumerate(content):
@@ -325,28 +339,34 @@ class SyntaxValidatorAdapter(BaseAdapter):
                 elif char in brackets.values():
                     if not stack:
                         validation["valid"] = False
-                        validation["errors"].append({
-                            "type": "UnmatchedBracket",
-                            "message": f"Unmatched closing bracket '{char}' at position {i}"
-                        })
+                        validation["errors"].append(
+                            {
+                                "type": "UnmatchedBracket",
+                                "message": f"Unmatched closing bracket '{char}' at position {i}",
+                            }
+                        )
                         return
 
                     open_char, _ = stack.pop()
                     if brackets[open_char] != char:
                         validation["valid"] = False
-                        validation["errors"].append({
-                            "type": "MismatchedBracket",
-                            "message": f"Mismatched bracket: expected '{brackets[open_char]}' but found '{char}' at position {i}"
-                        })
+                        validation["errors"].append(
+                            {
+                                "type": "MismatchedBracket",
+                                "message": f"Mismatched bracket: expected '{brackets[open_char]}' but found '{char}' at position {i}",
+                            }
+                        )
                         return
 
             if stack:
                 open_char, pos = stack[-1]
                 validation["valid"] = False
-                validation["errors"].append({
-                    "type": "UnclosedBracket",
-                    "message": f"Unclosed bracket '{open_char}' at position {pos}"
-                })
+                validation["errors"].append(
+                    {
+                        "type": "UnclosedBracket",
+                        "message": f"Unclosed bracket '{open_char}' at position {pos}",
+                    }
+                )
 
         except Exception as e:
             validation["warnings"].append(f"Basic syntax check failed: {str(e)}")
@@ -354,4 +374,5 @@ class SyntaxValidatorAdapter(BaseAdapter):
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"

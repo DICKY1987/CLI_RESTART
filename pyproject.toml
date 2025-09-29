@@ -48,6 +48,8 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "pytest-timeout>=2.1.0",
     "black>=23.0.0",
     "isort>=5.12.0",
     "ruff>=0.1.0",
@@ -133,7 +135,7 @@ ignore = [
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
-"tests/**/*" = ["B011", "F401", "F811"]
+"tests/**/*" = ["B011", "F401", "F811", "F821"]
 
 [tool.mypy]
 python_version = "3.9"
@@ -160,4 +162,8 @@ ignore_missing_imports = true
 exclude_dirs = ["tests"]
 skips = ["B101", "B601"]
 
+[tool.setuptools]
+package-dir = {"" = "src"}
 
+[tool.setuptools.packages.find]
+where = ["src"]

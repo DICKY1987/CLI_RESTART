@@ -18,4 +18,3 @@
 
 - Writer: `lib.audit_logger.log_action(...)`
 - Consumers should treat the file as append-only.
-

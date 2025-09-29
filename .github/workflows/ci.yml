@@ -34,7 +34,7 @@ jobs:
       - name: Install core test deps
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio pytest-cov coverage rich pyyaml
+          pip install pytest pytest-asyncio pytest-cov coverage rich pyyaml pytest-mock pytest-timeout
 
       - name: Run core test suite
         env:
@@ -79,4 +79,3 @@ jobs:
           PYTHONPATH: src
         run: |
           pytest -q tests --cov=src --cov-report=term-missing --maxfail=1
-

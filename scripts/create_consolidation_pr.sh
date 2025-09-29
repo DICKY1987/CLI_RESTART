@@ -39,7 +39,7 @@ fi
 # Create the PR using GitHub CLI (if authenticated)
 if command -v gh &> /dev/null && gh auth status &> /dev/null; then
     echo "🎯 Creating PR via GitHub CLI..."
-    
+
     PR_TITLE="Consolidate feat/mods-integration-and-phase-plan into main"
     PR_BODY="## Purpose
 This PR consolidates updates by merging the \`feat/mods-integration-and-phase-plan\` branch into \`main\` to establish main as the single source of truth. This is part of a branch cleanup effort.
@@ -47,7 +47,7 @@ This PR consolidates updates by merging the \`feat/mods-integration-and-phase-pl
 ## Summary of Changes
 The feature branch contains 10 commits with:
 - Security improvements (PEM file templates)
-- MODs integration with phase planning  
+- MODs integration with phase planning
 - Repository cleanup and optimization
 - CLI orchestrator stack completion
 - AI adapters framework with VS Code extension
@@ -71,7 +71,7 @@ This is a merge-only PR with no new code generation."
         --base main \
         --head feat/mods-integration-and-phase-plan \
         --assignee @me
-        
+
     echo "✅ Pull request created successfully!"
 else
     echo "📋 GitHub CLI not authenticated. Manual PR creation required:"

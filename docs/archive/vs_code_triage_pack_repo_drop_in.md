@@ -483,4 +483,3 @@ pwsh scripts/orchestrator.ps1 -Command start-triage -Files "src/**/*.py" -Prompt
 - The extension exports **all open workspace diagnostics**; analyzers configured in your workspace/settings govern what appears.
 - Auto-fixers operate only on files with issues to minimize diff noise.
 - Premium routing is quota-aware when you connect this to your router; the provided policy file is deterministic and cheap-first.
-

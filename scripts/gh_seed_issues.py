@@ -40,7 +40,7 @@ def gh_json(cmd: List[str]) -> List[Dict]:
 
 
 def ensure_milestones(repo: str, paths: List[Path]):
-    existing = {m["title"] for m in gh_json(["gh", "api", f"repos/{repo}/milestones"]) }
+    existing = {m["title"] for m in gh_json(["gh", "api", f"repos/{repo}/milestones"])}
     for p in paths:
         data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
         for m in data.get("milestones", []) or []:
@@ -48,12 +48,39 @@ def ensure_milestones(repo: str, paths: List[Path]):
             if not title or title in existing:
                 continue
             desc = m.get("description", "")
-            run(["gh", "api", f"repos/{repo}/milestones", "-f", f"title={title}", "-f", f"state=open", "-f", f"description={desc}"])
+            run(
+                [
+                    "gh",
+                    "api",
+                    f"repos/{repo}/milestones",
+                    "-f",
+                    f"title={title}",
+                    "-f",
+                    "state=open",
+                    "-f",
+                    f"description={desc}",
+                ]
+            )
             print(f"[milestone] created: {title}")
 
 
 def ensure_issues(repo: str, paths: List[Path]):
-    existing_titles = {i["title"] for i in gh_json(["gh", "issue", "list", "--repo", repo, "--state", "open", "--json", "title"]) }
+    existing_titles = {
+        i["title"]
+        for i in gh_json(
+            [
+                "gh",
+                "issue",
+                "list",
+                "--repo",
+                repo,
+                "--state",
+                "open",
+                "--json",
+                "title",
+            ]
+        )
+    }
     for p in paths:
         data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
         for it in data.get("issues", []) or []:
@@ -63,7 +90,17 @@ def ensure_issues(repo: str, paths: List[Path]):
             body = it.get("body", "")
             labels = it.get("labels", [])
             milestone = it.get("milestone")
-            cmd = ["gh", "issue", "create", "--repo", repo, "--title", title, "--body", body]
+            cmd = [
+                "gh",
+                "issue",
+                "create",
+                "--repo",
+                repo,
+                "--title",
+                title,
+                "--body",
+                body,
+            ]
             if labels:
                 cmd += ["--label", ",".join(labels)]
             if milestone:
@@ -75,8 +112,12 @@ def ensure_issues(repo: str, paths: List[Path]):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", required=True, help="owner/repo")
-    ap.add_argument("--milestones", nargs="*", default=[], help="YAML files containing milestones")
-    ap.add_argument("--issues", nargs="*", default=[], help="YAML files containing issues")
+    ap.add_argument(
+        "--milestones", nargs="*", default=[], help="YAML files containing milestones"
+    )
+    ap.add_argument(
+        "--issues", nargs="*", default=[], help="YAML files containing issues"
+    )
     args = ap.parse_args()
 
     milestone_paths = [Path(p) for p in (args.milestones or []) if Path(p).exists()]
@@ -90,4 +131,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

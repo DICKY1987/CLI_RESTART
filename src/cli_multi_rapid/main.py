@@ -30,6 +30,23 @@ def _symbol(ok: bool) -> str:
     return "OK" if ok else "FAIL"
 
 
+def _status_symbol(ok: bool) -> str:
+    """Return a cross-platform friendly status symbol.
+
+    Uses Unicode checkmark/cross when stdout supports UTF encoding;
+    otherwise falls back to ASCII OK/FAIL.
+    """
+    enc = (getattr(sys.stdout, "encoding", None) or "").lower()
+    try:
+        symbol = "\u2713" if ok else "\u2717"  # ✓ / ✗
+        if "utf" in enc:
+            return symbol
+        symbol.encode(enc or "ascii")
+        return symbol
+    except Exception:
+        return "OK" if ok else "FAIL"
+
+
 @app.command("codegen-models")
 def codegen_models(
     schemas_dir: Path = typer.Option(
@@ -91,11 +108,11 @@ def run_workflow(
         )
         if result.success:
             console.print(
-                f"[green]{_symbol(True)} Workflow completed successfully[/green]"
+                f"[green]{_status_symbol(True)} Workflow completed successfully[/green]"
             )
         else:
             console.print(
-                f"[red]{_symbol(False)} Workflow failed: {result.error}[/red]"
+                f"[red]{_status_symbol(False)} Workflow failed: {result.error}[/red]"
             )
             raise typer.Exit(code=1)
     except ImportError:
@@ -652,6 +669,75 @@ app.add_typer(tools_app, name="tools")
 # Setup command group
 setup_app = typer.Typer(name="setup", help="System setup and validation commands")
 app.add_typer(setup_app, name="setup")
+
+# Pipeline command group (spec-driven bootstrap)
+pipeline_app = typer.Typer(name="pipeline", help="Spec-driven pipeline commands")
+app.add_typer(pipeline_app, name="pipeline")
+
+
+@pipeline_app.command("validate")
+def pipeline_validate(
+    spec: Path = typer.Argument(
+        ...,
+        help="Path to pipeline implementation spec JSON (e.g., codex_pipeline_implementation_spec.json)",
+    )
+):
+    """Validate the pipeline spec and ensure local config scaffolding exists.
+
+    - Loads the JSON spec
+    - Performs basic structure validation
+    - Creates missing config files (pipeline.yaml, quality_gates.yaml)
+    - Updates .pipeline_state.json with results
+    """
+    try:
+        from .workflow_engine import bootstrap_from_spec
+
+        result = bootstrap_from_spec(spec)
+        ok = bool(result.get("spec_validation_ok"))
+        console.print(
+            f"[bold blue]Spec validation:[/bold blue] {'OK' if ok else 'FAILED'}"
+        )
+        if not ok:
+            missing = (result.get("spec_validation_details") or {}).get(
+                "missing_sections", []
+            )
+            if missing:
+                console.print("[red]Missing sections:[/red] " + ", ".join(missing))
+        # Show generated artifacts
+        artifacts = (result.get("artifacts") or {}).get("config_files", [])
+        if artifacts:
+            console.print("[dim]Config files:[/dim]")
+            for a in artifacts:
+                console.print(f" - {a}")
+        if not ok:
+            raise typer.Exit(code=1)
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        console.print(f"[red]Pipeline validate error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
+@pipeline_app.command("init")
+def pipeline_init(
+    spec: Path = typer.Argument(
+        ..., help="Path to pipeline implementation spec JSON (initialization)"
+    )
+):
+    """Initialize local repository from the pipeline spec (idempotent)."""
+    try:
+        from .workflow_engine import bootstrap_from_spec
+
+        result = bootstrap_from_spec(spec)
+        summary = result.get("spec_summary") or {}
+        console.print(
+            f"[green]Initialized from spec:[/green] {summary.get('name','unknown')} v{summary.get('version','0.0.0')}"
+        )
+        console.print("[dim]State written to .pipeline_state.json[/dim]")
+    except Exception as e:
+        console.print(f"[red]Pipeline init error: {e}[/red]")
+        raise typer.Exit(code=1)
 
 
 @tools_app.command("doctor")

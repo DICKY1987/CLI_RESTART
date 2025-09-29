@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, RetryDContinueEditTerminal Parity Test HarnessCode ∙ Version 2         differences = []
         if gui_result.get("exit_code") != cli_result.get("exit_code"):
             differences.append("Exit codes differ for signal handling")
-            
+
         return ParityTestResult(
             test_name="Ctrl+C HandliPerfect! I've created the core implementation pieces you outlined:
 1. PTY-backed Terminal Tab & Command Runner
@@ -58,7 +58,7 @@ Drop these into your gui/ folder:
 
 bash   # Save the first artifact as:
    gui/cli_terminal_gui.py
-   
+
    # Save the second as:
    tests/parity_tests.py
 

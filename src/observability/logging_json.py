@@ -1,4 +1,7 @@
-import json, logging, sys
+import json
+import logging
+import sys
+
 
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
@@ -11,6 +14,7 @@ class JsonFormatter(logging.Formatter):
         if record.exc_info:
             payload["exc"] = self.formatException(record.exc_info)
         return json.dumps(payload)
+
 
 def configure_json_logging(level: int = logging.INFO) -> None:
     handler = logging.StreamHandler(sys.stdout)

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 try:
     import yaml  # type: ignore
@@ -73,7 +73,11 @@ def select_tool_for_capability(
             tools[name].status = status
 
     # Candidates by capability
-    candidates = [t for t in tools.values() if capability in t.capabilities and t.status == "healthy"]
+    candidates = [
+        t
+        for t in tools.values()
+        if capability in t.capabilities and t.status == "healthy"
+    ]
     if candidates:
         candidates.sort(key=lambda t: t.cost_hint)
         return candidates[0].name
@@ -81,7 +85,9 @@ def select_tool_for_capability(
     # Use failover chain if no healthy capability providers
     chain = _load_failovers(failover_maps).get(capability, [])
     chain_candidates = [tools[n] for n in chain if n in tools]
-    chain_candidates = [t for t in chain_candidates if tools.get(t.name, t).status == "healthy"]
+    chain_candidates = [
+        t for t in chain_candidates if tools.get(t.name, t).status == "healthy"
+    ]
     if chain_candidates:
         chain_candidates.sort(key=lambda t: t.cost_hint)
         return chain_candidates[0].name
@@ -111,4 +117,3 @@ def estimate_plan_cost(
         if tool and tool in tools:
             total += max(0.0, tools[tool].cost_hint)
     return round(total, 4)
-

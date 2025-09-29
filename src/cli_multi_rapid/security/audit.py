@@ -189,7 +189,7 @@ class AuditLogger:
         count = 0
 
         try:
-            with open(self.log_file, "r") as f:
+            with open(self.log_file) as f:
                 for line in f:
                     if count >= limit:
                         break
@@ -319,7 +319,7 @@ class AuditLogger:
         exported_count = 0
 
         try:
-            with open(self.log_file, "r") as infile, open(output_file, "w") as outfile:
+            with open(self.log_file) as infile, open(output_file, "w") as outfile:
                 for line in infile:
                     try:
                         event_data = json.loads(line.strip())
@@ -359,7 +359,7 @@ class AuditLogger:
             file_size = self.log_file.stat().st_size
             line_count = 0
 
-            with open(self.log_file, "r") as f:
+            with open(self.log_file) as f:
                 line_count = sum(1 for _ in f)
 
             return {

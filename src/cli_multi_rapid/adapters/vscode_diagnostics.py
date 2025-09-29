@@ -17,7 +17,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter
+from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
 
 
 class VSCodeDiagnosticsAdapter(BaseAdapter):
@@ -48,6 +48,22 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
     def is_available(self) -> bool:
         """Check if at least one analyzer is available."""
         return any(self._available_analyzers.values())
+
+    def get_performance_profile(self) -> AdapterPerformanceProfile:
+        """Get performance profile for diagnostic analysis."""
+        return AdapterPerformanceProfile(
+            complexity_threshold=0.6,  # Handles low to high complexity
+            preferred_file_types=[".py", ".pyi", ".js", ".ts", ".jsx", ".tsx"],
+            max_files=300,  # Can analyze many files
+            max_file_size=10000000,  # 10MB total
+            operation_types=["lint", "analyze", "check"],
+            avg_execution_time=5.0,
+            success_rate=0.90,  # Very reliable for analysis
+            cost_efficiency=1.0,  # No token cost
+            parallel_capable=True,
+            requires_network=False,
+            requires_api_key=False
+        )
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""

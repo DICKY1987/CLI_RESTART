@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 try:
-    from PyQt6 import QtWidgets, QtGui, QtCore  # type: ignore
+    from gui_terminal.core.cost_integration import CostEvent, CostTrackerBridge
+    from gui_terminal.core.logging_config import LoggerConfig, StructuredLogger
     from gui_terminal.core.terminal_widget import TerminalWidget
     from gui_terminal.security.policy_manager import PolicyManager
-    from gui_terminal.core.cost_integration import CostTrackerBridge, CostEvent
-    from gui_terminal.core.logging_config import StructuredLogger, LoggerConfig
     from gui_terminal.ui.cli_interface import CLIExecutionInterface
+    from PyQt6 import QtCore, QtGui, QtWidgets  # type: ignore
 except Exception:  # pragma: no cover - allow headless import
     QtWidgets = None  # type: ignore
     QtGui = None  # type: ignore
@@ -37,13 +37,19 @@ class MainWindow:  # pragma: no cover - constructed only when PyQt present
 
         # Initialize component managers (for backward compatibility)
         self._policy = PolicyManager() if PolicyManager else None
-        self._logger = StructuredLogger(LoggerConfig(audit_log_file="./gui_terminal_audit.log")) if StructuredLogger else None
+        self._logger = (
+            StructuredLogger(LoggerConfig(audit_log_file="./gui_terminal_audit.log"))
+            if StructuredLogger
+            else None
+        )
         self._cost = CostTrackerBridge() if CostTrackerBridge else None
 
         # Status bar
         status = QtWidgets.QStatusBar()
         self._w.setStatusBar(status)
-        status.showMessage("CLI Terminal Ready - Professional command-line interface with enterprise security")
+        status.showMessage(
+            "CLI Terminal Ready - Professional command-line interface with enterprise security"
+        )
 
         # Toolbar for essential actions
         toolbar = self._w.addToolBar("Actions")
@@ -64,7 +70,6 @@ class MainWindow:  # pragma: no cover - constructed only when PyQt present
             self.cli_interface = CLIExecutionInterface()
             self._w.setCentralWidget(self.cli_interface)
 
-
     # --- Qt-backed methods ---
     def widget(self):  # return underlying QWidget for app wrapping
         return self._w
@@ -77,11 +82,17 @@ class MainWindow:  # pragma: no cover - constructed only when PyQt present
     def _open_settings(self):
         """Open application settings dialog"""
         from PyQt6.QtWidgets import QMessageBox  # type: ignore
-        QMessageBox.information(self._w, "Settings", "Settings dialog would open here.\nConfigure: API keys, security policies, command aliases, and interface preferences.")
+
+        QMessageBox.information(
+            self._w,
+            "Settings",
+            "Settings dialog would open here.\nConfigure: API keys, security policies, command aliases, and interface preferences.",
+        )
 
     def _open_help(self):
         """Open help documentation"""
         from PyQt6.QtWidgets import QMessageBox  # type: ignore
+
         help_text = """CLI Multi-Rapid Terminal Help
 
 💻 Terminal Interface:
@@ -114,4 +125,4 @@ Enterprise backend systems remain fully operational including cost tracking, aud
     # --- Simplified interface methods ---
     def get_cli_interface(self):
         """Get the CLI interface for external access"""
-        return getattr(self, 'cli_interface', None)
+        return getattr(self, "cli_interface", None)

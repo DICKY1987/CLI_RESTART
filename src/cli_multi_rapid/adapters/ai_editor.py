@@ -8,12 +8,13 @@ Supports multiple AI backends (Claude, GPT, Gemini) with cost tracking and safet
 
 import json
 import logging
+import os
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter
+from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,24 @@ class AIEditorAdapter(BaseAdapter):
             adapter_type=AdapterType.AI,
             description="AI-powered code editing with aider integration",
         )
+        self._aider_config = self._validate_aider_configuration()
+        self._environment_validated = False
+
+    def get_performance_profile(self) -> AdapterPerformanceProfile:
+        """Get performance profile for AI editing operations."""
+        return AdapterPerformanceProfile(
+            complexity_threshold=1.0,  # Handles all complexity levels
+            preferred_file_types=["*"],  # Works with all file types
+            max_files=50,  # Limited by context window
+            max_file_size=2000000,  # 2MB total due to token limits
+            operation_types=["edit", "refactor", "generate", "analyze"],
+            avg_execution_time=15.0,  # AI calls take longer
+            success_rate=0.85,  # Good but dependent on AI model
+            cost_efficiency=0.7,  # Moderate token cost
+            parallel_capable=False,  # API rate limits
+            requires_network=True,
+            requires_api_key=True
+        )
 
     def execute(
         self,
@@ -36,6 +55,14 @@ class AIEditorAdapter(BaseAdapter):
     ) -> AdapterResult:
         """Execute AI editing workflow step."""
         self._log_execution_start(step)
+
+        # Validate environment before execution
+        if not self._validate_environment():
+            return AdapterResult(
+                success=False,
+                error="AI editor environment validation failed. Check aider installation and API keys.",
+                metadata=self.get_aider_health_status(),
+            )
 
         try:
             # Extract parameters
@@ -101,10 +128,11 @@ class AIEditorAdapter(BaseAdapter):
         # Build aider command
         cmd = [
             "aider",
-            "--model", model,
+            "--model",
+            model,
             "--no-git",  # Don't auto-commit
-            "--yes",     # Auto-confirm
-            "--quiet",   # Reduce output
+            "--yes",  # Auto-confirm
+            "--quiet",  # Reduce output
         ]
 
         # Add files to edit
@@ -119,7 +147,9 @@ class AIEditorAdapter(BaseAdapter):
             cmd.extend(file_list)
 
         # Create temporary file for the prompt
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as prompt_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as prompt_file:
             prompt_file.write(prompt)
             prompt_file_path = prompt_file.name
 
@@ -137,7 +167,9 @@ class AIEditorAdapter(BaseAdapter):
 
             if process.returncode == 0:
                 # Generate diff artifact
-                artifacts = self._generate_diff_artifacts(emit_paths, file_list if files else [])
+                artifacts = self._generate_diff_artifacts(
+                    emit_paths, file_list if files else []
+                )
 
                 return AdapterResult(
                     success=True,
@@ -186,9 +218,14 @@ class AIEditorAdapter(BaseAdapter):
         """Resolve glob pattern to list of actual files."""
         try:
             from glob import glob
+
             files = glob(pattern, recursive=True)
             # Filter to only Python files for safety
-            return [f for f in files if f.endswith(('.py', '.ts', '.js', '.md', '.yaml', '.yml'))]
+            return [
+                f
+                for f in files
+                if f.endswith((".py", ".ts", ".js", ".md", ".yaml", ".yml"))
+            ]
         except Exception as e:
             logger.warning(f"Failed to resolve file pattern {pattern}: {e}")
             return []
@@ -213,7 +250,9 @@ class AIEditorAdapter(BaseAdapter):
         # Estimate tokens if not found (rough approximation)
         return len(output.split()) * 1.3  # Conservative estimate
 
-    def _generate_diff_artifacts(self, emit_paths: List[str], modified_files: List[str]) -> List[str]:
+    def _generate_diff_artifacts(
+        self, emit_paths: List[str], modified_files: List[str]
+    ) -> List[str]:
         """Generate diff artifacts for modified files."""
         artifacts = []
 
@@ -238,7 +277,7 @@ class AIEditorAdapter(BaseAdapter):
                             "timestamp": self._get_timestamp(),
                         }
 
-                        with open(emit_path, 'w') as f:
+                        with open(emit_path, "w") as f:
                             json.dump(diff_data, f, indent=2)
 
                         artifacts.append(emit_path)
@@ -251,6 +290,7 @@ class AIEditorAdapter(BaseAdapter):
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
         from datetime import datetime
+
         return datetime.now().isoformat()
 
     def validate_step(self, step: Dict[str, Any]) -> bool:
@@ -293,10 +333,20 @@ class AIEditorAdapter(BaseAdapter):
                 text=True,
                 timeout=10,
             )
-            return result.returncode == 0
-        except Exception:
-            # If aider isn't available, we could still use direct API integration
-            # For now, require aider
+            available = result.returncode == 0
+            if available:
+                self.logger.info(f"Aider available: {result.stdout.strip()}")
+            else:
+                self.logger.warning("Aider not available or not working properly")
+            return available
+        except FileNotFoundError:
+            self.logger.warning("Aider command not found in PATH")
+            return False
+        except subprocess.TimeoutExpired:
+            self.logger.warning("Aider version check timed out")
+            return False
+        except Exception as e:
+            self.logger.error(f"Error checking aider availability: {e}")
             return False
 
     def get_supported_models(self) -> List[str]:
@@ -312,10 +362,110 @@ class AIEditorAdapter(BaseAdapter):
     def get_supported_operations(self) -> List[str]:
         """Get list of supported editing operations."""
         return [
-            "edit",      # General editing
+            "edit",  # General editing
             "refactor",  # Code refactoring
-            "fix",       # Bug fixing
+            "fix",  # Bug fixing
             "optimize",  # Performance optimization
             "document",  # Add documentation
-            "test",      # Add tests
+            "test",  # Add tests
         ]
+
+    def _validate_aider_configuration(self) -> Dict[str, Any]:
+        """Validate aider configuration and environment setup."""
+        config = {
+            "aider_path": None,
+            "api_keys_available": {},
+            "default_model": "claude-3-5-sonnet-20241022",
+            "max_retries": 3,
+            "timeout": 300,
+            "safety_checks": True,
+        }
+
+        # Check for aider installation
+        try:
+            import shutil
+            config["aider_path"] = shutil.which("aider")
+            if not config["aider_path"]:
+                self.logger.warning("Aider not found in PATH")
+        except Exception as e:
+            self.logger.error(f"Error checking aider installation: {e}")
+
+        # Check for API keys
+        api_key_vars = {
+            "claude": "ANTHROPIC_API_KEY",
+            "openai": "OPENAI_API_KEY",
+            "gemini": "GEMINI_API_KEY"
+        }
+
+        for service, env_var in api_key_vars.items():
+            key_available = bool(os.getenv(env_var))
+            config["api_keys_available"][service] = key_available
+            if key_available:
+                self.logger.debug(f"{service} API key found")
+            else:
+                self.logger.debug(f"{service} API key not found ({env_var})")
+
+        return config
+
+    def _validate_environment(self) -> bool:
+        """Perform comprehensive environment validation."""
+        if self._environment_validated:
+            return True
+
+        validation_results = []
+
+        # Check aider availability
+        if not self._aider_config["aider_path"]:
+            validation_results.append("❌ Aider not installed or not in PATH")
+        else:
+            validation_results.append("✅ Aider found")
+
+        # Check for at least one API key
+        if not any(self._aider_config["api_keys_available"].values()):
+            validation_results.append("❌ No AI service API keys found")
+        else:
+            available_services = [k for k, v in self._aider_config["api_keys_available"].items() if v]
+            validation_results.append(f"✅ API keys available for: {', '.join(available_services)}")
+
+        # Check git repository (aider works better in git repos)
+        try:
+            git_result = subprocess.run(
+                ["git", "rev-parse", "--git-dir"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if git_result.returncode == 0:
+                validation_results.append("✅ Git repository detected")
+            else:
+                validation_results.append("⚠️ Not in a git repository (aider works better with git)")
+        except Exception:
+            validation_results.append("⚠️ Could not check git status")
+
+        # Log validation results
+        self.logger.info("Aider environment validation:")
+        for result in validation_results:
+            self.logger.info(f"  {result}")
+
+        # Environment is valid if aider is available and at least one API key exists
+        self._environment_validated = (
+            self._aider_config["aider_path"] is not None and
+            any(self._aider_config["api_keys_available"].values())
+        )
+
+        return self._environment_validated
+
+    def get_aider_health_status(self) -> Dict[str, Any]:
+        """Get comprehensive health status for aider integration."""
+        self._validate_environment()
+
+        return {
+            "adapter_name": self.name,
+            "aider_available": self._aider_config["aider_path"] is not None,
+            "aider_path": self._aider_config["aider_path"],
+            "environment_valid": self._environment_validated,
+            "api_keys": self._aider_config["api_keys_available"],
+            "default_model": self._aider_config["default_model"],
+            "supported_models": self.get_supported_models(),
+            "supported_operations": self.get_supported_operations(),
+        }

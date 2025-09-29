@@ -26,7 +26,7 @@ log() {
     local message="$*"
     local timestamp=$(date '+%H:%M:%S')
     local log_entry="[$timestamp] [$level] $message"
-    
+
     case $level in
         "ERROR") echo -e "${RED}$log_entry${NC}" ;;
         "WARNING") echo -e "${YELLOW}$log_entry${NC}" ;;
@@ -34,7 +34,7 @@ log() {
         "INFO") echo -e "${BLUE}$log_entry${NC}" ;;
         *) echo "$log_entry" ;;
     esac
-    
+
     echo "$log_entry" >> "$LOG_FILE"
 }
 
@@ -61,7 +61,7 @@ detect_system() {
         OS="unknown"
         PKG_MANAGER="manual"
     fi
-    
+
     log "INFO" "Detected OS: $OS, Package Manager: $PKG_MANAGER"
 }
 
@@ -69,7 +69,7 @@ detect_system() {
 test_command() {
     local cmd="$1"
     local test_args="${2:---version}"
-    
+
     if command -v "$cmd" >/dev/null 2>&1; then
         if $cmd $test_args >/dev/null 2>&1; then
             return 0
@@ -83,7 +83,7 @@ install_package() {
     local package="$1"
     local brew_name="${2:-$package}"
     local apt_name="${3:-$package}"
-    
+
     case $PKG_MANAGER in
         "brew")
             if ! brew list "$brew_name" >/dev/null 2>&1; then
@@ -119,35 +119,35 @@ install_package() {
 # Install prerequisites
 install_prerequisites() {
     log "INFO" "Installing prerequisites..."
-    
+
     # Install package manager if needed (macOS)
     if [[ "$OS" == "macos" ]] && ! command -v brew >/dev/null 2>&1; then
         log "INFO" "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         eval "$(/opt/homebrew/bin/brew shellenv)" || eval "$(/usr/local/bin/brew shellenv)"
     fi
-    
+
     # Install curl and git (essential)
     install_package "curl" "curl" "curl"
     install_package "git" "git" "git"
-    
+
     # Install Node.js
     if ! test_command "node"; then
         case $PKG_MANAGER in
             "brew") install_package "nodejs" "node" ;;
-            "apt") 
+            "apt")
                 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
                 sudo apt-get install -y nodejs
                 ;;
             *) install_package "nodejs" "nodejs" "nodejs" ;;
         esac
     fi
-    
+
     # Install Python
     if ! test_command "python3"; then
         install_package "python" "python@3.11" "python3"
     fi
-    
+
     # Install pip
     if ! test_command "pip3"; then
         case $PKG_MANAGER in
@@ -155,14 +155,14 @@ install_prerequisites() {
             *) log "WARNING" "pip3 installation may be needed manually" ;;
         esac
     fi
-    
+
     log "SUCCESS" "Prerequisites installed"
 }
 
 # Install GitHub CLI
 install_github_cli() {
     log "INFO" "Installing GitHub CLI..."
-    
+
     if test_command "gh"; then
         log "SUCCESS" "GitHub CLI already installed"
     else
@@ -183,7 +183,7 @@ install_github_cli() {
                 ;;
         esac
     fi
-    
+
     # Install Copilot extension
     if test_command "gh"; then
         log "INFO" "Installing GitHub Copilot CLI extension..."
@@ -195,15 +195,15 @@ install_github_cli() {
 # Install Claude Code CLI
 install_claude_code() {
     log "INFO" "Installing Claude Code CLI..."
-    
+
     if test_command "claude"; then
         log "SUCCESS" "Claude Code CLI already installed"
         return
     fi
-    
+
     if test_command "npm"; then
         npm install -g @anthropic-ai/claude-code
-        
+
         if test_command "claude"; then
             log "SUCCESS" "Claude Code CLI installed"
         else
@@ -217,19 +217,19 @@ install_claude_code() {
 # Install Aider
 install_aider() {
     log "INFO" "Installing Aider..."
-    
+
     if test_command "aider"; then
         log "SUCCESS" "Aider already installed"
         return
     fi
-    
+
     # Install via pip
     if test_command "pip3"; then
         pip3 install --user aider-chat
-        
+
         # Add user bin to PATH if needed
         export PATH="$HOME/.local/bin:$PATH"
-        
+
         if test_command "aider"; then
             log "SUCCESS" "Aider installed"
         else
@@ -243,15 +243,15 @@ install_aider() {
 # Install OpenAI CLI
 install_openai_cli() {
     log "INFO" "Installing OpenAI CLI..."
-    
+
     if test_command "openai"; then
         log "SUCCESS" "OpenAI CLI already installed"
         return
     fi
-    
+
     if test_command "npm"; then
         npm install -g openai
-        
+
         if test_command "openai"; then
             log "SUCCESS" "OpenAI CLI installed"
         else
@@ -265,7 +265,7 @@ install_openai_cli() {
 # Setup authentication
 setup_authentication() {
     log "INFO" "Setting up authentication..."
-    
+
     # GitHub CLI
     if test_command "gh"; then
         if ! gh auth status >/dev/null 2>&1; then
@@ -274,7 +274,7 @@ setup_authentication() {
             log "SUCCESS" "GitHub CLI already authenticated"
         fi
     fi
-    
+
     # Other tools typically require manual setup
     log "INFO" "Add API keys to .env file for other tools"
 }
@@ -282,10 +282,10 @@ setup_authentication() {
 # Create VS Code workspace configuration
 create_vscode_workspace() {
     log "INFO" "Creating VS Code workspace configuration..."
-    
+
     local vscode_dir="$WORKSPACE_ROOT/.vscode"
     mkdir -p "$vscode_dir"
-    
+
     # Create settings.json
     cat > "$vscode_dir/settings.json" << 'EOF'
 {
@@ -405,16 +405,16 @@ EOF
     ]
 }
 EOF
-    
+
     log "SUCCESS" "VS Code workspace configuration created"
 }
 
 # Create environment file
 create_environment_file() {
     log "INFO" "Creating environment file..."
-    
+
     local env_file="$WORKSPACE_ROOT/.env"
-    
+
     if [[ ! -f "$env_file" ]]; then
         cat > "$env_file" << 'EOF'
 # AI CLI Tools Environment Configuration
@@ -437,7 +437,7 @@ EOF
     else
         log "INFO" "Environment file already exists"
     fi
-    
+
     # Ensure .env is in .gitignore
     local gitignore_file="$WORKSPACE_ROOT/.gitignore"
     if ! grep -q "^\.env$" "$gitignore_file" 2>/dev/null; then
@@ -449,19 +449,19 @@ EOF
 # Test all tools
 test_all_tools() {
     log "INFO" "Testing all CLI tools..."
-    
+
     local tools=(
         "gh:GitHub CLI"
         "claude:Claude Code"
         "aider:Aider"
         "openai:OpenAI CLI"
     )
-    
+
     local all_working=true
-    
+
     for tool_info in "${tools[@]}"; do
         IFS=':' read -r cmd name <<< "$tool_info"
-        
+
         if test_command "$cmd"; then
             log "SUCCESS" "$name: Working"
         else
@@ -469,7 +469,7 @@ test_all_tools() {
             all_working=false
         fi
     done
-    
+
     # Test GitHub Copilot extension
     if test_command "gh" && gh extension list | grep -q copilot; then
         log "SUCCESS" "GitHub Copilot extension: Working"
@@ -477,20 +477,20 @@ test_all_tools() {
         log "ERROR" "GitHub Copilot extension: Not found"
         all_working=false
     fi
-    
+
     if $all_working; then
         log "SUCCESS" "All tools are working!"
     else
         log "WARNING" "Some tools need attention"
     fi
-    
+
     return $([ "$all_working" = true ])
 }
 
 # Create quick start guide
 create_quick_start() {
     log "INFO" "Creating quick start guide..."
-    
+
     cat > "$WORKSPACE_ROOT/AI-TOOLS-QUICKSTART.md" << 'EOF'
 # AI Tools Quick Start Guide
 
@@ -505,13 +505,13 @@ Your workspace is now configured with 4 AI CLI tools, each in its own terminal w
 - **Usage**: `gh copilot suggest "your question"`
 - **Purpose**: Get coding suggestions and explanations
 
-### 2. Claude Code CLI  
+### 2. Claude Code CLI
 - **Terminal**: Blue header
 - **Usage**: `claude "your prompt"`
 - **Purpose**: Advanced code analysis and generation
 
 ### 3. Aider AI Pair Programmer
-- **Terminal**: Magenta header  
+- **Terminal**: Magenta header
 - **Usage**: `aider file1.py file2.py`
 - **Purpose**: AI-powered code editing and refactoring
 
@@ -523,7 +523,7 @@ Your workspace is now configured with 4 AI CLI tools, each in its own terminal w
 ## Next Steps
 
 1. **Add API Keys**: Edit `.env` file with your API keys
-2. **Authentication**: 
+2. **Authentication**:
    - Run `gh auth login` for GitHub
    - Claude may require manual authentication on first use
    - Set `OPENAI_API_KEY` in environment
@@ -544,7 +544,7 @@ Your workspace is now configured with 4 AI CLI tools, each in its own terminal w
 
 Happy coding with AI assistance!
 EOF
-    
+
     log "SUCCESS" "Quick start guide created"
 }
 
@@ -553,22 +553,22 @@ main() {
     log "INFO" "Starting zero-touch AI CLI tools setup..."
     log "INFO" "Working directory: $WORKSPACE_ROOT"
     log "INFO" "Log file: $LOG_FILE"
-    
+
     detect_system
-    
+
     # Install everything
     install_prerequisites
     install_github_cli
     install_claude_code
     install_aider
     install_openai_cli
-    
+
     # Setup environment
     setup_authentication
     create_vscode_workspace
     create_environment_file
     create_quick_start
-    
+
     # Test and report
     log "INFO" "Testing installation..."
     if test_all_tools; then
@@ -580,7 +580,7 @@ main() {
         log "WARNING" "Some tools may need manual configuration"
         log "INFO" "Check the quick start guide for details"
     fi
-    
+
     # Open VS Code if available
     if command -v code >/dev/null 2>&1; then
         log "INFO" "Opening VS Code..."
@@ -588,7 +588,7 @@ main() {
     else
         log "WARNING" "VS Code not found. Install VS Code and open this folder manually."
     fi
-    
+
     log "INFO" "Log file saved to: $LOG_FILE"
 }
 

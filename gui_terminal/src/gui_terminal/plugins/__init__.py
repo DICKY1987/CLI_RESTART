@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol, Any, Dict
+from typing import Any, Dict, Protocol
 
 
 class Plugin(Protocol):  # pragma: no cover - interface
@@ -10,4 +10,3 @@ class Plugin(Protocol):  # pragma: no cover - interface
 
     def activate(self, context: Dict[str, Any]) -> None: ...
     def deactivate(self) -> None: ...
-

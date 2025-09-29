@@ -19,7 +19,7 @@ triggers:
         type: string
         required: true
         max_length: 500
-  
+
   automatic:
     git_hooks: ["pre-commit"]
     file_patterns: ["**/*.py"]
@@ -39,12 +39,12 @@ constraint_sets:
     - git_state
     - file_validation
     - resource_limits
-  
+
   tool_selection:
     - capability_match
     - quota_availability
     - quality_gates
-  
+
   post_execution:
     - quality_validation
     - security_scan
@@ -66,12 +66,12 @@ steps:
           workflow_id: "{{metadata.id}}"
           timestamp: "{{now}}"
           user: "{{git.user.name}}"
-    
+
     on_failure:
       action: abort
       message: "Invalid workflow inputs"
 
-  - id: "1.002" 
+  - id: "1.002"
     name: "Evaluate Constraints & Route"
     actor: constraint_engine
     timeout: 10s
@@ -85,12 +85,12 @@ steps:
         params:
           candidates: ["aider_local", "claude_code", "vscode_editor"]
           fallback_chain: true
-    
+
     outputs:
       selected_tool: "{{constraint_engine.selected_tool}}"
       violations: "{{constraint_engine.violations}}"
       reasoning: "{{constraint_engine.reasoning}}"
-    
+
     on_failure:
       action: route_to_fallback
       fallback_tool: vscode_editor
@@ -103,7 +103,7 @@ steps:
     retry:
       attempts: 2
       strategy: "different_model"
-    
+
     actions:
       - type: cli_execute
         params:
@@ -111,13 +111,13 @@ steps:
           files: "{{input.files}}"
           prompt: "{{input.prompt}}"
           model_fallback: true
-    
+
     validation:
       - type: syntax_check
         language: python
       - type: imports_resolve
       - type: no_obvious_errors
-    
+
     on_failure:
       action: route_to_step
       target: "1.004"
@@ -127,7 +127,7 @@ steps:
     actor: vscode_editor
     when: "{{selected_tool}} == 'vscode_editor' or step['1.003'].failed"
     timeout: 30m
-    
+
     actions:
       - type: open_editor
         params:
@@ -137,7 +137,7 @@ steps:
         params:
           pattern: "{{defaults.commit_prefix}}"
           max_wait: 30m
-    
+
     on_timeout:
       action: prompt_user
       message: "Workflow waiting for your commit. Continue? (y/N)"
@@ -147,29 +147,29 @@ steps:
     actor: system
     critical: true
     parallel: true
-    
+
     tasks:
       lint:
         command: "ruff check {{input.files}}"
         allow_warnings: true
-      
+
       typecheck:
         command: "mypy {{input.files}}"
         allow_warnings: true
-      
+
       test:
         command: "pytest -xvs {{test_pattern}}"
         test_pattern: "test_*{{basename}}.py"
         required: false
-      
+
       security:
         command: "bandit -r {{input.files}}"
         severity_threshold: "medium"
-    
+
     success_criteria:
       required: ["lint", "typecheck"]
       optional: ["test", "security"]
-    
+
     on_failure:
       action: create_fixup_commit
       auto_fix: ["lint"]
@@ -189,7 +189,7 @@ steps:
         params:
           remote: origin
           branch: "{{git.current_branch}}"
-    
+
     on_success:
       - type: cleanup_temp_files
       - type: log_metrics

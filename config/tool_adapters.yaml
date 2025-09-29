@@ -16,32 +16,49 @@ python_quality:
   bandit: true              # Security analysis
   semgrep: true             # Static analysis
 
-# Tool-specific paths (optional - falls back to PATH)
+# Tool-specific paths (configured with discovered tool locations)
 paths:
   # VCS tools
-  git: git                  # Git executable
-  gh: gh                    # GitHub CLI
+  git: "C:\\Program Files\\Git\\cmd\\git.exe"
+  gh: gh                    # GitHub CLI (fallback to PATH)
 
   # Container tools
-  docker: docker            # Docker executable
+  docker: "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe"
 
   # Editor
-  code: code                # VS Code executable
+  code: "C:\\HUEY_P\\Microsoft VS Code\\bin\\code"
 
   # JavaScript runtime
-  node: node                # Node.js executable
-  npx: npx                  # NPX executable
+  node: "C:\\Program Files\\nodejs\\node.exe"
+  npx: npx                  # NPX executable (fallback to PATH)
 
   # AI CLIs
-  claude: claude            # Claude CLI
-  openai: openai            # OpenAI CLI
+  claude: claude            # Claude CLI (fallback to PATH)
+  openai: openai            # OpenAI CLI (fallback to PATH)
+  aider: "C:\\Users\\richard wilks\\.local\\bin\\aider.exe"
+
+  # GitHub CLI
+  gh: "C:\\Program Files\\GitHub CLI\\gh.exe"
+
+  # Package managers
+  npm: "C:\\Program Files\\nodejs\\npm.cmd"
+  winget: "C:\\Users\\Richard Wilks\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe"
+
+  # Container orchestration
+  kubectl: "C:\\Program Files\\Docker\\Docker\\resources\\bin\\kubectl.exe"
+
+  # Python interpreter
+  python: "C:\\Program Files\\Python312\\python.exe"
 
   # Python quality tools
-  pre_commit: pre-commit    # Pre-commit executable
-  ruff: ruff                # Ruff linter
-  mypy: mypy                # MyPy type checker
-  bandit: bandit            # Bandit security scanner
-  semgrep: semgrep          # Semgrep static analyzer
+  pre_commit: pre-commit    # Pre-commit executable (fallback to PATH)
+  ruff: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\ruff.exe"
+  mypy: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\mypy.exe"
+  black: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\black.exe"
+  isort: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\isort.exe"
+  bandit: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\bandit.exe"
+  semgrep: semgrep          # Semgrep static analyzer (fallback to PATH)
+  pytest: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\pytest.exe"
 
 # Tool-specific configuration
 tool_config:
@@ -100,3 +117,45 @@ tool_config:
 
   pre_commit:
     timeout_ms: 120000
+
+  # Additional discovered tools
+  aider:
+    timeout_ms: 180000
+    model: claude-3-5-sonnet-20241022
+
+  pytest:
+    timeout_ms: 120000
+    args:
+      run: ["--tb=short", "-v"]
+      coverage: ["--cov=.", "--cov-report=html"]
+
+  # Additional Python quality tools
+  black:
+    timeout_ms: 30000
+    args:
+      format: ["--check", "--diff"]
+      fix: []
+
+  isort:
+    timeout_ms: 30000
+    args:
+      check: ["--check-only", "--diff"]
+      fix: []
+
+  # GitHub CLI
+  gh:
+    timeout_ms: 60000
+    auth_token_env: GITHUB_TOKEN
+
+  # Package managers
+  npm:
+    timeout_ms: 120000
+    registry: https://registry.npmjs.org/
+
+  winget:
+    timeout_ms: 60000
+
+  # Kubernetes
+  kubectl:
+    timeout_ms: 60000
+    config_file: ~/.kube/config

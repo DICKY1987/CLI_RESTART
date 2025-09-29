@@ -17,7 +17,7 @@ echo    ✅ System Ready!
 echo.
 echo    Try these commands:
 echo    • cli-multi-rapid phase stream list
-echo    • cli-multi-rapid phase stream run stream-a --dry  
+echo    • cli-multi-rapid phase stream run stream-a --dry
 echo    • cli-multi-rapid workflow-status
 echo.
 

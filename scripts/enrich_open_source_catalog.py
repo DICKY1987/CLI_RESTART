@@ -21,9 +21,7 @@ def normalize(name: str) -> str:
 def fetch_awesome_selfhosted() -> Set[str]:
     import urllib.request
 
-    url = (
-        "https://raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/master/README.md"
-    )
+    url = "https://raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/master/README.md"
     with urllib.request.urlopen(url) as resp:
         content = resp.read().decode("utf-8", errors="ignore")
 
@@ -41,8 +39,12 @@ def fetch_awesome_selfhosted() -> Set[str]:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Enrich catalog JSON using awesome-selfhosted for self_hostable flag")
-    ap.add_argument("--input", default=str(Path("P_tests/fixtures/open_source_apps_catalog.json")))
+    ap = argparse.ArgumentParser(
+        description="Enrich catalog JSON using awesome-selfhosted for self_hostable flag"
+    )
+    ap.add_argument(
+        "--input", default=str(Path("P_tests/fixtures/open_source_apps_catalog.json"))
+    )
     ap.add_argument("--output", default=None, help="If omitted, updates in place")
     args = ap.parse_args()
 
@@ -64,10 +66,11 @@ def main() -> None:
                 entry["self_hostable"] = True
                 updated += 1
 
-    outp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    outp.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     print(f"Updated {updated} entries with self_hostable=true. Output: {outp}")
 
 
 if __name__ == "__main__":
     main()
-

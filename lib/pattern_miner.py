@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 
-def mine_sequences(jsonl_path: Path, top_n: int = 5) -> List[Tuple[Tuple[str, ...], int]]:
+def mine_sequences(
+    jsonl_path: Path, top_n: int = 5
+) -> List[Tuple[Tuple[str, ...], int]]:
     """Mine simple sequences of actions from a JSONL audit log.
 
     This is a minimal placeholder that expects lines with a field 'action'.
@@ -29,4 +31,3 @@ def mine_sequences(jsonl_path: Path, top_n: int = 5) -> List[Tuple[Tuple[str, ..
                 sequences.append(tuple(window[-3:]))
     counter = Counter(sequences)
     return counter.most_common(top_n)
-

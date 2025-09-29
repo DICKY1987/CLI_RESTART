@@ -75,7 +75,7 @@ streams:
       - phase10  # Runbooks & On-Call
       - phase11  # Developer Experience
       - phase12  # Governance & Roadmap
-  
+
   - id: stream-complete
     label: Complete All Steps
     name: Local Readiness & Core Checks
@@ -98,4 +98,3 @@ execution_order:
   - parallel: [stream-c, stream-d]
   - sequential: [stream-e]
   - sequential: [stream-complete]
-

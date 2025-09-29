@@ -85,4 +85,3 @@ def load_coordination_config(cwd: Optional[Path] = None) -> CoordinationConfig:
     cfg.network_access = bool(sec.get("network_access", cfg.network_access))
 
     return cfg
-

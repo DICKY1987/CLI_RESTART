@@ -5,7 +5,6 @@ import re
 import sys
 from pathlib import Path
 
-
 PYPROJECT = Path("pyproject.toml")
 
 
@@ -35,7 +34,9 @@ def main(argv: list[str]) -> int:
         return 1
     current = m.group(1)
     newv = bump(current, kind)
-    text = re.sub(r"^version\s*=\s*\"(\d+\.\d+\.\d+)\"", f"version = \"{newv}\"", text, flags=re.M)
+    text = re.sub(
+        r"^version\s*=\s*\"(\d+\.\d+\.\d+)\"", f'version = "{newv}"', text, flags=re.M
+    )
     PYPROJECT.write_text(text, encoding="utf-8")
     print(newv)
     return 0
@@ -43,4 +44,3 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
-

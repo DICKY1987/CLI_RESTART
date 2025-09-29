@@ -7,10 +7,9 @@ Notes:
 """
 from __future__ import annotations
 
-import os
 import json
+import os
 import socket
-from typing import Optional
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -43,6 +42,7 @@ def run_server() -> int:
         return 1
     # Track basic events to a simple buffer for parity checks
     buffer = []
+
     def _evt_sink(evt: dict):
         t = evt.get("type") or ""
         if not t:
@@ -50,10 +50,22 @@ def run_server() -> int:
             if "input.sent" in evt.get("topic", ""):
                 t = "input.sent"
         buffer.append(evt)
+
     try:
-        term.bus.subscribe("input.sent", lambda e: _evt_sink({"type":"input.sent","chars": e.get("chars") if isinstance(e, dict) else None}))
-        term.bus.subscribe("signal.sent", lambda e: _evt_sink({"type":"signal.sent","name":"SIGINT"}))
-        term.bus.subscribe("run.exited", lambda e: _evt_sink({"type":"run.exited"}))
+        term.bus.subscribe(
+            "input.sent",
+            lambda e: _evt_sink(
+                {
+                    "type": "input.sent",
+                    "chars": e.get("chars") if isinstance(e, dict) else None,
+                }
+            ),
+        )
+        term.bus.subscribe(
+            "signal.sent",
+            lambda e: _evt_sink({"type": "signal.sent", "name": "SIGINT"}),
+        )
+        term.bus.subscribe("run.exited", lambda e: _evt_sink({"type": "run.exited"}))
     except Exception:
         pass
 
@@ -76,7 +88,7 @@ def run_server() -> int:
                 if op == "start":
                     cmd = req.get("cmd") or []
                     if not cmd:
-                        resp = {"ok": False, "error":"missing cmd"}
+                        resp = {"ok": False, "error": "missing cmd"}
                     else:
                         # Send command as a single line to the shell
                         line = " ".join(cmd)
@@ -89,12 +101,16 @@ def run_server() -> int:
                     maxb = int(req.get("max", 4096))
                     text = win._output.toPlainText()
                     chunk = text[-maxb:]
-                    conn.sendall(json.dumps({"ok": True, "data": chunk}).encode("utf-8"))
+                    conn.sendall(
+                        json.dumps({"ok": True, "data": chunk}).encode("utf-8")
+                    )
                 elif op == "events":
                     # Return and clear buffered events
                     evs = list(buffer)
                     buffer.clear()
-                    conn.sendall(json.dumps({"ok": True, "events": evs}).encode("utf-8"))
+                    conn.sendall(
+                        json.dumps({"ok": True, "events": evs}).encode("utf-8")
+                    )
                 elif op == "signal":
                     name = (req.get("name") or "SIGINT").upper()
                     if name == "SIGINT":
@@ -110,7 +126,11 @@ def run_server() -> int:
                         running = bool(term.backend.is_alive())
                     except Exception:
                         running = False
-                    conn.sendall(json.dumps({"ok": True, "status": "running" if running else "idle"}).encode("utf-8"))
+                    conn.sendall(
+                        json.dumps(
+                            {"ok": True, "status": "running" if running else "idle"}
+                        ).encode("utf-8")
+                    )
                 elif op == "wait":
                     # Busy-wait small intervals until process exits or timeout
                     timeout = float(req.get("timeout", 5.0))
@@ -124,7 +144,9 @@ def run_server() -> int:
                         except Exception:
                             break
                         time.sleep(0.05)
-                    conn.sendall(json.dumps({"ok": True, "exited": exit_seen}).encode("utf-8"))
+                    conn.sendall(
+                        json.dumps({"ok": True, "exited": exit_seen}).encode("utf-8")
+                    )
                 else:
                     conn.sendall(b'{"ok":false,"error":"unknown op"}')
     finally:
@@ -133,4 +155,3 @@ def run_server() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(run_server())
-

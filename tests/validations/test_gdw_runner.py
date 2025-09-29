@@ -11,4 +11,3 @@ def test_gdw_runner_dry_run():
     assert result["ok"] is True
     assert result["dry_run"] is True
     assert isinstance(result["workflow_id"], str)
-

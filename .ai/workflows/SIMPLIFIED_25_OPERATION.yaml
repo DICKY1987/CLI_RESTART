@@ -1,0 +1,33 @@
+name: Simplified 25-Operation Demo
+simplified: true
+inputs:
+  lane: main
+  files: "**/*.py"
+
+# Minimal example with 25 operations covering the role map
+operations:
+  - { id: 1,  type: plan,      complexity: 2 }
+  - { id: 2,  type: analyze,   complexity: 2 }
+  - { id: 3,  type: design,    complexity: 3 }
+  - { id: 4,  type: edit,      complexity: 2, file_count: 3, file_size_kb: 24 }
+  - { id: 5,  type: modify,    complexity: 2 }
+  - { id: 6,  type: refactor,  complexity: 3, file_count: 5, file_size_kb: 48 }
+  - { id: 7,  type: format,    complexity: 1 }
+  - { id: 8,  type: validate,  complexity: 1, file_count: 10 }
+  - { id: 9,  type: lint,      complexity: 1 }
+  - { id: 10, type: typecheck, complexity: 2 }
+  - { id: 11, type: test,      complexity: 2 }
+  - { id: 12, type: commit,    complexity: 1 }
+  - { id: 13, type: branch,    complexity: 1 }
+  - { id: 14, type: pr,        complexity: 1 }
+  - { id: 15, type: coordinate, complexity: 1 }
+  - { id: 16, type: track_costs, complexity: 1 }
+  - { id: 17, type: edit,      complexity: 4, file_count: 12, file_size_kb: 120 }
+  - { id: 18, type: validate,  complexity: 2, file_count: 20 }
+  - { id: 19, type: analyze,   complexity: 3 }
+  - { id: 20, type: refactor,  complexity: 4, file_count: 8, file_size_kb: 256 }
+  - { id: 21, type: format,    complexity: 1 }
+  - { id: 22, type: test,      complexity: 2 }
+  - { id: 23, type: commit,    complexity: 1 }
+  - { id: 24, type: pr,        complexity: 1 }
+  - { id: 25, type: coordinate, complexity: 1 }

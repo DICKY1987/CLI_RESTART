@@ -1,10 +1,10 @@
 {
   "_comment": "AI Toolchain Installer - Example Configuration File",
   "_description": "This file showcases all available configuration options. Copy to .ai/ai-config.json and customize as needed.",
-  
+
   "python_version": "3.11",
   "node_channel": "LTS",
-  
+
   "install": {
     "_comment": "Control which components to install",
     "docker": true,
@@ -13,7 +13,7 @@
     "pipx": true,
     "wsl2_features": false
   },
-  
+
   "docker": {
     "_comment": "Docker Desktop configuration",
     "auto_start_desktop": false,
@@ -21,14 +21,14 @@
     "add_user_to_group": true,
     "startup_timeout_minutes": 6
   },
-  
+
   "aliases": {
     "_comment": "AI CLI aliases and helpers configuration",
     "enable_advanced": true,
     "enable_codex_mapping": true,
     "enable_qol_helpers": true
   },
-  
+
   "python_requirements": {
     "_comment": "Pinned Python package versions - modify as needed",
     "pip": ">=24.0",
@@ -52,7 +52,7 @@
     "langgraph": "==0.2.29",
     "duckdb": "==1.0.0"
   },
-  
+
   "_usage_examples": {
     "_comment": "How to use different configurations",
     "minimal_setup": {

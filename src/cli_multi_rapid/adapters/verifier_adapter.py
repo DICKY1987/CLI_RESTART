@@ -13,8 +13,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from ..verifier import GateResult, Verifier
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
-from ..verifier import Verifier, GateResult
 
 
 class VerifierAdapter(BaseAdapter):
@@ -45,7 +45,9 @@ class VerifierAdapter(BaseAdapter):
                 artifact = params.get("artifact")
                 schema = params.get("schema")
                 if not artifact:
-                    return AdapterResult(success=False, error="Missing 'artifact' parameter")
+                    return AdapterResult(
+                        success=False, error="Missing 'artifact' parameter"
+                    )
 
                 artifact_path = Path(artifact)
                 schema_path = Path(schema) if schema else None
@@ -83,7 +85,9 @@ class VerifierAdapter(BaseAdapter):
                 if not isinstance(gates, list):
                     return AdapterResult(success=False, error="'gates' must be a list")
 
-                results: List[GateResult] = self._verifier.check_gates(gates, artifacts_dir)
+                results: List[GateResult] = self._verifier.check_gates(
+                    gates, artifacts_dir
+                )
                 passed = all(r.passed for r in results)
 
                 # Build summary and optionally emit
@@ -141,4 +145,3 @@ class VerifierAdapter(BaseAdapter):
     def is_available(self) -> bool:
         # Always available; relies on local JSON and files
         return True
-

@@ -3,23 +3,30 @@ Plugin Manager
 Advanced plugin system with dependency resolution and hot-reloading
 """
 
-import os
-import sys
-import json
 import importlib
 import importlib.util
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Type, Callable
+import json
 import logging
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Type
 
 try:
-    from PyQt6.QtCore import QObject, pyqtSignal, QFileSystemWatcher
+    from PyQt6.QtCore import QFileSystemWatcher, QObject, pyqtSignal
+
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtCore import QObject, pyqtSignal, QFileSystemWatcher
+    from PyQt5.QtCore import QFileSystemWatcher, QObject, pyqtSignal
+
     PYQT_VERSION = 5
 
-from .base_plugin import BasePlugin, UIPlugin, CommandPlugin, IntegrationPlugin, SecurityPlugin
+from .base_plugin import (
+    BasePlugin,
+    CommandPlugin,
+    IntegrationPlugin,
+    SecurityPlugin,
+    UIPlugin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +41,7 @@ class PluginRegistry:
     def register_plugin(self, plugin_id: str, plugin_info: Dict[str, Any]):
         """Register plugin information"""
         self.plugins[plugin_id] = plugin_info
-        self.dependencies[plugin_id] = plugin_info.get('dependencies', [])
+        self.dependencies[plugin_id] = plugin_info.get("dependencies", [])
 
     def get_plugin_info(self, plugin_id: str) -> Optional[Dict[str, Any]]:
         """Get plugin information"""
@@ -106,14 +113,14 @@ class PluginManager(QObject):
 
         # Event handlers
         self.event_handlers = {
-            'terminal_start': [],
-            'terminal_stop': [],
-            'command_executed': [],
-            'output_received': [],
-            'error_occurred': [],
-            'platform_event': [],
-            'cost_update': [],
-            'security_violation': []
+            "terminal_start": [],
+            "terminal_stop": [],
+            "command_executed": [],
+            "output_received": [],
+            "error_occurred": [],
+            "platform_event": [],
+            "cost_update": [],
+            "security_violation": [],
         }
 
         # Load plugins
@@ -125,7 +132,7 @@ class PluginManager(QObject):
         return [
             str(Path.home() / ".gui_terminal" / "plugins"),
             str(Path(__file__).parent / "builtin"),
-            str(Path.cwd() / "plugins")
+            str(Path.cwd() / "plugins"),
         ]
 
     def discover_plugins(self):
@@ -135,9 +142,9 @@ class PluginManager(QObject):
                 continue
 
             for plugin_path in Path(directory).iterdir():
-                if plugin_path.is_file() and plugin_path.suffix == '.py':
+                if plugin_path.is_file() and plugin_path.suffix == ".py":
                     self._discover_file_plugin(plugin_path)
-                elif plugin_path.is_dir() and (plugin_path / '__init__.py').exists():
+                elif plugin_path.is_dir() and (plugin_path / "__init__.py").exists():
                     self._discover_directory_plugin(plugin_path)
 
     def _discover_file_plugin(self, plugin_path: Path):
@@ -154,16 +161,20 @@ class PluginManager(QObject):
             spec.loader.exec_module(module)
 
             # Get plugin info
-            plugin_info = getattr(module, 'PLUGIN_INFO', {
-                'name': plugin_id,
-                'version': '1.0.0',
-                'description': 'No description provided',
-                'author': 'Unknown',
-                'type': 'base'
-            })
+            plugin_info = getattr(
+                module,
+                "PLUGIN_INFO",
+                {
+                    "name": plugin_id,
+                    "version": "1.0.0",
+                    "description": "No description provided",
+                    "author": "Unknown",
+                    "type": "base",
+                },
+            )
 
-            plugin_info['path'] = str(plugin_path)
-            plugin_info['module'] = module
+            plugin_info["path"] = str(plugin_path)
+            plugin_info["module"] = module
 
             self.registry.register_plugin(plugin_id, plugin_info)
             logger.info(f"Discovered plugin: {plugin_id}")
@@ -177,20 +188,20 @@ class PluginManager(QObject):
             plugin_id = plugin_path.name
 
             # Load plugin metadata
-            metadata_file = plugin_path / 'plugin.json'
+            metadata_file = plugin_path / "plugin.json"
             if metadata_file.exists():
                 with open(metadata_file) as f:
                     plugin_info = json.load(f)
             else:
                 plugin_info = {
-                    'name': plugin_id,
-                    'version': '1.0.0',
-                    'description': 'No description provided',
-                    'author': 'Unknown',
-                    'type': 'base'
+                    "name": plugin_id,
+                    "version": "1.0.0",
+                    "description": "No description provided",
+                    "author": "Unknown",
+                    "type": "base",
                 }
 
-            plugin_info['path'] = str(plugin_path)
+            plugin_info["path"] = str(plugin_path)
 
             self.registry.register_plugin(plugin_id, plugin_info)
             logger.info(f"Discovered plugin: {plugin_id}")
@@ -240,10 +251,12 @@ class PluginManager(QObject):
                 return False
 
             # Create plugin instance
-            plugin_instance = plugin_class(plugin_id, plugin_info.get('version', '1.0.0'))
+            plugin_instance = plugin_class(
+                plugin_id, plugin_info.get("version", "1.0.0")
+            )
 
             # Initialize plugin
-            config = plugin_info.get('config', {})
+            config = plugin_info.get("config", {})
             if not plugin_instance.initialize(config):
                 error_msg = f"Plugin {plugin_id} initialization failed"
                 logger.error(error_msg)
@@ -259,7 +272,7 @@ class PluginManager(QObject):
             self._register_event_handlers(plugin_id, plugin_instance)
 
             # Watch plugin file for changes
-            plugin_path = plugin_info.get('path', '')
+            plugin_path = plugin_info.get("path", "")
             if plugin_path and Path(plugin_path).is_file():
                 self.file_watcher.addPath(plugin_path)
 
@@ -275,12 +288,12 @@ class PluginManager(QObject):
 
     def _load_plugin_module(self, plugin_info: Dict[str, Any]):
         """Load plugin module from file or directory"""
-        plugin_path = Path(plugin_info['path'])
+        plugin_path = Path(plugin_info["path"])
 
         if plugin_path.is_file():
             # Load from Python file
             spec = importlib.util.spec_from_file_location(
-                plugin_info['name'], plugin_path
+                plugin_info["name"], plugin_path
             )
             if not spec or not spec.loader:
                 return None
@@ -304,23 +317,25 @@ class PluginManager(QObject):
         """Find plugin class in module"""
         for name in dir(module):
             obj = getattr(module, name)
-            if (isinstance(obj, type) and
-                issubclass(obj, BasePlugin) and
-                obj != BasePlugin):
+            if (
+                isinstance(obj, type)
+                and issubclass(obj, BasePlugin)
+                and obj != BasePlugin
+            ):
                 return obj
         return None
 
     def _register_event_handlers(self, plugin_id: str, plugin: BasePlugin):
         """Register plugin event handlers"""
         handlers = {
-            'terminal_start': plugin.on_terminal_start,
-            'terminal_stop': plugin.on_terminal_stop,
-            'command_executed': plugin.on_command_executed,
-            'output_received': plugin.on_output_received,
-            'error_occurred': plugin.on_error_occurred,
-            'platform_event': plugin.on_platform_event,
-            'cost_update': plugin.on_cost_update,
-            'security_violation': plugin.on_security_violation
+            "terminal_start": plugin.on_terminal_start,
+            "terminal_stop": plugin.on_terminal_stop,
+            "command_executed": plugin.on_command_executed,
+            "output_received": plugin.on_output_received,
+            "error_occurred": plugin.on_error_occurred,
+            "platform_event": plugin.on_platform_event,
+            "cost_update": plugin.on_cost_update,
+            "security_violation": plugin.on_security_violation,
         }
 
         for event_type, handler in handlers.items():
@@ -342,7 +357,8 @@ class PluginManager(QObject):
             # Unregister event handlers
             for event_type in self.event_handlers:
                 self.event_handlers[event_type] = [
-                    (pid, handler) for pid, handler in self.event_handlers[event_type]
+                    (pid, handler)
+                    for pid, handler in self.event_handlers[event_type]
                     if pid != plugin_id
                 ]
 
@@ -356,7 +372,7 @@ class PluginManager(QObject):
             # Stop watching file
             plugin_info = self.registry.get_plugin_info(plugin_id)
             if plugin_info:
-                plugin_path = plugin_info.get('path', '')
+                plugin_path = plugin_info.get("path", "")
                 if plugin_path and Path(plugin_path).is_file():
                     self.file_watcher.removePath(plugin_path)
 
@@ -376,7 +392,7 @@ class PluginManager(QObject):
         # Rediscover plugin
         plugin_info = self.registry.get_plugin_info(plugin_id)
         if plugin_info:
-            plugin_path = Path(plugin_info['path'])
+            plugin_path = Path(plugin_info["path"])
             if plugin_path.is_file():
                 self._discover_file_plugin(plugin_path)
             elif plugin_path.is_dir():
@@ -389,7 +405,7 @@ class PluginManager(QObject):
         # Find plugin by file path
         plugin_id = None
         for pid, plugin_info in self.registry.plugins.items():
-            if plugin_info.get('path') == file_path:
+            if plugin_info.get("path") == file_path:
                 plugin_id = pid
                 break
 
@@ -448,11 +464,15 @@ class PluginManager(QObject):
 
     def get_integration_plugins(self) -> List[IntegrationPlugin]:
         """Get all loaded integration plugins"""
-        return [p for p in self.loaded_plugins.values() if isinstance(p, IntegrationPlugin)]
+        return [
+            p for p in self.loaded_plugins.values() if isinstance(p, IntegrationPlugin)
+        ]
 
     def get_security_plugins(self) -> List[SecurityPlugin]:
         """Get all loaded security plugins"""
-        return [p for p in self.loaded_plugins.values() if isinstance(p, SecurityPlugin)]
+        return [
+            p for p in self.loaded_plugins.values() if isinstance(p, SecurityPlugin)
+        ]
 
     def get_plugin_status(self) -> Dict[str, Dict[str, Any]]:
         """Get status of all plugins"""
@@ -463,14 +483,16 @@ class PluginManager(QObject):
             is_enabled = plugin_id in self.enabled_plugins
 
             status[plugin_id] = {
-                'name': plugin_info.get('name', plugin_id),
-                'version': plugin_info.get('version', '1.0.0'),
-                'type': plugin_info.get('type', 'base'),
-                'loaded': is_loaded,
-                'enabled': is_enabled,
-                'path': plugin_info.get('path', ''),
-                'dependencies': plugin_info.get('dependencies', []),
-                'missing_dependencies': self.registry.check_dependencies(plugin_id) if not is_loaded else []
+                "name": plugin_info.get("name", plugin_id),
+                "version": plugin_info.get("version", "1.0.0"),
+                "type": plugin_info.get("type", "base"),
+                "loaded": is_loaded,
+                "enabled": is_enabled,
+                "path": plugin_info.get("path", ""),
+                "dependencies": plugin_info.get("dependencies", []),
+                "missing_dependencies": (
+                    self.registry.check_dependencies(plugin_id) if not is_loaded else []
+                ),
             }
 
         return status

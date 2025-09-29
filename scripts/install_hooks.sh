@@ -11,4 +11,3 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 echo "Done. Hooks path set to .githooks"
-

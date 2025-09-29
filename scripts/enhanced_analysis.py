@@ -3,11 +3,9 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ART_DIR = REPO_ROOT / "artifacts" / "analysis"
@@ -66,7 +64,7 @@ def finding(
             "line_range": line_range,
             "code_snippet": code_snippet.strip(),
             "supporting_sources": [],
-            "validation_method": "manual_review"
+            "validation_method": "manual_review",
         },
         "description": desc,
         "recommendation": rec,
@@ -80,7 +78,11 @@ def main() -> int:
 
     # Minimal evidence sampling
     readme = REPO_ROOT / "README.md"
-    readme_lines = readme.read_text(encoding="utf-8", errors="ignore").splitlines() if readme.exists() else []
+    readme_lines = (
+        readme.read_text(encoding="utf-8", errors="ignore").splitlines()
+        if readme.exists()
+        else []
+    )
     snippet = "\n".join(readme_lines[:5]) if readme_lines else ""
 
     findings: List[Dict[str, Any]] = []
@@ -170,7 +172,11 @@ def main() -> int:
             "analysis_date": datetime.utcnow().isoformat(),
             "technology_stack": stack or ["python"],
             "atomic_operations_executed": [
-                "atom_001", "atom_002", "atom_003", "atom_004", "atom_005"
+                "atom_001",
+                "atom_002",
+                "atom_003",
+                "atom_004",
+                "atom_005",
             ],
             "self_healing_cycles": 0,
             "quality_score": 92,
@@ -194,4 +200,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

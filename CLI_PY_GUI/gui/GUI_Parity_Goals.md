@@ -17,4 +17,3 @@
 - History & search; Copy-on-select; Bracketed paste.
 - Artifacts pane (watch CWD for new files).
 - Session recorder (.cast).
-

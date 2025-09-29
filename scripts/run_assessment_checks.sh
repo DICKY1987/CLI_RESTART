@@ -17,4 +17,3 @@ echo "== Tests =="
 pytest -q --cov=services || true
 
 echo "All checks executed. Review outputs above."
-

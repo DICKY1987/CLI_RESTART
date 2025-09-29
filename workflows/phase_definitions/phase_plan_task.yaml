@@ -266,7 +266,7 @@ phases:
     rules_in: policy/compliance_rules.json
   - type: runbook
     path: docs/runbooks/emergency_recovery.md
- 
+
 - id: phase_validate_fixes
   title: Validate local fixes via tests
   goals:
