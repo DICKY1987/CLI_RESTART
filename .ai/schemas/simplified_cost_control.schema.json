@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cli-orchestrator.local/schemas/simplified_cost_control.schema.json",
+  "title": "Simplified Cost Control",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "max_tokens": { "type": "integer", "minimum": 0 },
+    "cost_limit": { "type": "string" },
+    "ai_fallback_only": { "type": "boolean" }
+  }
+}
