@@ -597,6 +597,128 @@ def coordination_history(
 tools_app = typer.Typer(name="tools", help="Tool management commands")
 app.add_typer(tools_app, name="tools")
 
+# Pipeline command group (spec-driven bootstrap)
+pipeline_app = typer.Typer(name="pipeline", help="Spec-driven pipeline commands")
+app.add_typer(pipeline_app, name="pipeline")
+
+@pipeline_app.command("validate")
+def pipeline_validate(
+    spec: Path = typer.Argument(
+        ..., help="Path to pipeline implementation spec JSON (e.g., codex_pipeline_implementation_spec.json)"
+    )
+):
+    """Validate the pipeline spec and ensure local config scaffolding exists.
+
+    - Loads the JSON spec
+    - Performs basic structure validation
+    - Creates missing config files (pipeline.yaml, quality_gates.yaml)
+    - Updates .pipeline_state.json with results
+    """
+    try:
+        from .workflow_engine import bootstrap_from_spec
+
+        result = bootstrap_from_spec(spec)
+        ok = bool(result.get("spec_validation_ok"))
+        console.print(
+            f"[bold blue]Spec validation:[/bold blue] {'OK' if ok else 'FAILED'}"
+        )
+        if not ok:
+            missing = (result.get("spec_validation_details") or {}).get(
+                "missing_sections", []
+            )
+            if missing:
+                console.print("[red]Missing sections:[/red] " + ", ".join(missing))
+        # Show generated artifacts
+        artifacts = (result.get("artifacts") or {}).get("config_files", [])
+        if artifacts:
+            console.print("[dim]Config files:[/dim]")
+            for a in artifacts:
+                console.print(f" - {a}")
+        if not ok:
+            raise typer.Exit(code=1)
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        console.print(f"[red]Pipeline validate error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
+@pipeline_app.command("init")
+def pipeline_init(
+    spec: Path = typer.Argument(
+        ..., help="Path to pipeline implementation spec JSON (initialization)"
+    )
+):
+    """Initialize local repository from the pipeline spec (idempotent)."""
+    try:
+        from .workflow_engine import bootstrap_from_spec
+
+        result = bootstrap_from_spec(spec)
+        summary = result.get("spec_summary") or {}
+        console.print(
+            f"[green]Initialized from spec:[/green] {summary.get('name','unknown')} v{summary.get('version','0.0.0')}"
+        )
+        console.print("[dim]State written to .pipeline_state.json[/dim]")
+    except Exception as e:
+        console.print(f"[red]Pipeline init error: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
+@pipeline_app.command("run-400")
+def pipeline_run_400(
+    catalog: Path = typer.Argument(..., help="Path to atom catalog YAML"),
+    mode: str = typer.Option("production", "--mode", help="Execution mode"),
+    classifier_config: Optional[Path] = typer.Option(
+        None, "--config", help="Classifier config JSON (optional)"
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", help="Write summary JSON to this path"
+    ),
+):
+    """Run the 400-atom deterministic pipeline using a YAML catalog."""
+    try:
+        import json
+
+        from .workflow_runner import WorkflowRunner
+
+        cfg: Dict[str, Any] = {}
+        if classifier_config and classifier_config.exists():
+            try:
+                cfg = json.loads(classifier_config.read_text(encoding="utf-8"))
+            except Exception:
+                console.print("[yellow]Classifier config could not be parsed; using defaults[/yellow]")
+
+        runner = WorkflowRunner()
+        result = runner.execute_400_atom_pipeline(str(catalog), cfg, mode)
+
+        # Print concise summary
+        console.print(f"[bold blue]400-atom pipeline:[/bold blue] {'SUCCESS' if result.success else 'FAILED'}")
+        console.print(
+            f"[dim]tokens={result.total_tokens_used}, time={result.total_execution_time:.2f}s, phases={len(result.workflow_results or {})}[/dim]"
+        )
+
+        # Optionally persist summary
+        if output:
+            summary = {
+                "success": result.success,
+                "total_tokens_used": result.total_tokens_used,
+                "total_execution_time": result.total_execution_time,
+                "phases": list((result.workflow_results or {}).keys()),
+            }
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+            console.print(f"[dim]Wrote summary: {output}[/dim]")
+
+        if not result.success:
+            raise typer.Exit(code=1)
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        console.print(f"[red]Pipeline run-400 error: {e}[/red]")
+        raise typer.Exit(code=1)
+
 
 @tools_app.command("doctor")
 def tools_doctor():

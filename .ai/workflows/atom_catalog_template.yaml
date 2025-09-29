@@ -1,0 +1,26 @@
+# Atom Catalog Template for 400-Atom Pipeline
+#
+# Expected structure matches .ai/schemas/atom_catalog.schema.json
+#
+# atoms: list of entries with at least an `id`. Optional fields:
+# - type: short classifier hint (e.g., lint, format, parse, rename, design, rewrite, synthesis)
+# - deterministic: true/false (forces classification)
+# - files: string or list of strings (file patterns touched by this atom)
+
+atoms:
+  - id: atom_001
+    type: lint
+    deterministic: true
+    files: ["src/**/*.py"]
+
+  - id: atom_002
+    type: rewrite
+    deterministic: false
+    files: ["src/cli_multi_rapid/**/*.py"]
+
+  - id: atom_003
+    type: format
+    files: "**/*.md"
+
+  # Add more atoms here...
+

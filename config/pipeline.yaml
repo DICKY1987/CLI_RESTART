@@ -1,0 +1,14 @@
+version: 1
+description: Minimal pipeline config derived from spec
+phases:
+  - id: phase_0
+  - id: phase_1
+  - id: phase_2
+  - id: phase_3
+  - id: phase_4
+  - id: phase_5
+  - id: phase_6
+roles:
+  - id: entry_point_processing
+  - id: complexity_assessment
+  - id: moddoc_initialization

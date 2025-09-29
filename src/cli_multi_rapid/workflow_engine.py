@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from rich.console import Console
 
@@ -40,14 +40,14 @@ class SpecSummary:
 class PipelineSpecLoader:
     """Loads and normalizes the pipeline specification JSON."""
 
-    def load(self, spec_path: Path) -> Dict[str, Any]:
+    def load(self, spec_path: Path) -> dict[str, Any]:
         if not spec_path.exists():
             raise FileNotFoundError(f"Spec file not found: {spec_path}")
         with spec_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
         return data or {}
 
-    def summarize(self, spec: Dict[str, Any]) -> SpecSummary:
+    def summarize(self, spec: dict[str, Any]) -> SpecSummary:
         meta = spec.get("metadata") or {}
         return SpecSummary(
             name=str(meta.get("specification_name", "unknown")),
@@ -64,7 +64,7 @@ class PipelineState:
     def __init__(self, path: Path = STATE_FILE):
         self.path = path
 
-    def read(self) -> Dict[str, Any]:
+    def read(self) -> dict[str, Any]:
         if not self.path.exists():
             return {}
         try:
@@ -73,14 +73,14 @@ class PipelineState:
         except Exception:
             return {}
 
-    def write(self, state: Dict[str, Any]) -> None:
+    def write(self, state: dict[str, Any]) -> None:
         try:
             with self.path.open("w", encoding="utf-8") as f:
                 json.dump(state, f, indent=2)
         except Exception as e:
             console.print(f"[yellow]Failed to persist pipeline state: {e}[/yellow]")
 
-    def update(self, **kwargs: Any) -> Dict[str, Any]:
+    def update(self, **kwargs: Any) -> dict[str, Any]:
         cur = self.read()
         cur.update(kwargs)
         self.write(cur)
@@ -90,12 +90,12 @@ class PipelineState:
 class PipelineScaffolder:
     """Generates repo config files from the spec (idempotent)."""
 
-    def __init__(self, repo_root: Optional[Path] = None):
+    def __init__(self, repo_root: Path | None = None):
         self.root = repo_root or Path.cwd()
         self.config_dir = self.root / "config"
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
-    def ensure_pipeline_yaml(self, spec: Dict[str, Any]) -> Path:
+    def ensure_pipeline_yaml(self, spec: dict[str, Any]) -> Path:
         """Create a minimal pipeline.yaml if missing, based on spec outline."""
         path = self.config_dir / "pipeline.yaml"
         if path.exists():
@@ -119,7 +119,7 @@ class PipelineScaffolder:
         path.write_text("\n".join(content) + "\n", encoding="utf-8")
         return path
 
-    def ensure_quality_gates_yaml(self, spec: Dict[str, Any]) -> Path:
+    def ensure_quality_gates_yaml(self, spec: dict[str, Any]) -> Path:
         """Create quality_gates.yaml if missing using validation requirements."""
         path = self.config_dir / "quality_gates.yaml"
         if path.exists():
@@ -150,7 +150,7 @@ class PipelineScaffolder:
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return path
 
-    def ensure_tools_yaml_alignment(self) -> Tuple[Path, bool]:
+    def ensure_tools_yaml_alignment(self) -> tuple[Path, bool]:
         """Ensure tools.yaml exists (do not overwrite). Return path and created?"""
         path = self.config_dir / "tools.yaml"
         created = False
@@ -182,10 +182,10 @@ class PipelineValidator:
         "deployment_specification",
     ]
 
-    def validate_spec(self, spec: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
+    def validate_spec(self, spec: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
         missing = [k for k in self.REQUIRED_TOP_LEVEL if k not in spec]
         ok = len(missing) == 0
-        details: Dict[str, Any] = {"missing_sections": missing}
+        details: dict[str, Any] = {"missing_sections": missing}
         # Basic sanity checks
         meta = spec.get("metadata") or {}
         for field in ("specification_name", "version"):
@@ -194,7 +194,7 @@ class PipelineValidator:
                 ok = False
         return ok, details
 
-    def validate_local_setup(self, repo_root: Optional[Path] = None) -> Dict[str, Any]:
+    def validate_local_setup(self, repo_root: Path | None = None) -> dict[str, Any]:
         root = repo_root or Path.cwd()
         checks = {
             "python_version_req": "3.9+",  # informative only
@@ -207,7 +207,7 @@ class PipelineValidator:
         return checks
 
 
-def bootstrap_from_spec(spec_path: Path) -> Dict[str, Any]:
+def bootstrap_from_spec(spec_path: Path) -> dict[str, Any]:
     """Load, validate, scaffold configs, and persist state summary."""
     loader = PipelineSpecLoader()
     validator = PipelineValidator()
