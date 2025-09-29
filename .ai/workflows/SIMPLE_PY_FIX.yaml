@@ -1,9 +1,12 @@
-name: "Code Quality Check"
-description: "Run comprehensive code quality checks with deterministic tools"
+name: "Simple Python Fix"
+description: "Diagnose, auto-fix style/type issues, and run tests"
+
+framework_version: "simplified-25ops"
+simplified: true
 
 inputs:
   files: ["src/**/*.py", "tests/**/*.py"]
-  lane: "lane/quality/auto-fixes"
+  lane: "lane/quality/quick-fix"
 
 policy:
   max_tokens: 8000
@@ -12,38 +15,39 @@ policy:
   cost_limit: "$1.50"
   ai_fallback_only: true
 
+role_assignments:
+  planner: "orchestrator"
+  editor: "code_fixers"
+  reviewer: "verifier"
+
 steps:
-  - id: "1.001"
-    name: "Run Diagnostic Analysis"
+  - id: "S1"
+    name: "Diagnostics"
     actor: vscode_diagnostics
     with:
       analyzers: ["ruff", "mypy", "python"]
     emits: ["artifacts/diagnostics.json"]
 
-  - id: "1.002"
-    name: "Apply Code Fixes"
+  - id: "S2"
+    name: "Apply Fixes"
     actor: code_fixers
     with:
       tools: ["ruff", "black", "isort"]
     emits: ["artifacts/code_fixes.diff"]
 
-  - id: "1.003"
-    name: "Run Test Suite"
+  - id: "S3"
+    name: "Run Tests"
     actor: pytest_runner
     with:
       path: "tests/"
       coverage: true
     emits: ["artifacts/test_report.json"]
 
-  - id: "1.004"
-    name: "Quality Gates"
+  - id: "S4"
+    name: "Gates"
     actor: verifier
     with:
       checks:
-        - type: "schema_valid"
-          name: "Cost Registry Schema"
-          file: "config/cost_registry.yaml"
-          schema: ".ai/schemas/cost_registry.schema.json"
         - type: "tests_pass"
           from: "artifacts/test_report.json"
         - type: "diff_limits"

@@ -39,6 +39,9 @@ concurrency:
 
 env:
   PYTHONPATH: src
+  SIMPLIFIED_MAX_TOKENS: 8000
+  SIMPLIFIED_COST_LIMIT_USD: "1.50"
+  SIMPLIFIED_AI_FALLBACK_ONLY: "true"
 
 jobs:
   detect-workflow:
@@ -73,6 +76,10 @@ jobs:
               echo "should_run=true" >> $GITHUB_OUTPUT
             elif echo "$comment" | grep -q "/claude release"; then
               echo "workflow=GITHUB_RELEASE_MANAGEMENT" >> $GITHUB_OUTPUT
+              echo "should_run=true" >> $GITHUB_OUTPUT
+            elif echo "$comment" | grep -q "/claude simple-edit\|/claude quick-fix\|/claude triage-only"; then
+              # Map simplified commands to existing automation with reduced budgets
+              echo "workflow=GITHUB_ISSUE_AUTOMATION" >> $GITHUB_OUTPUT
               echo "should_run=true" >> $GITHUB_OUTPUT
             else
               echo "should_run=false" >> $GITHUB_OUTPUT

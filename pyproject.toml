@@ -25,10 +25,12 @@ classifiers = [
 dependencies = [
     "typer>=0.9.0",
     "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
     "rich>=13.0.0",
     "PyYAML>=6.0",
     "jsonschema>=4.0.0",
     "requests>=2.25.0",
+    "typing-extensions>=4.7.0",
 ]
 
 [project.urls]
@@ -37,6 +39,8 @@ Repository = "https://github.com/DICKY1987/cli_multi_rapid_DEV"
 
 [project.scripts]
 cli-orchestrator = "cli_multi_rapid.main:main"
+simplified-run = "cli_multi_rapid.cli:simplified_run"
+cost-check = "cli_multi_rapid.cost:check_budget"
 
 [project.optional-dependencies]
 ai = [
