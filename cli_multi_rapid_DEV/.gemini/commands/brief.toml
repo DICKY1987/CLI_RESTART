@@ -1,5 +1,0 @@
-name = "//brief"
-description = "Create change_brief.yaml for this repo"
-shell = true
-command = "gemini -i 'Inspect repo and output change_brief.yaml matching .det-tools/schemas/plan.schema.json'"
-

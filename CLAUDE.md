@@ -6,6 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **CLI Orchestrator** - a deterministic, schema-driven CLI orchestrator that stitches together multiple developer tools and AI agents into predefined, auditable workflows. It prioritizes scripts first, escalates to AI only where judgment is required, and emits machine-readable artifacts with gates and verification at every hop.
 
+The project is multi-faceted, combining:
+1. **Core CLI Orchestrator**: Workflow engine with adapter-based architecture
+2. **Trading System Integration**: EA (Expert Advisor) system with contract models for algorithmic trading
+3. **Agentic Framework**: Symbiotic AI system for automated code modifications
+4. **GUI Components**: Python-based terminal GUI with PTY backend
+5. **VS Code Extension**: IDE integration for orchestrator workflows
+6. **DevOps Infrastructure**: Docker, Kubernetes, monitoring, and CI/CD pipelines
+
 ## Core Architecture
 
 ### Key Components
@@ -18,12 +26,27 @@ This is the **CLI Orchestrator** - a deterministic, schema-driven CLI orchestrat
 
 ### Directory Structure
 - `src/cli_multi_rapid/`: Core orchestrator implementation
-- `.ai/workflows/`: YAML workflow definitions (schema-validated)
-- `.ai/schemas/`: JSON Schema definitions for validation
-- `adapters/`: Tool and AI adapter implementations
+  - `adapters/`: Adapter implementations (AI, code fixers, git ops, etc.)
+  - `contracts/`: Data models and contract definitions
+- `src/eafix/`: EA (Expert Advisor) trading system integration
+  - `apps/cli/`: CLI commands for trading operations
+  - `system/`: Health checking and system monitoring
+- `src/contracts/`: Trading contract models (signals, orders, execution)
+- `.ai/`: AI and workflow configuration
+  - `workflows/`: YAML workflow definitions (schema-validated)
+  - `schemas/`: JSON Schema definitions for validation
+  - `bundles/`: Atomic change bundles for code modifications
+  - `scripts/`: AI-related scripts and automation
+  - `prompts/`: Prompt templates for AI interactions
 - `artifacts/`: Workflow execution artifacts (patches, reports)
 - `logs/`: JSONL execution logs and telemetry
 - `cost/`: Token usage tracking and budget reports
+- `workflows/`: Workflow templates and phase definitions
+- `CLI_PY_GUI/`: Python GUI components
+  - `gui_terminal/`: Terminal GUI with PTY backend
+- `vscode-extension/`: VS Code extension for IDE integration
+- `scripts/`: Build, deployment, and automation scripts
+- `config/`: Configuration files (pipelines, tools, policies)
 
 ## Common Development Commands
 
@@ -35,8 +58,14 @@ pip install -e .
 # Install with AI tools support
 pip install -e .[ai]
 
-# Install with development tools
-pip install -e .[dev]
+# Install with all development tools
+pip install -e .[dev,ai,test]
+
+# Set up development environment (includes pre-commit hooks)
+nox -s dev_setup
+
+# Install VS Code extension dependencies
+cd vscode-extension && npm ci
 ```
 
 ### CLI Usage
@@ -55,14 +84,76 @@ cli-orchestrator pr create --from artifacts/ --title "Auto triage & fixes" --lan
 
 # Generate cost report
 cli-orchestrator cost report --last-run
+
+# Run simplified workflow
+simplified-run --workflow .ai/workflows/SIMPLE_PY_FIX.yaml
+
+# Check budget/cost limits
+cost-check
+```
+
+### Alternative Build Systems
+
+#### Make (Cross-platform)
+```bash
+# See all available commands
+make help
+
+# Install development dependencies
+make install-dev
+
+# Run full test suite with coverage
+make test-all
+
+# Run linting and formatting
+make lint format
+
+# Run full CI pipeline locally
+make ci
+```
+
+#### Task (Go Task)
+```bash
+# Quick local validation (lint + tests)
+task local
+
+# Run CI checks
+task ci
+
+# Run Docker Compose smoke test
+task e2e
+
+# Create .env from template
+task dotenv
+```
+
+#### Nox (Python sessions)
+```bash
+# Run tests across Python versions
+nox -s tests
+
+# Run integration tests (cost-controlled)
+nox -s integration_tests
+
+# Run linting and formatting
+nox -s lint
+
+# Run security checks
+nox -s security
 ```
 
 ### Development Tools
 ```bash
 # Run tests
-python -m pytest tests/ -v --cov=src
+pytest tests/ -v --cov=src
 
-# Run code quality checks
+# Run specific test file
+pytest tests/test_workflow_runner.py -v
+
+# Run tests with markers
+pytest tests/integration/ -m "not expensive"
+
+# Code quality checks
 ruff check src/ tests/ --fix
 black src/ tests/
 isort src/ tests/ --profile black
@@ -70,6 +161,10 @@ mypy src/ --ignore-missing-imports
 
 # Run pre-commit hooks
 pre-commit run --all-files
+
+# Security scanning
+bandit -r src/ -f json -o bandit-report.json
+safety check
 ```
 
 ## Workflow Development
@@ -95,13 +190,25 @@ steps:
 ```
 
 ### Available Actors
+Core adapters available in `src/cli_multi_rapid/adapters/`:
+
 - **vscode_diagnostics**: Run diagnostic analysis (ruff, mypy, etc.)
 - **code_fixers**: Apply deterministic fixes (black, isort, ruff --fix)
 - **ai_editor**: AI-powered code editing (aider, claude, gemini)
+- **ai_analyst**: AI-powered code analysis and insights
 - **pytest_runner**: Run tests with coverage reporting
 - **verifier**: Check gates and validate artifacts
 - **git_ops**: Enhanced git operations with GitHub API integration (repos, issues, PRs, releases)
 - **github_integration**: Specialized GitHub repository analysis, issue triage, and automation
+- **security_scanner**: Security vulnerability scanning
+- **syntax_validator**: Syntax validation for multiple languages
+- **type_checker**: Static type checking
+- **import_resolver**: Import path resolution and fixing
+- **contract_validator**: Validate contracts against schemas
+- **bundle_loader**: Load and apply code modification bundles
+- **cost_estimator**: Estimate token costs before execution
+- **backup_manager**: Create and restore backups
+- **state_capture**: Capture repository state for rollback
 
 ### Gate Types
 - **tests_pass**: Verify tests pass from test report
@@ -133,9 +240,74 @@ steps:
 ## Testing Strategy
 
 - Unit tests for core components (`tests/`)
-- Integration tests for workflow execution
+- Integration tests for workflow execution (`tests/integration/`)
 - Schema validation tests for all artifacts
 - Mock adapters for isolated testing
+- Cost-controlled integration tests (marked with `not expensive`)
+- Coverage requirements: ≥85% for CI
+
+## Agentic Drop-In System
+
+The repository includes a symbiotic agentic system for automated code modifications:
+
+### Setup
+```bash
+# Install hooks (POSIX)
+bash scripts/install_hooks.sh
+
+# Install hooks (Windows PowerShell)
+./scripts/install_hooks.ps1
+
+# Or manually configure
+git config core.hooksPath .githooks
+```
+
+### Usage
+```bash
+# Run symbiotic workflow
+python scripts/symbiotic.py "Feature description"
+
+# Inspect results
+cat .ai/manifest.json
+cat .ai/.ai-audit.jsonl
+git diff
+```
+
+### Key Components
+- **Agentic Router**: Lightweight routing in `agentic/`
+- **Validators/Mutators**: Enforced gates with audit logging
+- **GitHub Workflow**: `.github/workflows/agentic.yml` runs SAST/SCA
+- **VS Code Tasks**: `.vscode/tasks.json` provides IDE integration
+
+## VS Code Integration
+
+### Extension Development
+```bash
+# Navigate to extension directory
+cd vscode-extension
+
+# Install dependencies
+npm ci
+
+# Build extension
+npm run build
+
+# Package extension
+npm run package
+
+# Lint and format
+npm run lint
+npm run lint:fix
+```
+
+### Available Workflows
+- `PY_EDIT_TRIAGE.yaml`: Python code triage and fixes
+- `SIMPLE_PY_FIX.yaml`: Quick Python fixes
+- `CODE_QUALITY.yaml`: Comprehensive quality checks
+- `GITHUB_REPO_ANALYSIS.yaml`: Repository health analysis
+- `GITHUB_ISSUE_AUTOMATION.yaml`: Issue triage and labeling
+- `GITHUB_PR_REVIEW.yaml`: PR analysis and review
+- `GITHUB_RELEASE_MANAGEMENT.yaml`: Release planning
 
 ## GitHub Integration
 
@@ -385,9 +557,73 @@ cli-orchestrator config github --validate --verbose
 cli-orchestrator github test-api --repo owner/repo
 ```
 
+## Docker and Deployment
+
+### Docker Compose
+```bash
+# Start all services
+docker-compose up -d
+
+# Start with build
+docker-compose up -d --build
+
+# Check service health
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+### Local Stack
+```bash
+# Start local stack with monitoring
+docker-compose -f config/docker-compose.yml up -d
+
+# Run health check
+python scripts/healthcheck.py http://localhost:5055/health
+
+# Task runner for e2e testing
+task e2e
+```
+
+### Kubernetes Deployment
+Configuration available in `deploy/k8s/`:
+- Helm charts: `deploy/k8s/helm/`
+- Network policies: `deploy/k8s/networkpolicy.yaml`
+- External secrets: `deploy/k8s/external-secret.yaml`
+
+### Monitoring
+- Prometheus configuration: `monitoring/prometheus.yml`
+- Grafana dashboards: `monitoring/grafana-dashboards.yml`
+- Alerts: `monitoring/alerts.yml`
+
 ## Dependencies
 
-- **Core**: typer, pydantic, rich, PyYAML, jsonschema, requests
-- **GitHub Integration**: requests (for GitHub API)
-- **Optional AI**: aider-chat (for AI-powered editing)
-- **Development**: pytest, black, isort, ruff, mypy
+- **Core**: typer, pydantic, pydantic-settings, rich, PyYAML, jsonschema, requests, typing-extensions
+- **GitHub Integration**: requests (for GitHub API), gh CLI (optional)
+- **Optional AI**: aider-chat, anthropic, openai
+- **Development**: pytest, pytest-cov, pytest-asyncio, pytest-mock, black, isort, ruff, mypy, pre-commit
+- **Security**: bandit, safety
+- **Multi-version Testing**: nox
+
+## Environment Configuration
+
+The project uses environment variables for configuration. Copy `.env.template` or `.env.example` to `.env`:
+
+```bash
+# Quick setup
+cp .env.template .env
+
+# Or use task
+task dotenv
+```
+
+Key environment variables:
+- `GITHUB_TOKEN`: GitHub Personal Access Token
+- `ANTHROPIC_API_KEY`: Claude API key (optional)
+- `OPENAI_API_KEY`: OpenAI API key (optional)
+- Cost and budget limits
+- Service endpoints and ports

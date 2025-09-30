@@ -1,8 +1,0 @@
-# Prefer regenerating lockfiles/generated assets over fighting conflicts
-package-lock.json merge=ours
-yarn.lock          merge=ours
-pnpm-lock.yaml     merge=ours
-poetry.lock        merge=ours
-*.min.js           merge=union
-*.generated.*      merge=ours
-
