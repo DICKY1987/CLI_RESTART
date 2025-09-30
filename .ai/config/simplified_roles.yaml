@@ -1,0 +1,5 @@
+planner: orchestrator
+editor: code_fixers
+reviewer: verifier
+tester: pytest_runner
+analyzer: vscode_diagnostics

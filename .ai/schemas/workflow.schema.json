@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Workflow",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "simplified_operation": {
+      "title": "Simplified Operation",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": ["string", "number", "null"] },
+        "type": { "type": ["string", "null"] },
+        "complexity": { "type": ["integer", "number", "null"], "minimum": 0 },
+        "file_count": { "type": ["integer", "number", "null"], "minimum": 0 },
+        "file_size_kb": { "type": ["integer", "number", "null"], "minimum": 0 }
+      }
+    },
+    "role_assignments": {
+      "title": "Role Assignments",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "planner": { "type": ["string", "null"] },
+        "editor": { "type": ["string", "null"] },
+        "reviewer": { "type": ["string", "null"] },
+        "tester": { "type": ["string", "null"] },
+        "analyzer": { "type": ["string", "null"] }
+      }
+    },
+    "cost_enforcement": {
+      "title": "Cost Enforcement",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "max_tokens": { "type": ["integer", "null"], "minimum": 0 },
+        "cost_limit": { "type": ["string", "null"] },
+        "ai_fallback_only": { "type": ["boolean", "null"] }
+      }
+    }
+  },
+  "properties": {
+    "name": { "type": ["string", "null"] },
+    "simplified": { "type": ["boolean", "null"] },
+    "framework_version": { "type": ["string", "null"], "enum": ["simplified-25ops", null] },
+    "policy": { "$ref": "#/$defs/cost_enforcement" },
+    "role_assignments": { "$ref": "#/$defs/role_assignments" },
+    "steps": { "type": ["array", "null"] },
+    "operations": {
+      "type": ["array", "null"],
+      "items": { "$ref": "#/$defs/simplified_operation" }
+    }
+  }
+}

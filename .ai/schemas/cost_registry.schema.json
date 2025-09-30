@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/cost_registry.schema.json",
+  "title": "AI Tool Cost & Limits Registry",
+  "type": "object",
+  "required": ["version", "as_of", "vendors"],
+  "properties": {
+    "version": {"type": ["string", "integer"]},
+    "as_of": {"type": "string"},
+    "vendors": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "docs_url": {"type": "string"},
+          "models": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "input_per_1k": {"type": "number"},
+                "output_per_1k": {"type": "number"},
+                "per_1k": {"type": "number"},
+                "rpm_limit": {"type": ["integer", "null"]},
+                "tpm_limit": {"type": ["integer", "null"]},
+                "note": {"type": ["string", "null"]},
+                "last_verified": {"type": ["string", "null"]}
+              },
+              "additionalProperties": false,
+              "anyOf": [
+                {"required": ["per_1k"]},
+                {"required": ["input_per_1k"]},
+                {"required": ["output_per_1k"]}
+              ]
+            }
+          }
+        },
+        "required": ["models"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

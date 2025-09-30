@@ -1,0 +1,44 @@
+# Canonical cost and usage limits registry for AI tools/models
+# Validate with .ai/schemas/cost_registry.schema.json
+
+version: 1
+as_of: "2025-09-27"
+vendors:
+  openai:
+    docs_url: "https://platform.openai.com/pricing"
+    models:
+      gpt-4o-mini:
+        input_per_1k: 0.15
+        output_per_1k: 0.60
+        rpm_limit: 3000
+        tpm_limit: 3000000
+        last_verified: "2025-09-20"
+      gpt-4:
+        # Example legacy default used in code comments
+        per_1k: 0.06
+        rpm_limit: null
+        tpm_limit: null
+        last_verified: null
+
+  anthropic:
+    docs_url: "https://www.anthropic.com/pricing"
+    models:
+      claude-3-5-sonnet:
+        input_per_1k: 3.00
+        output_per_1k: 15.00
+        rpm_limit: 1000
+        tpm_limit: 1000000
+        last_verified: "2025-09-21"
+      claude-3:
+        per_1k: 0.08
+        rpm_limit: null
+        tpm_limit: null
+        last_verified: null
+
+  ollama:
+    models:
+      qwen2.5-coder-14b:
+        per_1k: 0.0
+        note: "Local model; track compute separately"
+        last_verified: "2025-09-22"
+

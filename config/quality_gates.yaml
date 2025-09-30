@@ -1,0 +1,13 @@
+version: 1
+unit_tests:
+  coverage_min: 90
+integration_tests:
+  scenarios:
+    - simple_modification
+    - complex_refactor
+    - multi_workstream
+    - failure_recovery
+performance:
+  simple_modification: "< 60 seconds"
+  medium_complexity: "< 300 seconds"
+  complex_refactor: "< 900 seconds"

@@ -1,0 +1,56 @@
+name: "Simple Python Fix"
+description: "Diagnose, auto-fix style/type issues, and run tests"
+
+framework_version: "simplified-25ops"
+simplified: true
+
+inputs:
+  files: ["src/**/*.py", "tests/**/*.py"]
+  lane: "lane/quality/quick-fix"
+
+policy:
+  max_tokens: 8000
+  prefer_deterministic: true
+  timeout_minutes: 5
+  cost_limit: "$1.50"
+  ai_fallback_only: true
+
+role_assignments:
+  planner: "orchestrator"
+  editor: "code_fixers"
+  reviewer: "verifier"
+
+steps:
+  - id: "S1"
+    name: "Diagnostics"
+    actor: vscode_diagnostics
+    with:
+      analyzers: ["ruff", "mypy", "python"]
+    emits: ["artifacts/diagnostics.json"]
+
+  - id: "S2"
+    name: "Apply Fixes"
+    actor: code_fixers
+    with:
+      tools: ["ruff", "black", "isort"]
+    emits: ["artifacts/code_fixes.diff"]
+
+  - id: "S3"
+    name: "Run Tests"
+    actor: pytest_runner
+    with:
+      path: "tests/"
+      coverage: true
+    emits: ["artifacts/test_report.json"]
+
+  - id: "S4"
+    name: "Gates"
+    actor: verifier
+    with:
+      checks:
+        - type: "tests_pass"
+          from: "artifacts/test_report.json"
+        - type: "diff_limits"
+          max_files: 20
+          max_insertions: 500
+    on_fail: "stop"
