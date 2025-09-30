@@ -1,0 +1,302 @@
+# deterministic_github_ops.v2.yaml
+# One-file, deterministic Git/GitHub CI/CD module (commands + policy + pipelines + Actions triggers)
+# Combines original commands with new bundled super-commands and wiring.
+# Drop this at: .det-tools/config/deterministic_github_ops.v2.yaml
+
+meta:
+  module: deterministic_github_ops
+  version: "2.0"
+  philosophy: >
+    All Git/GitHub operations are deterministic, invisible to users, and bundled into resilient
+    super-commands. Users never type raw git; the system handles branching, syncing, merging,
+    releases, issue triage, and cleanup automatically at configurable save points.
+
+paths:
+  scripts_bash: ./.det-tools/scripts
+  scripts_pwsh: ./.det-tools/scripts
+  out_dir: ./.det-tools/out
+  audit_dir: ./.det-tools/audit
+  config_dir: ./.det-tools/config
+
+config:
+  github:
+    default_branch: main
+    auto_merge: true
+    require_reviews: 1
+    merge_strategy: squash            # squash | merge | rebase
+    auto_delete_merged: true
+    keep_branches_days: 7
+    commit_conventions: conventional  # feat/fix/chore/docs...
+    auto_sign: true                   # enable GPG/Sigstore by default
+    branch_naming:
+      feature: "feature/${pipeline_id}/${workstream}/${timestamp}"
+      integration: "integration/${pipeline_id}"
+      rollback: "rollback/${timestamp}"
+    conflict_resolution:
+      strategy: semantic_with_rerere  # enables git rerere + semantic rules
+      rules:
+        - pattern: "*.json"
+          strategy: theirs
+        - pattern: "*.lock"
+          strategy: theirs
+        - pattern: "src/**/*.py"
+          strategy: patience_3way
+    hooks:
+      pre-commit: [lint, test, secret-scan]
+      commit-msg: [conventional-commits]
+      pre-push: [tests, lfs-guard]
+  retry_strategy:
+    max_attempts: 3
+    backoff: exponential
+    backoff_base_seconds: 2
+    timeout_seconds: 30
+
+# --- COMMANDS ---
+# New super-commands + Original commands (intact), expressed declaratively.
+commands:
+
+  # ========= New / Improved =========
+
+  - name: gh-setup-policy
+    purpose: One-shot repository bootstrap with safety defaults
+    replaces_concepts: [branch_protection_manual, codeowners_manual, commit_signing_setup]
+    implementation:
+      steps:
+        - enforce_branch_protection: {no_force_push_main: true, required_checks: true}
+        - install_codeowners: {path: .github/CODEOWNERS}
+        - setup_commit_signing: {gpg: true, sign_by_default: true}
+        - enforce_conventional_commits: true
+      outputs: "${paths.out_dir}/policy_report.json"
+
+  - name: gh-workstream
+    purpose: Complete lifecycle: init → edit → checkpoint → PR → auto-merge → cleanup
+    bundles: [gh-init-workspace, gh-checkpoint, gh-sync-remote, gh-create-pr, gh-cleanup-branches]
+    implementation:
+      steps:
+        - run: gh-init-workspace
+        - run_pipeline_edits_tests: true        # your build/test jobs run here
+        - run: gh-checkpoint
+        - run: gh-sync-remote
+        - run: gh-create-pr
+        - wait_for: ci_checks_and_reviews
+        - auto_merge: true
+        - run: gh-cleanup-branches
+      outputs: "${paths.out_dir}/workstream_report.json"
+
+  - name: gh-merge-train
+    purpose: Deterministic merge queue for multiple PRs
+    implementation:
+      steps:
+        - queue_prs: by_arrival
+        - create_ephemeral_integration_branch: true
+        - for_each_in_queue:
+            - merge_test_validate_sequentially: true
+            - if_green_auto_land: true
+      outputs: "${paths.out_dir}/merge_train.json"
+
+  - name: gh-semantic-merge
+    purpose: Smart merge resolution for JSON/YAML/lockfiles with persistent learning
+    implementation:
+      steps:
+        - enable_git_rerere: true
+        - apply_semantic_resolvers:
+            yaml_json_merge: true
+            lockfile_prefer_theirs: true
+            code_patience_3way: true
+      outputs: "${paths.out_dir}/semantic_merge.json"
+
+  - name: gh-release
+    purpose: One-shot release pipeline (tag, changelog, assets)
+    implementation:
+      steps:
+        - determine_version_from_commits: conventional
+        - tag_and_sign_release: true
+        - generate_changelog: true
+        - upload_assets: ["artifacts/**"]
+      outputs: "${paths.out_dir}/release_info.json"
+
+  - name: gh-issue-triage
+    purpose: Deterministic issue lifecycle automation
+    implementation:
+      steps:
+        - sync_labels_from_file: .github/labels.yaml
+        - auto_assign_by_codeowners: true
+        - close_issues_on_merge_keywords: true
+      outputs: "${paths.out_dir}/issue_triage.json"
+
+  # ========= Original (kept intact) =========
+
+  - name: gh-init-workspace
+    purpose: Initialize isolated workspace with proper branch strategy
+    bash: "${paths.scripts_bash}/gh_init_workspace.sh"
+    pwsh: "${paths.scripts_pwsh}/GH-Init-Workspace.ps1"
+    outputs: "${paths.out_dir}/workspace.json"
+    success_criteria:
+      - "Workspace directory exists"
+      - "Git configured correctly"
+      - "Branch created and checked out"
+      - "Remote tracking established"
+
+  - name: gh-checkpoint
+    purpose: Atomic save point - commits and syncs current state to remote
+    bash: "${paths.scripts_bash}/gh_checkpoint.sh"
+    pwsh: "${paths.scripts_pwsh}/GH-Checkpoint.ps1"
+    outputs: "${paths.out_dir}/checkpoint.json"
+    success_criteria:
+      - "Changes committed locally"
+      - "Remote synchronized"
+      - "Checkpoint registered"
+
+  - name: gh-sync-remote
+    purpose: Bidirectional sync - fetch remote changes and push local state
+    bash: "${paths.scripts_bash}/gh_sync_remote.sh"
+    pwsh: "${paths.scripts_pwsh}/GH-Sync-Remote.ps1"
+    outputs: "${paths.out_dir}/sync_status.json"
+    conflict_strategy:
+      - {pattern: "*.json", keep: theirs}
+      - {pattern: "*.lock", keep: theirs}
+      - {pattern: "generated/**", keep: ours}
+
+  - name: gh-merge-workstreams
+    purpose: Merge multiple parallel workstream branches without conflicts
+    bash: "${paths.scripts_bash}/gh_merge_workstreams.sh"
+    pwsh: "${paths.scripts_pwsh}/GH-Merge-Workstreams.ps1"
+    outputs:
+      - "${paths.out_dir}/merge_result.json"
+      - "${paths.out_dir}/conflicts_resolved.json"
+
+  - name: gh-create-pr
+    purpose: Create or update pull request with complete context
+    bash: "${paths.scripts_bash}/gh_create_pr.sh"
+    pwsh: "${paths.scripts_pwsh}/GH-Create-PR.ps1"
+    outputs: "${paths.out_dir}/pr_info.json"
+
+  - name: gh-cleanup-branches
+    purpose: Clean up temporary branches and worktrees after merge
+    bash: "${paths.scripts_bash}/gh_cleanup_branches.sh"
+    pwsh: "${paths.scripts_pwsh}/GH-Cleanup-Branches.ps1"
+    outputs: "${paths.out_dir}/cleanup_report.json"
+
+  - name: gh-rollback
+    purpose: Revert to any previous checkpoint or commit
+    bash: "${paths.scripts_bash}/gh_rollback.sh"
+    pwsh: "${paths.scripts_pwsh}/GH-Rollback.ps1"
+    outputs: "${paths.out_dir}/rollback_result.json"
+
+  - name: gh-status-check
+    purpose: Comprehensive repository and workflow status check
+    bash: "${paths.scripts_bash}/gh_status_check.sh"
+    pwsh: "${paths.scripts_pwsh}/GH-Status-Check.ps1"
+    outputs: "${paths.out_dir}/status_report.json"
+
+# --- PIPELINES (where commands run) ---
+pipelines:
+
+  # Shortest happy path (single workstream)
+  - id: fast-path
+    description: Minimal steps to go from changes to merged main + release
+    steps:
+      - gh-setup-policy       # one-time per repo (skipped if already applied)
+      - gh-workstream         # branch → edit/test → checkpoint → PR → auto-merge → cleanup
+      - gh-release            # tag + changelog + assets
+      - gh-issue-triage       # issues aligned
+
+  # Multi-workstream with merge train
+  - id: parallel-with-train
+    description: Parallel branches auto-integrated through a queue
+    steps:
+      - gh-setup-policy
+      - for_each(workstream): gh-workstream
+      - gh-semantic-merge
+      - gh-merge-train
+      - gh-release
+      - gh-issue-triage
+
+  # Legacy expanded path (explicit original commands)
+  - id: legacy-explicit
+    description: Original sequence preserved for compatibility
+    steps:
+      - gh-init-workspace
+      - gh-checkpoint
+      - gh-sync-remote
+      - gh-create-pr
+      - gh-merge-workstreams
+      - gh-cleanup-branches
+      - gh-release
+
+# --- GITHUB ACTIONS WIRING (single-file definitions for convenience) ---
+# These are templates; copy to .github/workflows/*.yml at repo bootstrap time.
+actions_templates:
+
+  push_workflow:
+    file: ".github/workflows/push.yml"
+    on: {push: {branches: ["**"]}}
+    jobs:
+      build_test:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Setup
+            run: echo "Install deps here"
+          - name: Lint & Test
+            run: |
+              echo "lint/test here"
+          - name: Status Snapshot
+            run: |
+              ./det.sh gh-status-check
+
+  pr_workflow:
+    file: ".github/workflows/pr.yml"
+    on: {pull_request: {branches: ["main"]}}
+    jobs:
+      validate_and_merge:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+            with: {fetch-depth: 0}
+          - name: CI Gates
+            run: |
+              echo "Run gates here"
+          - name: Auto-Merge (if green)
+            run: |
+              ./det.sh gh-create-pr --auto-merge
+
+  schedule_workflow:
+    file: ".github/workflows/schedule.yml"
+    on: {schedule: [{cron: "0 3 * * *"}]}   # nightly hygiene
+    jobs:
+      hygiene:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Stale branches cleanup
+            run: ./det.sh gh-cleanup-branches
+          - name: Issue label sync & triage
+            run: ./det.sh gh-issue-triage
+
+# --- METRICS & AUDIT ---
+observability:
+  metrics:
+    - checkpoint_frequency
+    - commits_per_phase
+    - merge_conflict_rate
+    - auto_resolution_success_rate
+    - rollback_frequency
+    - branch_lifetime
+    - pr_creation_time
+    - merge_to_main_time
+    - release_time
+    - issue_triage_lag
+  audit:
+    file: "${paths.audit_dir}/git_operations.jsonl"
+    record_fields: [command, args, context, result, sha, pr, timestamp, actor]
+
+# --- EXECUTION SHIMS (optional) ---
+# det.sh is a tiny wrapper that dispatches YAML-defined commands to actual scripts.
+shims:
+  bash_wrapper: |
+    #!/usr/bin/env bash
+    # Usage: ./det.sh <command> [args]
+    # Resolve <command> in this YAML and call its bash script with args.
+    echo "[shim] Dispatching $1 with args: ${@:2}"
+    # (Your dispatcher implementation goes here)

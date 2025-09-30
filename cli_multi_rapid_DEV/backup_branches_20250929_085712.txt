@@ -1,0 +1,12 @@
+feature/enhanced-setup-system 15d9a41 feat: Add comprehensive setup automation and discovery system
+feature/high-impact-optimizations f5b2510 merge: merge origin/main into feature/high-impact-optimizations
+feature/multi-agent-orchestration-implementation 0d45ffb feat: Add Comprehensive Multi-Agent Orchestration System
+feature/simplified-25ops-convo-updates adb16b8 feat: simplified 25-ops framework integration
+feature/simplified-25ops-workflows 49b708c feat(simplified): add 25-operation simplified workflow mode
+main 940b49b Merge branch 'feature/consolidated-integration'
+origin/feat/cost-registry-env-setup e3a9cea feat: add cost registry SSOT, schema gate, and tool env setup scripts\n\n- Add cost registry schema + seed YAML\n- Wire CostTracker to registry with safe fallback\n- Add verifier gate for YAML schema validation\n- Update CODE_QUALITY workflow to validate registry\n- Add PowerShell and Python helpers for PATH/env setup\n- Add operations guide for no-friction workflow
+origin/feature/enhanced-setup-system 15d9a41 feat: Add comprehensive setup automation and discovery system
+origin/feature/high-impact-optimizations f5b2510 merge: merge origin/main into feature/high-impact-optimizations
+origin/feature/simplified-25ops-convo-updates adb16b8 feat: simplified 25-ops framework integration
+origin/feature/simplified-25ops-workflows 49b708c feat(simplified): add 25-operation simplified workflow mode
+origin/main e6a1631 Merge origin/feature/enhanced-setup-system into main

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/job.schema.json",
+  "title": "AI Task Manifest",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "version": { "type": "string" },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "action": { "type": "string" },
+          "paths": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["name", "action"]
+      }
+    }
+  },
+  "required": ["id", "version"],
+  "additionalProperties": true
+}
+

@@ -1,0 +1,67 @@
+version: '2.0'
+name: Adaptive Parallelization Configuration
+
+execution_mode:
+  current: 'learning'
+  history:
+    - mode: learning
+      started_at: AUTO_TIMESTAMP
+      reason: "Initial configuration"
+
+parallelization:
+  enabled: false
+  max_concurrent_streams: null
+  
+  rollout_phases:
+    - phase: 1
+      name: "Baseline Sequential"
+      runs_required: 2
+      max_streams: 1
+    - phase: 2
+      name: "Two-Stream Experiment"
+      runs_required: 3
+      max_streams: 2
+    - phase: 3
+      name: "Adaptive Optimization"
+      runs_required: 5
+      max_streams: null
+
+conflict_detection:
+  strategy: 'conservative'
+  algorithms:
+    - name: file_path_analysis
+      weight: 0.6
+      enabled: true
+    - name: dependency_chain
+      weight: 0.3
+      enabled: true
+
+merge_strategy:
+  default: 'sequential'
+
+safety_checks:
+  require_ci_green: true
+  require_no_file_conflicts: true
+  gates:
+    - name: lint_pass
+      required: true
+      command: "ruff check ."
+    - name: unit_tests
+      required: true
+      command: "pytest -q --cov=src --cov-fail-under=85"
+
+learning_system:
+  enabled: true
+  metrics_tracked:
+    - execution_duration
+    - conflict_count
+    - test_failure_rate
+  data_storage:
+    location: ".ai/learning_data"
+    format: "jsonl"
+    retention_runs: 50
+
+validation:
+  status: "active"
+  last_validated: AUTO_TIMESTAMP
+

@@ -1,0 +1,35 @@
+# github-copilot-cli-commands.yaml
+meta:
+  title: "GitHub Copilot CLI — Commands Cheat Sheet"
+  version: "2025-09-30"
+  audience: "Automation pipelines using Copilot from the terminal"
+  notes:
+    - "This is the standalone Copilot CLI (the old 'gh copilot' extension is deprecated)."
+    - "Use 'copilot help' for full command list."
+
+conventions:
+  placeholders:
+    <prompt>: "Instruction or question"
+  tips:
+    - "Copilot CLI can create/modify files and execute commands; prefer approval prompts in CI."
+
+commands:
+  - group: "Start"
+    cmd: "copilot"
+    purpose: "Open Copilot CLI interactive chat in terminal."
+    idempotent: false
+  - group: "Help"
+    cmd: "copilot help"
+    purpose: "Show help and available subcommands / config."
+    idempotent: true
+  - group: "Config help"
+    cmd: "copilot help config"
+    purpose: "List configuration options."
+    idempotent: true
+  - group: "Interactive shortcut"
+    cmd: "?"
+    purpose: "Within Copilot CLI, show available slash commands."
+    idempotent: true
+
+provenance:
+  - "GitHub Docs: About Copilot CLI & usage/help commands."

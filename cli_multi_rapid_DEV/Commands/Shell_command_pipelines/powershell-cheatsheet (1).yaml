@@ -1,0 +1,320 @@
+# powershell-cheatsheet.yaml
+meta:
+  title: "PowerShell — Deterministic CLI Cheat Sheet"
+  version: "2025-09-30"
+  audience: "Automation-first workflows (CI/CD, zero-touch setup, repo ops)"
+  notes:
+    - "Focuses on reproducible, non-interactive usage with robust error handling."
+    - "Assumes PowerShell 7+ where noted (for -Parallel, ThreadJobs, etc.)."
+
+conventions:
+  placeholders:
+    <path>: "File or directory path"
+    <url>: "HTTP/HTTPS URL"
+    <module>: "PowerShell module name"
+    <service>: "Windows service name"
+    <proc>: "Process name or ID"
+    <script>: "Script file path"
+    <json>: "JSON string or file path"
+    <session>: "PSSession variable (e.g., $s)"
+  safety_defaults:
+    - "Set-StrictMode -Version Latest"
+    - "$ErrorActionPreference = 'Stop'  # fail fast"
+    - "$ProgressPreference = 'SilentlyContinue'  # reduce noise in CI"
+  admin_note: "Some cmdlets require elevation. Use Start-Process pwsh -Verb RunAs for elevation."
+
+global_patterns:
+  error_handling:
+    - "Use try/catch/finally with $_.Exception for diagnostics."
+    - "Prefer -ErrorAction Stop per-cmdlet when not using global preference."
+  input_output:
+    - "Use -Raw with Get-Content for whole-file reads; specify -Encoding UTF8 for writes."
+    - "Use Out-File -Encoding utf8 -NoNewline for deterministic text output."
+  pipeline_shaping:
+    - "Select-Object, Sort-Object, Where-Object, ForEach-Object are the core filters/transforms."
+  parallelism:
+    - "ForEach-Object -Parallel (PS7+) for CPU-bound bursts; Start-ThreadJob for long tasks."
+
+core_commands:
+
+  files_and_dirs:
+    - cmd: "Get-ChildItem (gci / ls)"
+      flags: ["-Path <path>", "-Recurse", "-Filter <pattern>", "-Directory", "-File", "-Hidden", "-Force"]
+      examples:
+        - "Get-ChildItem -Path . -Recurse -Filter *.ps1 -File"
+    - cmd: "Set-Location (cd)"
+      flags: ["-Path <path>"]
+      examples:
+        - "Set-Location C:\repo"
+    - cmd: "New-Item"
+      flags: ["-Path <path>", "-ItemType File|Directory", "-Force"]
+      examples:
+        - "New-Item -Path .\.det-tools -ItemType Directory -Force"
+    - cmd: "Copy-Item (cp)"
+      flags: ["-Path <path>", "-Destination <path>", "-Recurse", "-Force"]
+      examples:
+        - "Copy-Item -Path .\src -Destination .\backup -Recurse -Force"
+    - cmd: "Move-Item (mv)"
+      flags: ["-Path <path>", "-Destination <path>", "-Force"]
+    - cmd: "Remove-Item (rm)"
+      flags: ["-Path <path>", "-Recurse", "-Force", "-WhatIf"]
+      examples:
+        - "Remove-Item -Path .\tmp -Recurse -Force"
+
+  content_and_text:
+    - cmd: "Get-Content (gc)"
+      flags: ["-Path <path>", "-Raw", "-Encoding utf8"]
+    - cmd: "Set-Content (sc)"
+      flags: ["-Path <path>", "-Value <text>", "-Encoding utf8", "-NoNewline"]
+    - cmd: "Add-Content (ac)"
+      flags: ["-Path <path>", "-Value <text>", "-Encoding utf8"]
+    - cmd: "ConvertTo-Json"
+      flags: ["-InputObject <obj>", "-Depth <n>", "-Compress"]
+    - cmd: "ConvertFrom-Json"
+      flags: ["-InputObject <json>"]
+    - cmd: "ConvertTo-Yaml"
+      note: "Requires PowerShell.Yaml module; for deterministic pipelines"
+    - cmd: "ConvertFrom-Yaml"
+      note: "Requires PowerShell.Yaml module"
+
+  processes_and_services:
+    - cmd: "Get-Process (gps)"
+      flags: ["-Name <proc>", "-Id <id>"]
+    - cmd: "Start-Process (saps)"
+      flags: ["-FilePath <path>|<exe>", "-ArgumentList <args>", "-NoNewWindow", "-Wait", "-PassThru"]
+      examples:
+        - "Start-Process -FilePath git -ArgumentList 'status' -NoNewWindow -Wait"
+    - cmd: "Stop-Process (spps)"
+      flags: ["-Name <proc>", "-Id <id>", "-Force"]
+    - cmd: "Get-Service"
+      flags: ["-Name <service>"]
+    - cmd: "Start-Service"
+      flags: ["-Name <service>"]
+    - cmd: "Stop-Service"
+      flags: ["-Name <service>", "-Force"]
+    - cmd: "Restart-Service"
+      flags: ["-Name <service>"]
+
+  networking_and_web:
+    - cmd: "Test-Connection (ping)"
+      flags: ["-TargetName <host>", "-Count <n>", "-Quiet"]
+    - cmd: "Invoke-WebRequest (iwr)"
+      flags: ["-Uri <url>", "-OutFile <path>", "-Headers <hashtable>", "-Method GET|POST|PUT|PATCH|DELETE", "-Body <data>", "-UseBasicParsing"]
+      examples:
+        - "Invoke-WebRequest -Uri https://example.com/file.zip -OutFile .\file.zip"
+    - cmd: "Invoke-RestMethod (irm)"
+      flags: ["-Uri <url>", "-Headers <hashtable>", "-Method <verb>", "-Body <json>", "-ContentType application/json"]
+      examples:
+        - "Invoke-RestMethod -Uri $api -Method Post -Body ($obj | ConvertTo-Json -Depth 5) -ContentType application/json"
+
+  modules_and_packages:
+    - cmd: "Set-ExecutionPolicy"
+      flags: ["-ExecutionPolicy RemoteSigned|AllSigned|Bypass|Restricted", "-Scope Process|CurrentUser|LocalMachine", "-Force"]
+    - cmd: "Get-ExecutionPolicy"
+    - cmd: "Get-Module"
+      flags: ["-ListAvailable", "-Name <module>"]
+    - cmd: "Import-Module"
+      flags: ["-Name <module>", "-Force"]
+    - cmd: "Find-Module"
+      flags: ["-Name <module>"]
+    - cmd: "Install-Module"
+      flags: ["-Name <module>", "-Scope CurrentUser|AllUsers", "-Force", "-AllowClobber", "-Repository PSGallery", "-AcceptLicense"]
+    - cmd: "Update-Module"
+      flags: ["-Name <module>", "-Force"]
+    - cmd: "Uninstall-Module"
+      flags: ["-Name <module>", "-AllVersions", "-Force"]
+
+  jobs_and_parallel:
+    - cmd: "Start-Job"
+      flags: ["-ScriptBlock { ... }", "-Name <name>"]
+    - cmd: "Receive-Job"
+      flags: ["-Job <job>", "-Wait", "-AutoRemoveJob"]
+    - cmd: "Remove-Job"
+      flags: ["-Job <job>", "-Force"]
+    - cmd: "Start-ThreadJob"
+      note: "Requires ThreadJob module (PS7+ includes)"
+      flags: ["-ScriptBlock { ... }", "-Name <name>"]
+    - cmd: "ForEach-Object -Parallel"
+      note: "PS7+ only; use -ThrottleLimit to protect CPU"
+      flags: ["-Parallel { ... }", "-ThrottleLimit <n>"]
+
+  remoting:
+    - cmd: "Enter-PSSession"
+      flags: ["-ComputerName <host>", "-Credential (Get-Credential)"]
+    - cmd: "New-PSSession"
+      flags: ["-ComputerName <host>", "-Credential <cred>"]
+    - cmd: "Invoke-Command"
+      flags: ["-Session <session>|-ComputerName <host>", "-ScriptBlock { ... }", "-ArgumentList <args>"]
+    - cmd: "Remove-PSSession"
+      flags: ["-Session <session>"]
+
+  compression_and_hashing:
+    - cmd: "Compress-Archive"
+      flags: ["-Path <path>", "-DestinationPath <path>", "-Force"]
+    - cmd: "Expand-Archive"
+      flags: ["-Path <zip>", "-DestinationPath <dir>", "-Force"]
+    - cmd: "Get-FileHash"
+      flags: ["-Path <path>", "-Algorithm SHA256|SHA1|MD5"]
+
+  discovery_and_help:
+    - cmd: "Get-Command (gcm)"
+      flags: ["-Name <pattern>", "-Module <module>"]
+    - cmd: "Get-Help (help)"
+      flags: ["<cmd> -Online", "-Full", "-Examples"]
+    - cmd: "Measure-Object (measure)"
+      flags: ["-Property <name>", "-Average -Sum -Maximum -Minimum -Line -Character -Word"]
+
+  env_and_registry:
+    - cmd: "$env:NAME = 'value'"
+      note: "Set environment variable (process scope). Use [System.Environment]::SetEnvironmentVariable for persistent scopes."
+    - cmd: "Get-ItemProperty / Set-ItemProperty"
+      flags: ["-Path 'HKLM:\...'", "-Name <prop>", "-Value <val>"]
+    - cmd: "New-Item -Path 'HKCU:\...' -Force"
+      note: "Create keys/values as needed"
+
+  transcripts_and_logging:
+    - cmd: "Start-Transcript"
+      flags: ["-Path <file>", "-Append"]
+    - cmd: "Stop-Transcript"
+    - cmd: "Tee-Object"
+      flags: ["-FilePath <file>", "-Append"]
+    - cmd: "Write-Information / Write-Verbose / Write-Error"
+      note: "Gate with $VerbosePreference and $InformationPreference"
+
+patterns_and_snippets:
+
+  strict_mode_header: |
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference = 'Stop'
+    $ProgressPreference = 'SilentlyContinue'
+
+  robust_download_with_retry: |
+    param([string]$Url,[string]$OutFile,[int]$MaxAttempts=5,[int]$DelaySeconds=3)
+    Set-StrictMode -Version Latest; $ErrorActionPreference='Stop'
+    for($i=1; $i -le $MaxAttempts; $i++){
+      try {
+        Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
+        if(Test-Path $OutFile){ return }
+      } catch {
+        if($i -eq $MaxAttempts){ throw }
+        Start-Sleep -Seconds $DelaySeconds
+      }
+    }
+
+  atomic_file_replace: |
+    param([string]$Path,[string]$Content)
+    $tmp = "$Path.tmp"
+    $bak = "$Path.bak"
+    $Content | Out-File -FilePath $tmp -Encoding utf8 -NoNewline
+    if(Test-Path $Path){ Move-Item $Path $bak -Force }
+    Move-Item $tmp $Path -Force
+    if(Test-Path $bak){ Remove-Item $bak -Force }
+
+  json_read_write: |
+    # Read
+    $obj = Get-Content -Path .\config.json -Raw | ConvertFrom-Json
+    # Modify
+    $obj.enabled = $true
+    # Write
+    $obj | ConvertTo-Json -Depth 10 | Out-File -FilePath .\config.json -Encoding utf8 -NoNewline
+
+  start_process_with_timeout: |
+    param([string]$Exe,[string]$Args,[int]$TimeoutSeconds=120)
+    $p = Start-Process -FilePath $Exe -ArgumentList $Args -PassThru -NoNewWindow
+    if( -not $p.WaitForExit($TimeoutSeconds*1000) ){
+      try { Stop-Process -Id $p.Id -Force } catch {}
+      throw "Process timed out: $Exe $Args"
+    }
+    if($p.ExitCode -ne 0){ throw "ExitCode $($p.ExitCode) from $Exe $Args" }
+
+  template_try_catch: |
+    try {
+      # do work
+    } catch {
+      Write-Error ($_.Exception.Message)
+      throw
+    } finally {
+      # cleanup
+    }
+
+recipes:  # Opinionated building blocks aligned to deterministic pipelines
+
+  - name: "bootstrap_psgallery_and_modules"
+    desc: "Ensure PSGallery is trusted and required modules are present."
+    steps:
+      - "Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted"
+      - "Install-Module PowerShellGet -Scope CurrentUser -Force -AllowClobber"
+      - "Install-Module PowerShell.Yaml -Scope CurrentUser -Force -AcceptLicense"
+
+  - name: "enable_strict_fallfast_defaults"
+    desc: "Adopt strict mode and fail-fast behavior for CI reliability."
+    steps:
+      - "Set-StrictMode -Version Latest"
+      - "$ErrorActionPreference = 'Stop'"
+      - "$ProgressPreference = 'SilentlyContinue'"
+
+  - name: "machine_inventory_snapshot"
+    desc: "Enumerate processes, services, installed modules, and env for audits."
+    steps:
+      - "Get-Process | Select-Object Name,Id,CPU,WS | Sort-Object Name | ConvertTo-Json -Depth 4 | Out-File .\.det-tools\audit\processes.json -Encoding utf8 -NoNewline"
+      - "Get-Service | Select-Object Name,Status,StartType | Sort-Object Name | ConvertTo-Json | Out-File .\.det-tools\audit\services.json -Encoding utf8 -NoNewline"
+      - "Get-Module -ListAvailable | Select-Object Name,Version,Path | ConvertTo-Json | Out-File .\.det-tools\audit\modules.json -Encoding utf8 -NoNewline"
+      - "[Environment]::GetEnvironmentVariables('Machine') | ConvertTo-Json | Out-File .\.det-tools\audit\env_machine.json -Encoding utf8 -NoNewline"
+
+  - name: "remote_batch_invoke"
+    desc: "Run the same scriptblock across many hosts and collect results."
+    steps:
+      - "$sessions = @('srv1','srv2') | ForEach-Object { New-PSSession -ComputerName $_ }"
+      - "Invoke-Command -Session $sessions -ScriptBlock { Get-ComputerInfo } | Tee-Object -FilePath .\.det-tools\audit\computeinfo.txt"
+      - "Remove-PSSession -Session $sessions"
+
+  - name: "parallel_hash_tree"
+    desc: "Hash files in a tree quickly (PS7+)."
+    steps:
+      - "Get-ChildItem -Path . -File -Recurse | ForEach-Object -Parallel { $_ | Get-FileHash -Algorithm SHA256 } -ThrottleLimit 6 | Export-Csv .\.det-tools\audit\hashes.csv -NoTypeInformation -Encoding UTF8"
+
+  - name: "deterministic_zip_release"
+    desc: "Create a reproducible ZIP artifact for release packaging."
+    steps:
+      - "if(Test-Path .\dist){ Remove-Item .\dist -Recurse -Force }"
+      - "New-Item -Path .\dist -ItemType Directory | Out-Null"
+      - "Copy-Item -Path .\src\* -Destination .\dist -Recurse"
+      - "Get-ChildItem .\dist -Recurse | Sort-Object FullName | ForEach-Object { $_.LastWriteTime = [datetime]'2020-01-01' }"
+      - "Compress-Archive -Path .\dist\* -DestinationPath .\release.zip -Force"
+winget_to_powershell_map:
+  note: "Translate familiar WinGet verbs to native PowerShell cmdlets for scripts/pipelines."
+  install:
+    winget: "winget install --id <id> [--version <ver>] [--source <src>] [--silent]"
+    powershell: "Install-Package -Name <id> -ProviderName <NuGet|msix|msi|exe> [-RequiredVersion <ver>] [-Source <src>] -Force"
+  search:
+    winget: "winget search <query> [--id|--name|--moniker] [--source <src>]"
+    powershell: "Find-Package -Name <pattern> [-Source <src>]"
+  list:
+    winget: "winget list [--source <src>]"
+    powershell: "Get-Package [-ProviderName <provider>]"
+  upgrade:
+    winget: "winget upgrade [--all] [--id <id>] [--version <ver>]"
+    powershell: "Update-Package [-Name <id>] [-RequiredVersion <ver>]"
+  uninstall:
+    winget: "winget uninstall --id <id> [--silent]"
+    powershell: "Uninstall-Package -Name <id> -Force"
+  download:
+    winget: "winget download --id <id> --download-directory <dir>"
+    powershell: "Save-Package -Name <id> -Path <dir>"
+  sources:
+    winget: "winget source list|add|remove|update|reset|export"
+    powershell:
+      list: "Get-PackageSource"
+      add: "Register-PackageSource -Name <src> -ProviderName <provider> -Location <url> -Trusted"
+      set: "Set-PackageSource -Name <src> -Trusted:$true"
+      remove: "Unregister-PackageSource -Name <src>"
+  modules:
+    note: "PowerShell modules (PSGallery) are distinct from desktop apps."
+    search: "Find-Module -Name <module>"
+    install: "Install-Module -Name <module> -Scope CurrentUser -Force -AcceptLicense"
+    update: "Update-Module -Name <module>"
+    uninstall: "Uninstall-Module -Name <module>"
+    list: "Get-InstalledModule"
+  config_dsc:
+    winget: "winget configure [show|test|validate] --file <.dsc.yaml>"
+    powershell: "Start-DscConfiguration/Test-DscConfiguration/Publish-DscConfiguration (MOF/DSC resources)"

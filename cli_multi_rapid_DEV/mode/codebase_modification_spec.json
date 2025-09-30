@@ -1,0 +1,388 @@
+{
+  "modification_specification": {
+    "metadata": {
+      "title": "CLI Orchestrator Workflow Cleanup - Simplified 25-Operations Framework Alignment",
+      "version": "1.0.0",
+      "created": "2025-09-28",
+      "target_branch": "feature/simplified-25ops-workflows",
+      "framework_basis": "SIMPLIFIED_25_OPERATION.yaml",
+      "cost_targets": {
+        "per_change": "$3.00",
+        "daily": "$15.00",
+        "monthly": "$300.00"
+      },
+      "time_targets": {
+        "total_execution": "35 minutes",
+        "planning_phase": "8 minutes",
+        "execution_phase": "22 minutes",
+        "integration_phase": "5 minutes"
+      }
+    },
+
+    "operations": {
+      "delete_operations": [
+        {
+          "operation_id": "DEL_001",
+          "type": "file_deletion",
+          "reason": "Obsolete - Violates simplified framework",
+          "files": [
+            ".ai/workflows/agent_jobs.yaml",
+            ".ai/workflows/ENHANCED_IPT_WT_PARALLEL.yaml",
+            ".ai/workflows/ipt_wt_workflow.yaml",
+            ".ai/workflows/AI_EDIT_PIPELINE_CONTRACT.yaml",
+            ".ai/workflows/AI_WORKFLOW_DEMO.yaml",
+            ".ai/workflows/CODEX_MODIFICATION_PIPELINE.yaml"
+          ],
+          "justification": "These workflows exceed complexity limits (>15 operations), lack cost controls, or duplicate simplified framework functionality"
+        },
+        {
+          "operation_id": "DEL_002",
+          "type": "file_deletion",
+          "reason": "Obsolete GitHub Actions - Superseded by claude-orchestrator.yml",
+          "files": [
+            ".github/workflows/ci-matrix.yml",
+            ".github/workflows/claude-enhanced-ci.yml",
+            ".github/workflows/automerge.yml"
+          ],
+          "justification": "Functionality consolidated into claude-orchestrator.yml with better integration"
+        }
+      ],
+
+      "modify_operations": [
+        {
+          "operation_id": "MOD_001",
+          "type": "workflow_alignment",
+          "target_file": ".ai/workflows/PY_EDIT_TRIAGE.yaml",
+          "modifications": {
+            "add_cost_tracking": {
+              "policy": {
+                "max_tokens": 15000,
+                "cost_limit": "$2.50",
+                "prefer_deterministic": true
+              }
+            },
+            "simplify_operations": {
+              "max_operations": 12,
+              "consolidate_steps": [
+                "merge diagnostic steps",
+                "combine fix operations",
+                "single validation gate"
+              ]
+            },
+            "add_roles": {
+              "planning_ai": "step_1_diagnostics",
+              "work_cli_tools": "steps_2_3_fixes",
+              "ide_validator": "step_4_validation",
+              "repo_coordinator": "step_5_commit"
+            }
+          }
+        },
+        {
+          "operation_id": "MOD_002",
+          "type": "workflow_alignment",
+          "target_file": ".ai/workflows/CODE_QUALITY.yaml",
+          "modifications": {
+            "reduce_complexity": {
+              "current_operations": 18,
+              "target_operations": 8,
+              "consolidations": [
+                "merge all lint steps into single operation",
+                "combine security checks",
+                "single quality gate"
+              ]
+            },
+            "add_cost_controls": {
+              "max_tokens": 8000,
+              "cost_limit": "$1.50",
+              "ai_fallback_only": true
+            }
+          }
+        },
+        {
+          "operation_id": "MOD_003",
+          "type": "github_actions_consolidation",
+          "target_file": ".github/workflows/claude-orchestrator.yml",
+          "modifications": {
+            "add_simplified_triggers": [
+              "/claude simple-edit",
+              "/claude quick-fix",
+              "/claude triage-only"
+            ],
+            "cost_enforcement": {
+              "daily_budget": "$15.00",
+              "per_run_limit": "$3.00",
+              "abort_on_exceed": true
+            },
+            "simplified_mode": {
+              "max_operations": 25,
+              "role_enforcement": true,
+              "checkpoint_required": true
+            }
+          }
+        }
+      ],
+
+      "create_operations": [
+        {
+          "operation_id": "CREATE_001",
+          "type": "simplified_workflow_creation",
+          "target_file": ".ai/workflows/SIMPLE_PY_FIX.yaml",
+          "content": {
+            "name": "Simple Python Fix",
+            "description": "Simplified 8-operation Python fix workflow",
+            "framework_version": "simplified-25ops-v1",
+            "cost_policy": {
+              "max_tokens": 12000,
+              "cost_limit": "$2.00",
+              "prefer_deterministic": true
+            },
+            "phases": [
+              {
+                "name": "plan_and_route",
+                "operations": 3,
+                "role": "planning_ai",
+                "time_limit": "5 minutes"
+              },
+              {
+                "name": "execute_and_validate",
+                "operations": 4,
+                "role": "work_cli_tools",
+                "time_limit": "15 minutes"
+              },
+              {
+                "name": "integrate_and_ship",
+                "operations": 1,
+                "role": "repo_coordinator",
+                "time_limit": "3 minutes"
+              }
+            ]
+          }
+        },
+        {
+          "operation_id": "CREATE_002",
+          "type": "role_configuration_creation",
+          "target_file": ".ai/config/simplified_roles.yaml",
+          "content": {
+            "roles": {
+              "planning_ai": {
+                "tools": ["claude", "gemini"],
+                "fallback_chain": ["claude", "gemini", "local_llm"],
+                "cost_limit_per_operation": "$0.50",
+                "operations": ["analyze", "plan", "route", "triage"]
+              },
+              "work_cli_tools": {
+                "tools": ["ruff", "black", "isort", "pytest"],
+                "ai_fallback": false,
+                "operations": ["lint", "format", "fix", "test", "build"]
+              },
+              "ide_validator": {
+                "tools": ["vscode_diagnostics", "mypy"],
+                "ai_assistance": "minimal",
+                "operations": ["validate", "check", "verify"]
+              },
+              "repo_coordinator": {
+                "tools": ["git", "github_api"],
+                "ai_assistance": false,
+                "operations": ["commit", "push", "pr_create", "merge"]
+              },
+              "orchestrator": {
+                "tools": ["workflow_runner", "cost_tracker"],
+                "operations": ["coordinate", "monitor", "abort", "report"]
+              }
+            }
+          }
+        },
+        {
+          "operation_id": "CREATE_003",
+          "type": "cost_control_schema",
+          "target_file": ".ai/schemas/simplified_cost_control.schema.json",
+          "content": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "title": "Simplified Cost Control Schema",
+            "type": "object",
+            "required": ["cost_policy", "time_limits", "complexity_limits"],
+            "properties": {
+              "cost_policy": {
+                "type": "object",
+                "properties": {
+                  "max_tokens": {"type": "integer", "maximum": 20000},
+                  "cost_limit": {"type": "string", "pattern": "^\\$[0-9]+(\\.[0-9]{2})?$"},
+                  "daily_budget": {"type": "string", "pattern": "^\\$[0-9]+(\\.[0-9]{2})?$"},
+                  "abort_on_exceed": {"type": "boolean", "default": true}
+                }
+              },
+              "time_limits": {
+                "type": "object",
+                "properties": {
+                  "total_execution": {"type": "string", "pattern": "^[0-9]+ minutes?$"},
+                  "per_phase": {"type": "string", "pattern": "^[0-9]+ minutes?$"}
+                }
+              },
+              "complexity_limits": {
+                "type": "object",
+                "properties": {
+                  "max_operations": {"type": "integer", "maximum": 25},
+                  "max_phases": {"type": "integer", "maximum": 3},
+                  "role_enforcement": {"type": "boolean", "default": true}
+                }
+              }
+            }
+          }
+        }
+      ],
+
+      "update_operations": [
+        {
+          "operation_id": "UPDATE_001",
+          "type": "schema_extension",
+          "target_file": ".ai/schemas/workflow.schema.json",
+          "modifications": {
+            "add_simplified_framework_support": {
+              "framework_version": {
+                "type": "string",
+                "enum": ["simplified-25ops-v1", "legacy"]
+              },
+              "role_assignments": {
+                "type": "object",
+                "properties": {
+                  "planning_ai": {"type": "array"},
+                  "work_cli_tools": {"type": "array"},
+                  "ide_validator": {"type": "array"},
+                  "repo_coordinator": {"type": "array"},
+                  "orchestrator": {"type": "array"}
+                }
+              },
+              "cost_enforcement": {
+                "type": "object",
+                "required": ["enabled", "limits"],
+                "properties": {
+                  "enabled": {"type": "boolean"},
+                  "limits": {"$ref": "#/definitions/cost_limits"}
+                }
+              }
+            }
+          }
+        },
+        {
+          "operation_id": "UPDATE_002",
+          "type": "configuration_update",
+          "target_file": "pyproject.toml",
+          "modifications": {
+            "add_simplified_dependencies": [
+              "pydantic-settings>=2.0.0",
+              "typing-extensions>=4.8.0"
+            ],
+            "update_cli_commands": {
+              "simplified-run": "cli_multi_rapid.cli:simplified_run",
+              "cost-check": "cli_multi_rapid.cost:check_budget"
+            }
+          }
+        }
+      ],
+
+      "validation_operations": [
+        {
+          "operation_id": "VALIDATE_001",
+          "type": "schema_validation",
+          "target": "all_simplified_workflows",
+          "schema": ".ai/schemas/simplified_operation.schema.json",
+          "enforce": true
+        },
+        {
+          "operation_id": "VALIDATE_002",
+          "type": "cost_limit_validation",
+          "check": "all_workflows_under_budget",
+          "limits": {
+            "per_workflow": "$3.00",
+            "daily_total": "$15.00"
+          }
+        },
+        {
+          "operation_id": "VALIDATE_003",
+          "type": "complexity_validation",
+          "check": "operation_count_limits",
+          "limits": {
+            "max_operations": 25,
+            "max_phases": 3,
+            "max_ai_operations": 8
+          }
+        }
+      ]
+    },
+
+    "execution_plan": {
+      "phase_1_cleanup": {
+        "description": "Remove obsolete workflows and GitHub Actions",
+        "operations": ["DEL_001", "DEL_002"],
+        "estimated_time": "2 minutes",
+        "risk": "low"
+      },
+      "phase_2_align": {
+        "description": "Modify existing workflows for simplified framework",
+        "operations": ["MOD_001", "MOD_002", "MOD_003"],
+        "estimated_time": "15 minutes",
+        "risk": "medium"
+      },
+      "phase_3_create": {
+        "description": "Create new simplified workflows and configurations",
+        "operations": ["CREATE_001", "CREATE_002", "CREATE_003"],
+        "estimated_time": "20 minutes",
+        "risk": "low"
+      },
+      "phase_4_update": {
+        "description": "Update schemas and configurations",
+        "operations": ["UPDATE_001", "UPDATE_002"],
+        "estimated_time": "8 minutes",
+        "risk": "low"
+      },
+      "phase_5_validate": {
+        "description": "Validate all changes against simplified framework",
+        "operations": ["VALIDATE_001", "VALIDATE_002", "VALIDATE_003"],
+        "estimated_time": "5 minutes",
+        "risk": "low"
+      }
+    },
+
+    "rollback_plan": {
+      "checkpoint_files": [
+        ".ai/workflows/",
+        ".github/workflows/",
+        ".ai/schemas/",
+        "pyproject.toml"
+      ],
+      "backup_location": "backup/pre-simplification/",
+      "rollback_command": "git checkout HEAD~1 -- .ai/ .github/ pyproject.toml"
+    },
+
+    "success_criteria": {
+      "workflow_count": {
+        "before": 37,
+        "after": 25,
+        "reduction": "32%"
+      },
+      "cost_compliance": {
+        "all_workflows_under_3_dollars": true,
+        "daily_budget_enforced": true,
+        "deterministic_preference": true
+      },
+      "complexity_compliance": {
+        "max_operations_25": true,
+        "role_based_assignment": true,
+        "three_phase_structure": true
+      },
+      "performance_targets": {
+        "execution_time_under_35min": true,
+        "cost_tracking_enabled": true,
+        "checkpoint_rollback_available": true
+      }
+    },
+
+    "post_modification_tasks": [
+      "Run full test suite to ensure no regressions",
+      "Update CLI Orchestrator documentation",
+      "Create migration guide for users",
+      "Set up cost monitoring alerts",
+      "Configure simplified workflow defaults"
+    ]
+  }
+}

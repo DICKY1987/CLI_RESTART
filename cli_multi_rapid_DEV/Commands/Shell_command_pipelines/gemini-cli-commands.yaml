@@ -1,0 +1,56 @@
+# gemini-cli-commands.yaml
+meta:
+  title: "Google Gemini CLI — Commands Cheat Sheet"
+  version: "2025-09-30"
+  audience: "Automation pipelines using Gemini CLI"
+  notes:
+    - "Gemini CLI is an open-source AI agent for terminal with ReAct loop and MCP."
+    - "Use 'gemini help' for the latest options."
+
+conventions:
+  placeholders:
+    <prompt>: "Natural language instruction"
+    <file>: "File to read or modify"
+    <cmd>: "Shell command to execute via tool"
+  tips:
+    - "Prefer explicit approvals for dangerous actions; consider YOLO mode only in trusted CI sandboxes."
+
+commands:
+  - group: "Install"
+    cmd: "npm i -g @google/gemini-cli"
+    purpose: "Install via npm (example; see official docs for latest)."
+    idempotent: true
+  - group: "Start"
+    cmd: "gemini"
+    purpose: "Launch interactive Gemini CLI."
+    idempotent: false
+  - group: "Start with prompt"
+    cmd: "gemini "<prompt>""
+    purpose: "Start and run with an initial instruction."
+    idempotent: false
+
+  - group: "Help"
+    cmd: "gemini help"
+    purpose: "Show help and subcommands."
+    idempotent: true
+
+  - group: "Slash commands"
+    cmd: "/memory | /stats | /tools | /mcp"
+    purpose: "Built-in controls (availability may vary by version)."
+    idempotent: true
+
+  - group: "Shell passthrough"
+    cmd: "!<cmd>"
+    purpose: "Run a shell command from within Gemini CLI."
+    examples:
+      - "!git status"
+    idempotent: false
+
+  - group: "YOLO mode (toggle)"
+    cmd: "Ctrl+Y"
+    purpose: "Auto-approve tool calls (use with caution)."
+    idempotent: true
+
+provenance:
+  - "Cloud docs: Gemini CLI overview & features."
+  - "Gemini CLI GitHub docs and community cheat-sheets."

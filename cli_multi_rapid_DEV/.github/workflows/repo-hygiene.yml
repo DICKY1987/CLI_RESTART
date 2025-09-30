@@ -1,0 +1,73 @@
+name: Repo Hygiene
+
+on:
+  push:
+    branches: ["ws/**"]
+  schedule:
+    - cron: "17 */6 * * *"
+  repository_dispatch:
+    types: [consolidate-branches]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  open-or-refresh-pr:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ensure GitHub CLI
+        run: |
+          if ! command -v gh >/dev/null; then
+            type -p sudo && sudo apt-get update && sudo apt-get install -y gh || true
+          fi
+          gh --version || true
+      - name: Open or refresh PR and label for auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch="${GITHUB_REF_NAME}"
+          gh pr view "$branch" >/dev/null 2>&1 \
+            && gh pr edit "$branch" --add-label auto-merge \
+            || gh pr create --fill --title "$branch" --base main --head "$branch"
+
+  consolidate-and-clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ensure GitHub CLI
+        run: |
+          if ! command -v gh >/dev/null; then
+            type -p sudo && sudo apt-get update && sudo apt-get install -y gh || true
+          fi
+          gh --version || true
+      - name: Rebase open PRs on main (best effort) and label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          prs=$(gh pr list --state open --json number,headRefName --jq '.[] | "\(.number) \(.headRefName)"')
+          if [ -n "$prs" ]; then
+            while read -r num head; do
+              gh pr update "$num" --add-label auto-merge || true
+              gh pr checkout "$num"
+              git rebase origin/main || (git rebase --abort && gh pr comment "$num" -b "Rebase conflict detected; please review or allow merge queue to handle.")
+              git push --force-with-lease || true
+            done <<< "$prs"
+          fi
+      - name: Delete merged branches on remote
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          merged_heads=$(gh pr list --state merged --json headRefName --jq '.[].headRefName' | sort -u)
+          for b in $merged_heads; do
+            git push origin --delete "$b" || true
+          done
+

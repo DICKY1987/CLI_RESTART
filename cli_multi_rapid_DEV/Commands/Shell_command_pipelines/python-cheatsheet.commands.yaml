@@ -1,0 +1,248 @@
+# python-cheatsheet.commands.yaml
+meta:
+  title: "Python — Terminal Commands Cheat Sheet (Deterministic & CI-Friendly)"
+  version: "2025-09-30"
+  audience: "Automation pipelines, CI, zero-touch setup (Windows + Linux/macOS)"
+  notes:
+    - "Concrete shell commands only — no prose patterns."
+    - "Designed for orchestrators to compose reliable, idempotent steps."
+    - "Prefer running inside a project virtual environment (.venv)."
+
+conventions:
+  placeholders:
+    <pkg>: "Package/distribution name (e.g., requests)"
+    <ver>: "Version (e.g., 2.31.0)"
+    <path>: "Filesystem path"
+    <mod>: "Module (e.g., pip, venv, http.server)"
+    <file>: "Python file (e.g., app.py)"
+    <expr>: "Pytest expression (e.g., -k 'not slow')"
+    <py>: "Python version (e.g., 3.11)"
+  tips:
+    - "Windows paths use backslashes (\\); POSIX uses forward slashes (/)."
+    - "Use --quiet/-q in CI to keep logs small; rely on exit codes."
+
+# Simple fragments for reference (not required by the orchestrator)
+definitions:
+  common_flags: &common_flags
+    - "--quiet"
+    - "--verbose"
+  pip_install_flags: &pip_install_flags
+    - "--no-input"
+    - "--upgrade"
+    - "--requirement <path>"
+
+commands:
+  # --- Interpreter & REPL ---
+  - group: "Interpreter"
+    cmd: "python --version"
+    purpose: "Show Python version."
+    idempotent: true
+
+  - group: "Interpreter"
+    cmd: "python -c "print('ok')""
+    purpose: "Run a one-liner."
+    idempotent: true
+
+  - group: "Interpreter"
+    cmd: "python <file>"
+    purpose: "Run a script file."
+    examples: ["python app.py"]
+    idempotent: false
+
+  - group: "Interpreter"
+    cmd: "python -m <mod>"
+    purpose: "Run a module as a script (e.g., pip, http.server)."
+    examples: ["python -m pip --version", "python -m http.server 8000"]
+    idempotent: true
+
+  # --- Virtual Environments ---
+  - group: "VirtualEnv"
+    cmd: "python -m venv .venv"
+    purpose: "Create project-local virtual environment in .venv."
+    idempotent: true
+
+  - group: "VirtualEnv (Windows)"
+    cmd: ".\.venv\Scripts\Activate.ps1"
+    purpose: "Activate venv in PowerShell."
+    idempotent: true
+
+  - group: "VirtualEnv (Windows cmd.exe)"
+    cmd: ".\.venv\Scripts\activate.bat"
+    purpose: "Activate venv in cmd.exe."
+    idempotent: true
+
+  - group: "VirtualEnv (POSIX)"
+    cmd: "source .venv/bin/activate"
+    purpose: "Activate venv in bash/zsh."
+    idempotent: true
+
+  - group: "VirtualEnv"
+    cmd: "deactivate"
+    purpose: "Deactivate the current virtual environment."
+    idempotent: true
+
+  # --- Pip & Package Management ---
+  - group: "Pip"
+    cmd: "python -m pip --version"
+    purpose: "Show pip version (inside current env)."
+    idempotent: true
+
+  - group: "Pip"
+    cmd: "python -m pip install --upgrade pip"
+    purpose: "Upgrade pip in the active environment."
+    flags: *pip_install_flags
+    idempotent: true
+
+  - group: "Pip"
+    cmd: "python -m pip install <pkg>"
+    purpose: "Install a package."
+    flags: *pip_install_flags
+    examples: ["python -m pip install requests", "python -m pip install requests==<ver>"]
+    idempotent: true
+
+  - group: "Pip"
+    cmd: "python -m pip install -r requirements.txt"
+    purpose: "Install from a requirements file."
+    flags: *pip_install_flags
+    idempotent: true
+
+  - group: "Pip"
+    cmd: "python -m pip uninstall -y <pkg>"
+    purpose: "Uninstall a package without prompt."
+    idempotent: true
+
+  - group: "Pip"
+    cmd: "python -m pip list"
+    purpose: "List installed packages."
+    idempotent: true
+
+  - group: "Pip"
+    cmd: "python -m pip freeze > requirements.lock.txt"
+    purpose: "Export exact environment for reproducible installs."
+    idempotent: true
+
+  # --- uv (optional but recommended for fast, deterministic installs) ---
+  - group: "uv (Windows bootstrap)"
+    cmd: "iwr https://astral.sh/uv/install.ps1 -UseBasicParsing | iex"
+    purpose: "Install uv on Windows PowerShell."
+    idempotent: true
+
+  - group: "uv"
+    cmd: "uv python pin <py>"
+    purpose: "Pin the Python version for this project."
+    idempotent: true
+
+  - group: "uv"
+    cmd: "uv venv --python <py>"
+    purpose: "Create a uv-managed venv."
+    idempotent: true
+
+  - group: "uv"
+    cmd: "uv pip install -r requirements.txt"
+    purpose: "Install requirements using uv's fast resolver."
+    idempotent: true
+
+  # --- Lint / Format / Types ---
+  - group: "Lint"
+    cmd: "ruff check ."
+    purpose: "Run linter."
+    flags: ["--fix", "--exit-non-zero-on-fix", "--config pyproject.toml"]
+    idempotent: true
+
+  - group: "Format"
+    cmd: "black ."
+    purpose: "Format code."
+    flags: ["--check", "--diff"]
+    idempotent: true
+
+  - group: "Types"
+    cmd: "mypy src tests"
+    purpose: "Static type checking."
+    flags: ["--config-file pyproject.toml"]
+    idempotent: true
+
+  # --- Tests & Coverage ---
+  - group: "Tests"
+    cmd: "pytest -q"
+    purpose: "Run unit tests quietly."
+    idempotent: true
+
+  - group: "Tests"
+    cmd: "pytest <expr>"
+    purpose: "Filter tests by expression/marker."
+    examples: ["pytest -k 'not slow'", "pytest -m 'e2e'"]
+    idempotent: true
+
+  - group: "Coverage"
+    cmd: "pytest -q --cov=src --cov-report=term-missing"
+    purpose: "Run tests with coverage summary."
+    idempotent: true
+
+  - group: "Coverage"
+    cmd: "coverage run -m pytest && coverage xml"
+    purpose: "Generate coverage.xml for CI gates."
+    idempotent: true
+
+  # --- Build & Publish ---
+  - group: "Build"
+    cmd: "python -m pip install build"
+    purpose: "Ensure build tool is present."
+    idempotent: true
+
+  - group: "Build"
+    cmd: "python -m build"
+    purpose: "Build sdist and wheel into dist/."
+    idempotent: true
+
+  - group: "Publish (TestPyPI)"
+    cmd: "python -m pip install twine && twine upload --repository testpypi dist/*"
+    purpose: "Upload to TestPyPI."
+    idempotent: false
+
+  - group: "Publish (PyPI)"
+    cmd: "twine upload dist/*"
+    purpose: "Upload to PyPI (requires credentials)."
+    idempotent: false
+
+  # --- Docs ---
+  - group: "Docs"
+    cmd: "python -m pip install mkdocs mkdocs-material"
+    purpose: "Install doc tooling."
+    idempotent: true
+
+  - group: "Docs"
+    cmd: "mkdocs serve -q"
+    purpose: "Serve docs locally with live reload."
+    idempotent: true
+
+  - group: "Docs"
+    cmd: "mkdocs build --clean"
+    purpose: "Build static site into site/."
+    idempotent: true
+
+  # --- Pipx (isolated CLIs) ---
+  - group: "Pipx"
+    cmd: "python -m pip install pipx && pipx ensurepath"
+    purpose: "Install pipx and set PATH."
+    idempotent: true
+
+  - group: "Pipx"
+    cmd: "pipx install ruff==0.6.9"
+    purpose: "Install CLI tool in isolated venv."
+    idempotent: true
+
+  # --- Environment / Debug ---
+  - group: "Env/Debug"
+    cmd: "python -m site"
+    purpose: "Show site-packages paths and config."
+    idempotent: true
+
+  - group: "Env/Debug"
+    cmd: "python -m pip debug"
+    purpose: "Show pip environment debug info."
+    idempotent: true
+
+  - group: "Env/Debug"
+    cmd: "python -m ensurepip --upgrade"
+    purpose: "(Re)install pip if missing."
+    idempotent: true

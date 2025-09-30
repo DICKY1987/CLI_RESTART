@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$branch" != ws/* ]]; then
+  echo "Pushing non-workstream branch: $branch"
+fi
+

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cli-multi-rapid.dev/schemas/agentic_lock.schema.json",
+  "title": "Agentic Tool Lockfile",
+  "description": "Lockfile specification for deterministic tool versions in CLI Multi-Rapid workflows",
+  "type": "object",
+  "required": ["version", "generated_at", "tools"],
+  "properties": {
+    "$schema": {"type": "string", "format": "uri"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "lock_hash": {"type": "string"},
+    "environment": {"type": "object"},
+    "tools": {
+      "type": "object",
+      "required": ["python_packages"],
+      "properties": {
+        "python_packages": {"type": "object"},
+        "system_tools": {"type": "object"},
+        "ai_models": {"type": "object"},
+        "github_actions": {"type": "object"}
+      }
+    }
+  }
+}
+

@@ -1,0 +1,15 @@
+analysis:
+  run_id: "<RUN_ID>"
+  generated_at: "<TIMESTAMP>"
+  workflow_file: "<WORKFLOW_PATH>"
+
+recommended_streams:
+  - id: auto-stream-1
+    confidence: <0.0-1.0>
+    phases: [<PHASE_IDS>]
+
+conflict_warnings:
+  - phases: [<PHASE_ID_1>, <PHASE_ID_2>]
+    conflict_type: "file_overlap | dependency"
+    severity: "high | medium | low"
+

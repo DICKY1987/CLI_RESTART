@@ -1,0 +1,48 @@
+# continue-cli-commands.yaml
+meta:
+  title: "Continue CLI (cn) — Commands Cheat Sheet"
+  version: "2025-09-30"
+  audience: "Automation pipelines using Continue's headless CLI agent"
+  notes:
+    - "Continue CLI (cn) is in beta; commands may change. See docs for latest."
+
+conventions:
+  placeholders:
+    <prompt>: "Instruction or goal"
+    <config>: "Path to Continue config"
+  tips:
+    - "Use allow/ask flags to control what tools the agent may execute."
+
+commands:
+  - group: "Run"
+    cmd: "cn "<prompt>""
+    purpose: "Start Continue CLI with a prompt."
+    idempotent: false
+
+  - group: "Config"
+    cmd: "cn --config <config>"
+    purpose: "Use a specific configuration/organization."
+    idempotent: true
+
+  - group: "Allow tool pattern"
+    cmd: "cn --allow Bash(git*)"
+    purpose: "Auto-approve a class of tool calls (example)."
+    idempotent: true
+
+  - group: "Ask before tool pattern"
+    cmd: "cn --ask Bash(rm*)"
+    purpose: "Require confirmation for risky tools (example)."
+    idempotent: true
+
+  - group: "Slash commands (interactive)"
+    cmd: "/clear | /compact | /config | /exit | /fork | /help | /info | /init | /login"
+    purpose: "Built-in chat controls."
+    idempotent: true
+
+  - group: "Help"
+    cmd: "cn --help"
+    purpose: "Show CLI help."
+    idempotent: true
+
+provenance:
+  - "Continue CLI docs: overview, quick start, and CLI guides."
