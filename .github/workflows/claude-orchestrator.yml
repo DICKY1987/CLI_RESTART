@@ -286,7 +286,7 @@ jobs:
 
       - name: Comment on triggering issue (if applicable)
         if: github.event_name == 'issue_comment' && always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
