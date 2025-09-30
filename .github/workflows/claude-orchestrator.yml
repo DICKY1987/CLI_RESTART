@@ -99,7 +99,7 @@ jobs:
       github_available: ${{ steps.validate.outputs.github_available }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -148,7 +148,7 @@ jobs:
     if: needs.detect-workflow.outputs.should_run == 'true' && needs.validate-environment.outputs.github_available == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
         uses: actions/setup-python@v5

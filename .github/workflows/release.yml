@@ -19,7 +19,7 @@ jobs:
       is_prerelease: ${{ steps.extract.outputs.is_prerelease }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Extract version info
       id: extract
@@ -41,7 +41,7 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
@@ -80,7 +80,7 @@ jobs:
         working-directory: ./vscode-extension
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up Node.js 18
       uses: actions/setup-node@v4
@@ -113,7 +113,7 @@ jobs:
     needs: validate-release
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Validate MQL4 files
       shell: powershell
@@ -152,7 +152,7 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4
