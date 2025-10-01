@@ -159,6 +159,21 @@ jobs:
       with:
         path: release-artifacts
 
+    - name: Generate shell completions
+      run: |
+        python -m pip install --upgrade pip
+        pip install .
+        python scripts/generate_completions.py
+
+    - name: Upload completion scripts
+      uses: actions/upload-artifact@v4
+      with:
+        name: shell-completions
+        path: |
+          completions/bash/cli-orchestrator
+          completions/zsh/_cli-orchestrator
+          completions/powershell/cli-orchestrator.ps1
+
     - name: Create Release Notes
       run: |
         VERSION="${{ needs.validate-release.outputs.version }}"
@@ -189,3 +204,6 @@ jobs:
           release-artifacts/python-package/*
           release-artifacts/vscode-extension/*
           release-artifacts/mql4-package/*
+          completions/bash/cli-orchestrator
+          completions/zsh/_cli-orchestrator
+          completions/powershell/cli-orchestrator.ps1
