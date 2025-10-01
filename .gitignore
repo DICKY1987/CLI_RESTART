@@ -26,6 +26,8 @@ coverage/
 # Local artifacts
 artifacts/
 logs/
+.sessions/
+.tmp-tests/
 
 # Docker
 *.local.yml
