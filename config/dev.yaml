@@ -1,0 +1,11 @@
+app:
+  debug: true
+  log_level: DEBUG
+
+observability:
+  prometheus_enabled: false
+
+workflow:
+  max_concurrent: 2
+
+# Use local services by default in dev via env vars

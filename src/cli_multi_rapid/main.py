@@ -1098,6 +1098,29 @@ def create_pr(
         raise typer.Exit(code=1)
 
 
+@app.callback()
+def _init(
+    env: Optional[str] = typer.Option(
+        None,
+        "--env",
+        help="Configuration environment to use (dev|staging|prod)",
+    )
+):
+    """Global initialization: validate configuration early."""
+    try:
+        from .config.validation import validate_and_build_settings
+
+        resolved_env, _settings = validate_and_build_settings(env)
+        console.print(
+            f"[dim]Config loaded for environment: {resolved_env}[/dim]"
+        )
+    except Exception as e:
+        console.print(
+            f"[red]{_symbol(False)} Configuration invalid: {e}[/red]"
+        )
+        raise typer.Exit(code=1)
+
+
 def main():
     """Main entry point for the CLI orchestrator."""
     app()

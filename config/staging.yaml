@@ -1,0 +1,9 @@
+app:
+  debug: false
+  log_level: INFO
+
+workflow:
+  max_concurrent: 4
+
+observability:
+  prometheus_enabled: true
