@@ -1,0 +1,4 @@
+# Ignore known/acceptable CVEs here (format: CVE-YYYY-NNNN or GHSA-...)
+# Example entries:
+# CVE-2023-12345
+# GHSA-xxxx-xxxx-xxxx

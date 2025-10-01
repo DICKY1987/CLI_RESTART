@@ -1,0 +1,5 @@
+# Add file path globs or regexes here to ignore specific findings
+# Example: ignore sample keys in example configs
+examples/config/*.json
+docs/**/*.md
+tests/fixtures/**

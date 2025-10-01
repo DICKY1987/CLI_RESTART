@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Conventional Commits format enforcement
+# Allowed: <type>(<scope>)?: <subject>
+# Types: feat, fix, chore, docs, style, refactor, perf, test, ci, build, revert
+
+message_file="$1"
+message=$(head -n1 "$message_file" | tr -d '\r')
+
+conventional_regex='^(feat|fix|chore|docs|style|refactor|perf|test|ci|build|revert)(\([a-z0-9_.-]+\))?: .+'
+
+if [[ "$message" =~ $conventional_regex ]]; then
+  exit 0
+fi
+
+echo "Commit message does not follow Conventional Commits." >&2
+echo "Example: feat(parser): add new option" >&2
+exit 1
+
