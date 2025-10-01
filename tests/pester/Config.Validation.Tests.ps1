@@ -3,11 +3,9 @@ $ErrorActionPreference = 'Stop'
 
 Describe 'Config Validation' {
   BeforeAll {
-    # Resolve repo root relative to this test file (tests/pester/.. -> repo root)
     $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' | Join-Path -ChildPath '..')).Path
     $scriptPath = Join-Path $repoRoot 'restart.ps1'
 
-    # Ensure script exists
     It 'restart.ps1 exists' {
       (Test-Path $scriptPath) | Should Be $true
     }
@@ -22,21 +20,27 @@ Describe 'Config Validation' {
     }
   }
 
+  function Invoke-ChildAndGetExit([string]$cfgPath, [string]$sessionId) {
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = 'powershell'
+    $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$(Join-Path $repoRoot 'restart.ps1')`" -ConfigPath `"$cfgPath`" -SessionId $sessionId -NoOpenEditor"
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.UseShellExecute = $false
+    $p = [System.Diagnostics.Process]::Start($psi)
+    $p.WaitForExit()
+    return $p.ExitCode
+  }
+
   It 'Missing repository.url -> non-zero exit and error.txt exists' {
     $cfg = @{ repository = @{}; toggles = @{ launchPanes = $true } } | ConvertTo-Json
     $cfgPath = Join-Path $repoRoot '.tmp-tests/missing-repo-url.json'
     Set-Content -LiteralPath $cfgPath -Value $cfg -Encoding UTF8
 
     $sessionId = [Guid]::NewGuid().ToString('N')
+    $exit = Invoke-ChildAndGetExit -cfgPath $cfgPath -sessionId $sessionId
 
-    $proc = Start-Process -FilePath 'powershell' -ArgumentList @(
-      '-NoProfile','-ExecutionPolicy','Bypass','-File', (Join-Path $repoRoot 'restart.ps1'),
-      '-ConfigPath', $cfgPath,
-      '-SessionId', $sessionId,
-      '-NoOpenEditor'
-    ) -Wait -PassThru
-
-    $proc.ExitCode | Should Not Be 0
+    $exit | Should Not Be 0
     $errorFile = Join-Path $repoRoot ".sessions/$sessionId/error.txt"
     Start-Sleep -Milliseconds 200
     Write-Host "Expecting error file at: $errorFile"
@@ -50,15 +54,9 @@ Describe 'Config Validation' {
     Set-Content -LiteralPath $cfgPath -Value $cfg -Encoding UTF8
 
     $sessionId = [Guid]::NewGuid().ToString('N')
+    $exit = Invoke-ChildAndGetExit -cfgPath $cfgPath -sessionId $sessionId
 
-    $proc = Start-Process -FilePath 'powershell' -ArgumentList @(
-      '-NoProfile','-ExecutionPolicy','Bypass','-File', (Join-Path $repoRoot 'restart.ps1'),
-      '-ConfigPath', $cfgPath,
-      '-SessionId', $sessionId,
-      '-NoOpenEditor'
-    ) -Wait -PassThru
-
-    $proc.ExitCode | Should Not Be 0
+    $exit | Should Not Be 0
     $errorFile = Join-Path $repoRoot ".sessions/$sessionId/error.txt"
     Start-Sleep -Milliseconds 200
     Write-Host "Expecting error file at: $errorFile"
