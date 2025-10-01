@@ -36,6 +36,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-asyncio pytest-cov coverage rich pyyaml pytest-mock pytest-timeout
 
+      - name: Validate env template covers code vars
+        run: |
+          python scripts/validate_env.py --check .env.example
+
       - name: Run core test suite
         env:
           PYTHONPATH: src
