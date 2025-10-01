@@ -136,3 +136,4 @@
 {"ts": 1757829912, "task_id": "gdw:git.commit_push.main", "tool": "gdw_runner", "action": "gdw_step:push_direct", "tokens": null, "amount": 0.0}
 {"ts": 1757829912, "task_id": "gdw:git.commit_push.main", "tool": "gdw_runner", "action": "gdw_step:create_pr", "tokens": null, "amount": 0.0}
 {"ts": 1757829912, "task_id": "gdw:git.commit_push.main", "tool": "gdw_runner", "action": "gdw_step:auto_merge_pr", "tokens": null, "amount": 0.0}
+{"ts": 1759294193, "task_id": "gdw:spec", "tool": "gdw_runner", "action": "gdw:all", "tokens": null, "amount": 0.001}

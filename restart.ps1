@@ -78,6 +78,46 @@ function Write-ValidationError {
   exit 1
 }
 
+function Invoke-LogRotation {
+  param(
+    [string]$LogPath,
+    [int]$MaxSizeMB = 10,
+    [int]$MaxFiles = 5
+  )
+
+  if (-not (Test-Path -LiteralPath $LogPath)) {
+    return  # No log file to rotate
+  }
+
+  $logFile = Get-Item -LiteralPath $LogPath
+  $logSizeMB = $logFile.Length / 1MB
+
+  if ($logSizeMB -lt $MaxSizeMB) {
+    return  # Log is within size limit
+  }
+
+  Write-Host "Rotating log: $LogPath (${logSizeMB}MB >= ${MaxSizeMB}MB)" -ForegroundColor Yellow
+
+  # Shift existing rotated logs
+  for ($i = $MaxFiles - 1; $i -ge 1; $i--) {
+    $oldLog = "$LogPath.$i"
+    $newLog = "$LogPath.$($i + 1)"
+
+    if (Test-Path -LiteralPath $oldLog) {
+      if ($i -eq ($MaxFiles - 1)) {
+        Remove-Item -LiteralPath $oldLog -Force  # Delete oldest
+      }
+      else {
+        Move-Item -LiteralPath $oldLog -Destination $newLog -Force
+      }
+    }
+  }
+
+  # Rotate current log to .1
+  Move-Item -LiteralPath $LogPath -Destination "$LogPath.1" -Force
+  Write-Host "Log rotated successfully" -ForegroundColor Green
+}
+
 function Validate-Config {
   param(
     $Config
