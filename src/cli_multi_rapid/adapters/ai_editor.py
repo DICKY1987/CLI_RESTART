@@ -12,6 +12,7 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+from observability.conversation_logger import log_interaction
 from typing import Any, Dict, List, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
@@ -171,19 +172,7 @@ class AIEditorAdapter(BaseAdapter):
                     emit_paths, file_list if files else []
                 )
 
-                return AdapterResult(
-                    success=True,
-                    tokens_used=tokens_used,
-                    artifacts=artifacts,
-                    output=process.stdout,
-                    metadata={
-                        "tool": "aider",
-                        "model": model,
-                        "files_modified": len(file_list) if files else 0,
-                        "prompt_length": len(prompt),
-                    },
-                )
-            else:
+                # Conversation log\n                try:\n                    log_interaction(actor='ai_editor', prompt=prompt, response=process.stdout, model=model, tokens_used=tokens_used, metadata={'tool': 'aider', 'operation': operation})\n                except Exception:\n                    pass\n                return AdapterResult(\n                    success=True,\1)\n            else:
                 return AdapterResult(
                     success=False,
                     error=f"Aider failed: {process.stderr}",
