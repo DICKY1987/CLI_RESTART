@@ -1,0 +1,13 @@
+{
+  "$id": "https://example.com/schemas/schema_version.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Schema Version Contract",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+  },
+  "required": ["$schema", "version"],
+  "additionalProperties": true
+}
+
