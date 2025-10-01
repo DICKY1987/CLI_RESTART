@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+"""
+Legacy idempotency state helpers.
+
+Maintains backward-compatible APIs and provides access to generic idempotency store.
+"""
+
 from typing import Set, Tuple
 
-# In-memory idempotency set (replace with durable store in production)
+from .storage import get_store, make_step_key  # re-export for convenience
+
+# Legacy API retained for compatibility with previous integrations
 _seen: Set[Tuple[str, str, str, int]] = set()
 
 

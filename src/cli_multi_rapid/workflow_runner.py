@@ -73,6 +73,12 @@ class WorkflowRunner:
         self.coordinator = WorkflowCoordinator()
         self.scope_manager = FileScopeManager()
         self._state_base = Path("state/coordination")
+        try:
+            from .router import Router
+
+            self.router = Router()
+        except Exception:
+            self.router = None
 
     # --- Coordination state helpers ---
     def _state_dir(self) -> Path:
@@ -288,6 +294,10 @@ class WorkflowRunner:
         artifacts = []
         completed_steps = 0
 
+        # Optional per-phase timeout configuration
+        timeouts = (workflow.get("timeouts") or {})
+        per_phase_seconds = timeouts.get("per_phase_seconds")
+
         for i, step in enumerate(steps):
             step_id = step.get("id", f"step-{i+1}")
             step_name = step.get("name", f"Step {i+1}")
@@ -301,8 +311,21 @@ class WorkflowRunner:
                 completed_steps += 1
                 continue
 
-            # Execute step (placeholder implementation)
-            step_result = self._execute_step(step, files=files)
+            # Execute step (adapter-backed)
+            start_step = time.time()
+            if per_phase_seconds:
+                # Soft timeout: if exceeded, mark failure gracefully
+                try:
+                    step_result = self._execute_step(step, files=files, timeout_seconds=per_phase_seconds)
+                except TimeoutError as te:
+                    return WorkflowResult(
+                        success=False,
+                        error=f"Step {step_id} timed out: {te}",
+                        tokens_used=total_tokens,
+                        steps_completed=completed_steps,
+                    )
+            else:
+                step_result = self._execute_step(step, files=files)
 
             total_tokens += step_result.get("tokens_used", 0)
             artifacts.extend(step_result.get("artifacts", []))
@@ -336,25 +359,106 @@ class WorkflowRunner:
         )
 
     def _execute_step(
-        self, step: Dict[str, Any], files: Optional[str] = None
+        self, step: Dict[str, Any], files: Optional[str] = None, timeout_seconds: Optional[int] = None
     ) -> Dict[str, Any]:
-        """Execute a single workflow step."""
-        # This is a placeholder implementation
-        # In a full implementation, this would route to the appropriate adapter
-
+        """Execute a single workflow step via adapter registry routing."""
         actor = step.get("actor", "unknown")
-        console.print(f"[dim]Executing actor: {actor}[/dim]")
+        console.print(f"[dim]Executing actor: {actor}[/dim]
+")
 
-        # Simulate step execution
-        import time
+        # Idempotency: skip if already executed with same context
+        try:
+            from src.idempotency.storage import get_store, make_step_key
 
-        time.sleep(0.1)  # Brief pause to simulate work
+            store = get_store()
+            key = make_step_key(step, files)
+            if store.seen(key):
+                return {
+                    "success": True,
+                    "tokens_used": 0,
+                    "artifacts": [],
+                    "output": f"Skipped (idempotent) {actor}",
+                    "metadata": {"skipped": True, "reason": "idempotent"},
+                }
+        except Exception:
+            # Proceed without idempotency if store not available
+            store = None
+            key = None
 
+        # Resolve adapter
+        adapter = None
+        if self.router is not None:
+            try:
+                adapter = self.router.registry.get_adapter(actor)
+            except Exception:
+                adapter = None
+        if adapter is None:
+            # Fallback to direct registry import
+            try:
+                from .adapters.adapter_registry import registry as global_registry
+
+                adapter = global_registry.get_adapter(actor)
+            except Exception:
+                adapter = None
+
+        if adapter is None:
+            return {
+                "success": False,
+                "error": f"Adapter not found: {actor}",
+                "artifacts": [],
+                "tokens_used": 0,
+            }
+
+        # Validate step
+        if hasattr(adapter, "validate_step") and not adapter.validate_step(step):
+            return {"success": False, "error": f"Invalid step for adapter {actor}", "artifacts": [], "tokens_used": 0}
+
+        # Cancellation token via file
+        cancel_token = None
+        try:
+            from .cancellation import CancellationToken
+
+            cancel_token = CancellationToken()
+        except Exception:
+            cancel_token = None
+
+        # Execute with soft timeout
+        start = time.time()
+        try:
+            context = {"cancel_token": cancel_token}
+            result_obj = adapter.execute(step, context=context, files=files)
+        except Exception as e:
+            return {"success": False, "error": str(e), "artifacts": [], "tokens_used": 0}
+
+        elapsed = time.time() - start
+        if timeout_seconds and elapsed > timeout_seconds:
+            return {"success": False, "error": f"timeout exceeded after {elapsed:.2f}s", "artifacts": [], "tokens_used": 0}
+
+        # Mark idempotency key after success
+        try:
+            if store and key and getattr(result_obj, "success", False):
+                store.mark(key)
+        except Exception:
+            pass
+
+        # Normalize result
+        if hasattr(result_obj, "to_dict"):
+            return result_obj.to_dict()
+        if isinstance(result_obj, dict):
+            return result_obj
+        return {"success": True, "tokens_used": 0, "artifacts": [], "output": str(result_obj)}
+
+    # Compatibility wrapper used by some integration tests
+    def execute_workflow(self, workflow: Dict[str, Any], files: Optional[str] = None, dry_run: bool = False) -> Dict[str, Any]:
+        """Execute workflow and return a legacy dict structure for compatibility."""
+        result = self._execute_workflow(workflow, dry_run=dry_run, files=files)
         return {
-            "success": True,
-            "tokens_used": 50,  # Placeholder token usage
-            "artifacts": [],
-            "output": f"Step completed by {actor}",
+            "execution_id": f"exec-{int(time.time())}",
+            "success": result.success,
+            "steps": result.steps_completed,
+            "tokens_used": result.tokens_used,
+            "artifacts": result.artifacts,
+            "error": result.error,
         }
 
     # --- IPT/WT integration (minimal scaffolding) ---
@@ -936,4 +1040,3 @@ class WorkflowRunner:
         efficiency = expected_parallel_time / total_time if total_time > 0 else 0.0
 
         return min(efficiency, 1.0)  # Cap at 100% efficiency
-
