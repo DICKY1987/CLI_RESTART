@@ -8,6 +8,7 @@ workflow steps in a deterministic and auditable manner.
 
 from .adapter_registry import AdapterRegistry
 from .ai_analyst import AIAnalystAdapter
+from .ai_editor import AIEditorAdapter
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 from .code_fixers import CodeFixersAdapter
 
@@ -22,6 +23,7 @@ __all__ = [
     "AdapterType",
     "AdapterRegistry",
     "AIAnalystAdapter",
+    "AIEditorAdapter",
     "CodeFixersAdapter",
     # "CostEstimatorAdapter",  # Circular import issue
     "GitOpsAdapter",

@@ -7,6 +7,7 @@ and security policy enforcement.
 
 
 import pytest
+import pytest_asyncio
 
 from src.cli_multi_rapid.security.framework import (
     Permission,

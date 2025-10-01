@@ -20,6 +20,7 @@ class AdapterRegistry:
     def __init__(self):
         self._adapters: Dict[str, BaseAdapter] = {}
         self._adapter_classes: Dict[str, Type[BaseAdapter]] = {}
+        self._auto_register_core_adapters()
 
     def register(self, adapter: BaseAdapter) -> None:
         """Register an adapter instance."""
@@ -70,7 +71,9 @@ class AdapterRegistry:
             if name not in available:
                 # For registry compatibility, provide basic metadata
                 available[name] = {
+                    "name": name,
                     "type": "deterministic",  # Default assumption
+                    "adapter_type": "deterministic",
                     "description": f"Adapter: {name}",
                     "cost": 0,
                     "available": True,
@@ -109,6 +112,30 @@ class AdapterRegistry:
         """List all registered adapter names."""
         all_names = set(self._adapters.keys()) | set(self._adapter_classes.keys())
         return sorted(all_names)
+
+    # Backwards-compatibility alias expected by some tests
+    def list_available_adapters(self) -> Dict[str, Dict[str, any]]:
+        """Alias for get_available_adapters for compatibility with older tests."""
+        return self.get_available_adapters()
+
+    def _auto_register_core_adapters(self) -> None:
+        """Register core adapters by class for discovery without eager instantiation."""
+        try:
+            from .ai_editor import AIEditorAdapter
+            from .ai_analyst import AIAnalystAdapter
+            from .code_fixers import CodeFixersAdapter
+            from .git_ops import GitOpsAdapter
+            from .pytest_runner import PytestRunnerAdapter
+            from .vscode_diagnostics import VSCodeDiagnosticsAdapter
+
+            self.register_class("ai_editor", AIEditorAdapter)
+            self.register_class("ai_analyst", AIAnalystAdapter)
+            self.register_class("code_fixers", CodeFixersAdapter)
+            self.register_class("git_ops", GitOpsAdapter)
+            self.register_class("pytest_runner", PytestRunnerAdapter)
+            self.register_class("vscode_diagnostics", VSCodeDiagnosticsAdapter)
+        except Exception as e:
+            logger.debug(f"Core adapter auto-registration skipped: {e}")
 
 
 # Global registry instance

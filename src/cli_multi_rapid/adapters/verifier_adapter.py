@@ -13,13 +13,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-<<<<<<< HEAD
-from ..verifier import GateResult, Verifier
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter
-=======
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 from ..verifier import Verifier, GateResult
->>>>>>> 597d763 (feat(coordination): add CLI group, persistence, dashboard/report/history; register VerifierAdapter; load config defaults)
 
 
 class VerifierAdapter(BaseAdapter):
@@ -50,13 +45,7 @@ class VerifierAdapter(BaseAdapter):
                 artifact = params.get("artifact")
                 schema = params.get("schema")
                 if not artifact:
-<<<<<<< HEAD
-                    return AdapterResult(
-                        success=False, error="Missing 'artifact' parameter"
-                    )
-=======
                     return AdapterResult(success=False, error="Missing 'artifact' parameter")
->>>>>>> 597d763 (feat(coordination): add CLI group, persistence, dashboard/report/history; register VerifierAdapter; load config defaults)
 
                 artifact_path = Path(artifact)
                 schema_path = Path(schema) if schema else None
@@ -94,13 +83,7 @@ class VerifierAdapter(BaseAdapter):
                 if not isinstance(gates, list):
                     return AdapterResult(success=False, error="'gates' must be a list")
 
-<<<<<<< HEAD
-                results: List[GateResult] = self._verifier.check_gates(
-                    gates, artifacts_dir
-                )
-=======
                 results: List[GateResult] = self._verifier.check_gates(gates, artifacts_dir)
->>>>>>> 597d763 (feat(coordination): add CLI group, persistence, dashboard/report/history; register VerifierAdapter; load config defaults)
                 passed = all(r.passed for r in results)
 
                 # Build summary and optionally emit
@@ -158,7 +141,3 @@ class VerifierAdapter(BaseAdapter):
     def is_available(self) -> bool:
         # Always available; relies on local JSON and files
         return True
-<<<<<<< HEAD
-=======
-
->>>>>>> 597d763 (feat(coordination): add CLI group, persistence, dashboard/report/history; register VerifierAdapter; load config defaults)

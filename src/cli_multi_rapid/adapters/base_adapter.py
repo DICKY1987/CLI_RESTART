@@ -161,7 +161,9 @@ class BaseAdapter(ABC):
         """Get adapter metadata for router registration."""
         profile = self.get_performance_profile()
         return {
+            "name": self.name,
             "type": self.adapter_type.value,
+            "adapter_type": self.adapter_type.value,
             "description": self.description,
             "cost": self.estimate_cost({}),  # Base cost estimate
             "available": self.is_available(),
