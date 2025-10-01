@@ -218,6 +218,44 @@ try {
     exit 0
   }
 
+  # Launch health monitor if enabled
+  function Get-PropertyValue {
+    param($obj, [string]$name)
+    if ($obj -is [hashtable]) { return $obj[$name] }
+    if ($obj -is [pscustomobject]) {
+      $prop = $obj.PSObject.Properties[$name]
+      if ($null -ne $prop) { return $prop.Value } else { return $null }
+    }
+    return $null
+  }
+
+  $enableHealthMonitor = $false
+  if ($null -ne $cfg.toggles) {
+    $toggles = Get-PropertyValue -obj $cfg -name 'toggles'
+    $enableHealthMonitor = Get-PropertyValue -obj $toggles -name 'enableHealthMonitor'
+  }
+
+  if ($enableHealthMonitor) {
+    $healthMonitorScript = Join-Path $PSScriptRoot '.launcher/health-monitor.ps1'
+    if (Test-Path -LiteralPath $healthMonitorScript) {
+      $sessionDir = New-SessionPath -SessionId $SessionId
+      $healthOutput = Join-Path $sessionDir 'health.json'
+
+      Write-Host "Launching health monitor..." -ForegroundColor Cyan
+      Start-Process -FilePath 'pwsh.exe' -ArgumentList @(
+        '-NoProfile',
+        '-File', $healthMonitorScript,
+        '-OutputPath', $healthOutput,
+        '-IntervalSeconds', '30'
+      ) -WindowStyle Hidden
+
+      Write-Host "Health monitor started. Output: $healthOutput" -ForegroundColor Green
+    }
+    else {
+      Write-Warning "Health monitor enabled but script not found: $healthMonitorScript"
+    }
+  }
+
   # Placeholder for actual restart/launch logic
   exit 0
 
