@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "name": "cli_restart-workspace-tools",
+  "version": "0.1.0",
+  "devDependencies": {
+    "@stoplight/spectral-cli": "^6.11.1"
+  },
+  "scripts": {
+    "lint:openapi": "spectral lint specs/openapi/**/*.y?(a)ml --fail-severity=error"
+  }
+}

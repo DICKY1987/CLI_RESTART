@@ -1,0 +1,7 @@
+extends: spectral:oas
+rules:
+  oas3-valid-schema-example: error
+  operation-operationId: warn
+  operation-tags: off
+  info-contact: off
+  openapi-tags: warn
