@@ -51,6 +51,22 @@ jobs:
             --ignore=tests/test_cli_basics_extra.py \
             --cov=src --cov-report=term-missing --cov-fail-under=0
 
+  schemas:
+    name: Schema compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run schema compatibility checks
+        run: |
+          python scripts/check_schema_compatibility.py
+
   extended:
     name: Extended tests (best-effort)
     runs-on: ubuntu-latest
