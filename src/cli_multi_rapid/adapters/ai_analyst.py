@@ -9,7 +9,6 @@ Focuses on understanding code patterns, generating insights, and planning change
 import json
 import logging
 from pathlib import Path
-from observability.conversation_logger import log_interaction
 from typing import Any, Dict, List, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
@@ -134,7 +133,18 @@ class AIAnalystAdapter(BaseAdapter):
         # Save analysis to artifacts
         artifacts = self._save_analysis_artifacts(emit_paths, analysis_results)
 
-        # Conversation log\n        try:\n            log_interaction(actor='ai_analyst', prompt=json.dumps({'analysis_type': 'code_review', 'focus_areas': focus_areas, 'detail_level': detail_level}), response=json.dumps(analysis_results)[:2000], model=model, tokens_used=0, metadata={'files': file_list})\n        except Exception:\n            pass\n        return AdapterResult(\n            success=True,\1)\n
+        return AdapterResult(
+            success=True,
+            tokens_used=self._estimate_tokens_for_analysis(file_list, detail_level),
+            artifacts=artifacts,
+            output="Code review completed successfully",
+            metadata={
+                "analysis_type": "code_review",
+                "files_analyzed": len(file_list),
+                "issues_found": analysis_results["summary"]["issues_found"],
+            },
+        )
+
     def _execute_architecture_analysis(
         self,
         files: Optional[str],
@@ -167,7 +177,9 @@ class AIAnalystAdapter(BaseAdapter):
 
         artifacts = self._save_analysis_artifacts(emit_paths, analysis_results)
 
-        # Conversation log\n        try:\n            log_interaction(actor='ai_analyst', prompt=json.dumps({'analysis_type': 'code_review', 'focus_areas': focus_areas, 'detail_level': detail_level}), response=json.dumps(analysis_results)[:2000], model=model, tokens_used=0, metadata={'files': file_list})\n        except Exception:\n            pass\n        return AdapterResult(\n            success=True,\1)\n            * 1.5,
+        return AdapterResult(
+            success=True,
+            tokens_used=self._estimate_tokens_for_analysis(file_list, detail_level) * 1.5,
             artifacts=artifacts,
             output="Architecture analysis completed",
             metadata={
@@ -231,7 +243,17 @@ class AIAnalystAdapter(BaseAdapter):
 
         artifacts = self._save_analysis_artifacts(emit_paths, refactor_plan)
 
-        # Conversation log\n        try:\n            log_interaction(actor='ai_analyst', prompt=json.dumps({'analysis_type': 'code_review', 'focus_areas': focus_areas, 'detail_level': detail_level}), response=json.dumps(analysis_results)[:2000], model=model, tokens_used=0, metadata={'files': file_list})\n        except Exception:\n            pass\n        return AdapterResult(\n            success=True,\1)\n
+        return AdapterResult(
+            success=True,
+            tokens_used=self._estimate_tokens_for_analysis(file_list, "high") * 2,
+            artifacts=artifacts,
+            output="Refactor planning completed",
+            metadata={
+                "plan_type": "refactor_planning",
+                "opportunities_found": len(refactor_plan["refactor_opportunities"]),
+            },
+        )
+
     def _execute_test_planning(
         self,
         files: Optional[str],
@@ -280,7 +302,17 @@ class AIAnalystAdapter(BaseAdapter):
 
         artifacts = self._save_analysis_artifacts(emit_paths, test_plan)
 
-        # Conversation log\n        try:\n            log_interaction(actor='ai_analyst', prompt=json.dumps({'analysis_type': 'code_review', 'focus_areas': focus_areas, 'detail_level': detail_level}), response=json.dumps(analysis_results)[:2000], model=model, tokens_used=0, metadata={'files': file_list})\n        except Exception:\n            pass\n        return AdapterResult(\n            success=True,\1)\n
+        return AdapterResult(
+            success=True,
+            tokens_used=self._estimate_tokens_for_analysis(file_list, detail_level),
+            artifacts=artifacts,
+            output="Test planning completed",
+            metadata={
+                "plan_type": "test_planning",
+                "recommended_tests": len(test_plan["recommended_tests"]),
+            },
+        )
+
     def _generate_mock_code_review_findings(
         self,
         files: List[str],
