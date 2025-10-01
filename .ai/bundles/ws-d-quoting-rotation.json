@@ -1,0 +1,38 @@
+﻿{
+    "instructions":  {
+                         "action":  "create_branch",
+                         "branch_name":  "ws/d-quoting-rotation",
+                         "repo_path":  "C:/Dev/CLI_RESTART",
+                         "create_if_missing":  true,
+                         "checkout":  true,
+                         "notes":  "Create and checkout the branch before applying changes for this work stream."
+                     },
+    "workstream":  {
+                       "id":  "D",
+                       "name":  "Pane Quoting \u0026 Log Rotation",
+                       "scope":  [
+                                     "Harden quoting for wt.exe/Start-Process (spaces, non-ASCII)",
+                                     "Verify log rotation honors logs.maxSizeMB/maxFiles"
+                                 ],
+                       "files_touched":  [
+                                             "restart.ps1",
+                                             ".launcher/Run-Tool.ps1",
+                                             "tests/pester/Launch.Quoting.Tests.ps1",
+                                             "tests/pester/Log.Rotation.Tests.ps1"
+                                         ],
+                       "tests":  [
+                                     "Launch from path with spaces (via -NoLaunch detection)",
+                                     "Force large logs → rotated files .1, .2 present"
+                                 ],
+                       "acceptance_criteria":  [
+                                                   "No path/quoting failures; rotation within limits"
+                                               ],
+                       "commands":  [
+                                        "powershell -NoProfile -Command Invoke-Pester -Path tests/pester -Tag Quoting,Rotation -CI"
+                                    ],
+                       "dependencies":  [
+
+                                        ],
+                       "merge_notes":  "Touch launch block and Run-Tool only; independent from validation/Git."
+                   }
+}
