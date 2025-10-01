@@ -20,8 +20,8 @@ class ToolAdapterBridge(BaseAdapter):
         self.tool_type = tool_type
 
         # Import here to avoid circular imports
-        from ...integrations.process import ProcessRunner
-        from ...integrations.registry import load_config
+        from integrations.process import ProcessRunner
+        from integrations.registry import load_config
 
         self.runner = ProcessRunner(dry_run=dry_run)
         self.config = load_config("config/tool_adapters.yaml")
@@ -36,43 +36,43 @@ class ToolAdapterBridge(BaseAdapter):
 
         try:
             if self.tool_type == "vcs":
-                from ...integrations.vcs import create_vcs_adapter
+                from integrations.vcs import create_vcs_adapter
 
                 adapter = create_vcs_adapter(self.runner, self.config.vcs)
                 return self._execute_vcs_operation(adapter, operation, task)
 
             elif self.tool_type == "containers":
-                from ...integrations.containers import create_containers_adapter
+                from integrations.containers import create_containers_adapter
 
                 adapter = create_containers_adapter(self.runner, self.config.containers)
                 return self._execute_containers_operation(adapter, operation, task)
 
             elif self.tool_type == "editor":
-                from ...integrations.editor import create_editor_adapter
+                from integrations.editor import create_editor_adapter
 
                 adapter = create_editor_adapter(self.runner, self.config.editor)
                 return self._execute_editor_operation(adapter, operation, task)
 
             elif self.tool_type == "js_runtime":
-                from ...integrations.js_runtime import create_js_runtime_adapter
+                from integrations.js_runtime import create_js_runtime_adapter
 
                 adapter = create_js_runtime_adapter(self.runner, self.config.js_runtime)
                 return self._execute_js_operation(adapter, operation, task)
 
             elif self.tool_type == "ai_cli":
-                from ...integrations.ai_cli import create_ai_cli_adapter
+                from integrations.ai_cli import create_ai_cli_adapter
 
                 adapter = create_ai_cli_adapter(self.runner, self.config.ai_cli)
                 return self._execute_ai_operation(adapter, operation, task)
 
             elif self.tool_type == "python_quality":
-                from ...integrations.python_quality import create_python_quality_adapter
+                from integrations.python_quality import create_python_quality_adapter
 
                 adapter = create_python_quality_adapter(self.runner)
                 return self._execute_quality_operation(adapter, operation, task)
 
             elif self.tool_type == "precommit":
-                from ...integrations.precommit import create_precommit_adapter
+                from integrations.precommit import create_precommit_adapter
 
                 adapter = create_precommit_adapter(self.runner)
                 return self._execute_precommit_operation(adapter, operation, task)
