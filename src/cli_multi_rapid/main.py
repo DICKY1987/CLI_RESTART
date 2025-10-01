@@ -20,6 +20,7 @@ app = typer.Typer(
     rich_markup_mode="rich",
 )
 console = Console()
+JSON_MODE_KEY = "json_mode"
 
 
 # Cross-platform safe success/failure symbols (avoid Unicode on legacy Windows)
@@ -28,6 +29,24 @@ def _symbol(ok: bool) -> str:
     if "utf" in enc:
         return "✓" if ok else "✗"
     return "OK" if ok else "FAIL"
+
+
+@app.callback()
+def _global_options(
+    ctx: typer.Context,
+    json_mode: bool = typer.Option(
+        False,
+        "--json",
+        help="Output machine-readable JSON for all command results",
+        show_default=False,
+    ),
+):
+    """CLI Orchestrator.
+
+    Use --json to emit machine-readable output.
+    """
+    ctx.obj = ctx.obj or {}
+    ctx.obj[JSON_MODE_KEY] = json_mode
 
 
 @app.command("codegen-models")
@@ -89,11 +108,27 @@ def run_workflow(
             lane=lane,
             max_tokens=max_tokens,
         )
-        if result.success:
-            console.print(f"[green]{_symbol(True)} Workflow completed successfully[/green]")
+        # Honor global JSON mode
+        from .output import OutputFormatter
+
+        json_mode = getattr(typer.get_current_context().obj or {}, JSON_MODE_KEY, False)
+        fmt = OutputFormatter(json_mode=json_mode, console=console)
+        if json_mode:
+            payload: Dict[str, Any] = {
+                "success": result.success,
+                "error": result.error,
+                "artifacts": result.artifacts,
+                "tokens_used": result.tokens_used,
+                "steps_completed": result.steps_completed,
+            }
+            code = 0 if result.success else 1
+            raise typer.Exit(code=fmt.emit(payload, exit_code=code))
         else:
-            console.print(f"[red]{_symbol(False)} Workflow failed: {result.error}[/red]")
-            raise typer.Exit(code=1)
+            if result.success:
+                console.print(f"[green]{_symbol(True)} Workflow completed successfully[/green]")
+            else:
+                console.print(f"[red]{_symbol(False)} Workflow failed: {result.error}[/red]")
+                raise typer.Exit(code=1)
     except ImportError:
         console.print("[red]CLI orchestrator workflow runner not available[/red]")
         console.print("[yellow]Run in basic mode without workflow execution[/yellow]")
@@ -114,11 +149,19 @@ def verify_artifact(
 
         verifier = Verifier()
         is_valid = verifier.verify_artifact(artifact_file, schema_file)
-        if is_valid:
-            console.print(f"[green]{_symbol(True)} Artifact is valid[/green]")
+        from .output import OutputFormatter
+        json_mode = getattr(typer.get_current_context().obj or {}, JSON_MODE_KEY, False)
+        fmt = OutputFormatter(json_mode=json_mode, console=console)
+        if json_mode:
+            payload = {"success": bool(is_valid)}
+            code = 0 if is_valid else 1
+            raise typer.Exit(code=fmt.emit(payload, exit_code=code))
         else:
-            console.print(f"[red]{_symbol(False)} Artifact validation failed[/red]")
-            raise typer.Exit(code=1)
+            if is_valid:
+                console.print(f"[green]{_symbol(True)} Artifact is valid[/green]")
+            else:
+                console.print(f"[red]{_symbol(False)} Artifact validation failed[/red]")
+                raise typer.Exit(code=1)
     except ImportError:
         console.print("[red]CLI orchestrator verifier not available[/red]")
         raise typer.Exit(code=1)
@@ -176,13 +219,26 @@ def run_ipt_wt(
 
         runner = WorkflowRunner()
         result = runner.run_ipt_wt_workflow(workflow_file=workflow_file, request=request, budget=budget)
-        if result.success:
-            console.print("[green]IPT/WT workflow completed successfully[/green]")
-            if result.artifacts:
-                console.print(f"[dim]Artifacts: {', '.join(result.artifacts)}[/dim]")
+        from .output import OutputFormatter
+        json_mode = getattr(typer.get_current_context().obj or {}, JSON_MODE_KEY, False)
+        fmt = OutputFormatter(json_mode=json_mode, console=console)
+        if json_mode:
+            payload: Dict[str, Any] = {
+                "success": result.success,
+                "error": result.error,
+                "artifacts": result.artifacts,
+                "steps_completed": result.steps_completed,
+            }
+            code = 0 if result.success else 1
+            raise typer.Exit(code=fmt.emit(payload, exit_code=code))
         else:
-            console.print(f"[red]IPT/WT workflow failed: {result.error}[/red]")
-            raise typer.Exit(code=1)
+            if result.success:
+                console.print("[green]IPT/WT workflow completed successfully[/green]")
+                if result.artifacts:
+                    console.print(f"[dim]Artifacts: {', '.join(result.artifacts)}[/dim]")
+            else:
+                console.print(f"[red]IPT/WT workflow failed: {result.error}[/red]")
+                raise typer.Exit(code=1)
     except ImportError:
         console.print("[red]Workflow runner not available[/red]")
         raise typer.Exit(code=1)
@@ -193,6 +249,14 @@ coordination_app = typer.Typer(
     name="coordination", help="Multi-agent workflow coordination commands"
 )
 app.add_typer(coordination_app, name="coordination")
+
+# Repo (git) commands
+try:
+    from .commands.git_commands import repo_app
+
+    app.add_typer(repo_app, name="repo")
+except Exception:
+    pass
 
 
 def _ensure_state_dir() -> Path:

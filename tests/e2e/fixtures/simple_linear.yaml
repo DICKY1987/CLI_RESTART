@@ -1,0 +1,11 @@
+name: E2E Simple Linear
+version: 1.0.0
+steps:
+  - id: s1
+    name: Analyze code
+    actor: ai_analyst
+    with:
+      analysis_type: code_review
+      model: test-model
+    emits:
+      - artifacts/e2e/analysis.json

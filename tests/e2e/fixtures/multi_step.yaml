@@ -1,0 +1,18 @@
+name: E2E Multi-Step
+version: 1.0.0
+steps:
+  - id: s1
+    name: Baseline state
+    actor: backup_manager
+    with:
+      operation: create_snapshot
+    emits:
+      - artifacts/e2e/snapshot.json
+  - id: s2
+    name: Analyze code
+    actor: ai_analyst
+    with:
+      analysis_type: code_review
+      model: test-model
+    emits:
+      - artifacts/e2e/analysis2.json
