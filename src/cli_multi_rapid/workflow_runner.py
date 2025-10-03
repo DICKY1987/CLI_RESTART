@@ -7,6 +7,7 @@ and AI escalation patterns.
 """
 
 import json
+import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -73,12 +74,171 @@ class WorkflowRunner:
         self.coordinator = WorkflowCoordinator()
         self.scope_manager = FileScopeManager()
         self._state_base = Path("state/coordination")
+        self.git_ops = None  # Lazy-loaded
+        self.activity_logger = None  # Lazy-loaded
         try:
             from .router import Router
 
             self.router = Router()
         except Exception:
             self.router = None
+
+    def _get_git_ops(self):
+        """Lazy-load GitOpsAdapter."""
+        if self.git_ops is None:
+            try:
+                from .adapters.git_ops import GitOpsAdapter
+                self.git_ops = GitOpsAdapter()
+            except Exception:
+                pass
+        return self.git_ops
+
+    def _get_activity_logger(self):
+        """Lazy-load ActivityLogger."""
+        if self.activity_logger is None:
+            try:
+                from .logging import ActivityLogger
+                log_path = Path("logs/workflow_execution.log")
+                self.activity_logger = ActivityLogger(log_path)
+            except Exception:
+                pass
+        return self.activity_logger
+
+    @staticmethod
+    def generate_run_id() -> str:
+        """Generate human-readable run ID.
+
+        Format: yyyyMMdd-HHmmss-6hex (e.g., 20250930-142455-a1b2c3)
+        """
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        random_hex = secrets.token_hex(3)  # 6 hex chars
+        return f"{timestamp}-{random_hex}"
+
+    def display_workflow_banner(self, workflow_name: str, run_id: str, config: Dict[str, Any]) -> None:
+        """Display startup banner with workflow info."""
+        cost_tracking = config.get("policy", {}).get("max_tokens") is not None
+        gates_enabled = len(config.get("gates", [])) > 0
+
+        banner = f"""
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║   🚀 CLI ORCHESTRATOR - WORKFLOW EXECUTION                  ║
+║                                                              ║
+║   Workflow:      {workflow_name:<46}║
+║   Run ID:        {run_id:<46}║
+║   Cost Tracking: {'✓ ENABLED' if cost_tracking else '✗ DISABLED':<46}║
+║   Verification:  {'✓ ENABLED' if gates_enabled else '✗ DISABLED':<46}║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+"""
+        self.console.print(banner)
+
+        # Log to activity logger
+        logger = self._get_activity_logger()
+        if logger:
+            logger.workflow_started(workflow_name, run_id, cost_tracking=cost_tracking, gates=gates_enabled)
+
+    def display_workflow_summary(self, run_id: str, workflow_name: str, result: "WorkflowResult", start_time: datetime) -> None:
+        """Display exit summary with statistics."""
+        duration = datetime.now() - start_time
+
+        # Get Git statistics if available
+        git_stats = {}
+        git_ops = self._get_git_ops()
+        if git_ops:
+            try:
+                git_stats = git_ops.get_session_statistics(start_time)
+            except Exception:
+                pass
+
+        summary = f"""
+╔══════════════════════════════════════════════════════════════╗
+║   💾 WORKFLOW EXECUTION SUMMARY                             ║
+║                                                              ║
+║   Duration:          {str(duration).split('.')[0]:<42}║
+║   Steps Executed:    {result.steps_completed:<42}║
+║   Tokens Used:       {result.tokens_used:<42}║
+║                                                              ║
+"""
+
+        if git_stats:
+            summary += f"""║   Git Changes:                                               ║
+║   - Commits Created: {git_stats.get('commits_since_start', 0):<42}║
+║   - Unpushed:        {git_stats.get('unpushed', 0):<42}║
+║   - Branch:          {git_stats.get('final_branch', 'unknown'):<42}║
+║                                                              ║
+"""
+
+        status = '✓ SUCCESS' if result.success else '✗ FAILED'
+        summary += f"""║   Status: {status:<50}║
+╚══════════════════════════════════════════════════════════════╝
+"""
+        self.console.print(summary)
+
+        # Log to activity logger
+        logger = self._get_activity_logger()
+        if logger:
+            logger.workflow_completed(
+                workflow_name,
+                run_id,
+                result.success,
+                duration_seconds=duration.total_seconds(),
+                steps_completed=result.steps_completed,
+                tokens_used=result.tokens_used,
+                git_stats=git_stats
+            )
+
+    def _save_workflow_manifest(
+        self,
+        run_id: str,
+        workflow_name: str,
+        result: "WorkflowResult",
+        start_time: datetime,
+        git_snapshot_start: Optional[Dict[str, Any]],
+        git_snapshot_end: Optional[Dict[str, Any]]
+    ) -> None:
+        """Save workflow manifest with Git snapshots and statistics."""
+        manifest_dir = Path("artifacts") / run_id
+        manifest_dir.mkdir(parents=True, exist_ok=True)
+        manifest_path = manifest_dir / "manifest.json"
+
+        duration = datetime.now() - start_time
+
+        manifest = {
+            "run_id": run_id,
+            "workflow_name": workflow_name,
+            "created": start_time.isoformat(),
+            "ended": datetime.now().isoformat(),
+            "duration_seconds": duration.total_seconds(),
+            "git_snapshot_start": git_snapshot_start,
+            "git_snapshot_end": git_snapshot_end,
+            "statistics": {
+                "duration_seconds": duration.total_seconds(),
+                "steps_executed": result.steps_completed,
+                "tokens_used": result.tokens_used,
+                "success": result.success,
+                "artifacts_count": len(result.artifacts)
+            },
+            "artifacts": result.artifacts
+        }
+
+        # Add Git statistics if snapshots available
+        if git_snapshot_start and git_snapshot_end:
+            manifest["statistics"]["commits_created"] = (
+                git_snapshot_end.get("recent_commits", 0) -
+                git_snapshot_start.get("recent_commits", 0)
+            )
+            manifest["statistics"]["files_modified"] = len(
+                set(git_snapshot_end.get("uncommitted_files", [])) -
+                set(git_snapshot_start.get("uncommitted_files", []))
+            )
+
+        try:
+            with open(manifest_path, "w", encoding="utf-8") as f:
+                json.dump(manifest, f, indent=2)
+            console.print(f"[dim]💾 Manifest saved: {manifest_path}[/dim]")
+        except Exception as e:
+            console.print(f"[yellow]Warning: Failed to save manifest: {e}[/yellow]")
 
     # --- Coordination state helpers ---
     def _state_dir(self) -> Path:
@@ -284,9 +444,31 @@ class WorkflowRunner:
     ) -> WorkflowResult:
         """Execute workflow steps with routing and cost tracking."""
 
+        # Generate run ID and display banner
+        run_id = self.generate_run_id()
+        workflow_name = workflow.get("name", "Unnamed Workflow")
+        start_time = datetime.now()
+
+        self.display_workflow_banner(workflow_name, run_id, workflow)
+
+        # Capture Git snapshot at start
+        git_snapshot_start = None
+        git_ops = self._get_git_ops()
+        if git_ops:
+            try:
+                git_snapshot_start = git_ops.capture_git_snapshot()
+                logger = self._get_activity_logger()
+                if logger:
+                    logger.git_snapshot(git_snapshot_start, event_type="pre-workflow")
+                console.print(f"[dim]📸 Git snapshot: {git_snapshot_start['branch']} @ {git_snapshot_start['commit_hash']}[/dim]")
+            except Exception:
+                pass
+
         steps = workflow.get("steps", [])
         if not steps:
-            return WorkflowResult(success=True, steps_completed=0)
+            result = WorkflowResult(success=True, steps_completed=0)
+            self.display_workflow_summary(run_id, workflow_name, result, start_time)
+            return result
 
         console.print(f"[blue]Executing {len(steps)} workflow steps[/blue]")
 
@@ -351,12 +533,34 @@ class WorkflowRunner:
                 )
 
         console.print(f"[green]OK Workflow completed: {completed_steps} steps[/green]")
-        return WorkflowResult(
+
+        # Capture Git snapshot at end
+        git_snapshot_end = None
+        if git_ops:
+            try:
+                git_snapshot_end = git_ops.capture_git_snapshot()
+                logger = self._get_activity_logger()
+                if logger:
+                    logger.git_snapshot(git_snapshot_end, event_type="post-workflow")
+                console.print(f"[dim]📸 Git snapshot: {git_snapshot_end['branch']} @ {git_snapshot_end['commit_hash']}[/dim]")
+            except Exception:
+                pass
+
+        # Create result
+        result = WorkflowResult(
             success=True,
             artifacts=artifacts,
             tokens_used=total_tokens,
             steps_completed=completed_steps,
         )
+
+        # Display summary
+        self.display_workflow_summary(run_id, workflow_name, result, start_time)
+
+        # Save manifest with Git snapshots
+        self._save_workflow_manifest(run_id, workflow_name, result, start_time, git_snapshot_start, git_snapshot_end)
+
+        return result
 
     def _execute_step(
         self, step: Dict[str, Any], files: Optional[str] = None, timeout_seconds: Optional[int] = None
@@ -519,7 +723,7 @@ class WorkflowRunner:
         """Run multiple workflows with coordination."""
 
         start_time = time.time()
-        coordination_id = f"coord_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        coordination_id = f"coord-{self.generate_run_id()}"
 
         try:
             # Load all workflows

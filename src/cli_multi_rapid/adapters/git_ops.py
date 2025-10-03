@@ -808,3 +808,120 @@ class GitOpsAdapter(BaseAdapter):
         """Get current commit hash."""
         result = self._git(['rev-parse', 'HEAD'])
         return result.stdout.strip() if result.success else "unknown"
+
+    # --- Git Snapshot and Session Statistics Methods ---
+
+    def capture_git_snapshot(self, lookback_minutes: int = 10) -> Dict[str, Any]:
+        """Capture comprehensive Git state snapshot.
+
+        Args:
+            lookback_minutes: Number of minutes to look back for recent commits
+
+        Returns:
+            Dictionary containing comprehensive Git state information
+        """
+        from ..contracts.git_snapshot import GitStatus
+
+        branch = self._current_branch()
+        commit_hash = self._get_current_commit()[:8]
+
+        # Get last commit details
+        last_commit_msg = self._get_last_commit_message()
+        last_commit_time = self._get_last_commit_time()
+
+        # Count recent commits
+        recent_commits = self._count_commits_since(lookback_minutes)
+
+        # Count unpushed commits
+        unpushed_commits = self._count_unpushed_commits(branch)
+
+        # Get uncommitted files
+        uncommitted_files = self._get_uncommitted_files()
+
+        # Determine status
+        has_uncommitted = len(uncommitted_files) > 0
+        status = GitStatus.clean if not has_uncommitted else GitStatus.dirty
+
+        return {
+            "branch": branch,
+            "commit_hash": commit_hash,
+            "last_commit_message": last_commit_msg,
+            "last_commit_time": last_commit_time,
+            "recent_commits": recent_commits,
+            "unpushed_commits": unpushed_commits,
+            "uncommitted_files": uncommitted_files,
+            "status": status.value,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }
+
+    def get_session_statistics(self, start_time: datetime) -> Dict[str, Any]:
+        """Get Git statistics for a workflow session.
+
+        Args:
+            start_time: Session start time
+
+        Returns:
+            Dictionary containing session Git statistics
+        """
+        branch = self._current_branch()
+        since = start_time.isoformat()
+
+        return {
+            "commits_since_start": self._count_commits_since_time(since),
+            "unpushed": self._count_unpushed_commits(branch),
+            "has_uncommitted": self._has_uncommitted_changes(),
+            "final_branch": branch,
+            "final_commit": self._get_current_commit()[:8]
+        }
+
+    def _get_last_commit_message(self) -> str:
+        """Get the last commit message."""
+        result = self._git(['log', '-1', '--format=%s'])
+        return result.stdout.strip() if result.success else "No commits"
+
+    def _get_last_commit_time(self) -> str:
+        """Get the last commit time (human-readable)."""
+        result = self._git(['log', '-1', '--format=%ar'])
+        return result.stdout.strip() if result.success else "never"
+
+    def _count_commits_since(self, minutes: int) -> int:
+        """Count commits in the last N minutes."""
+        since = datetime.utcnow() - __import__('datetime').timedelta(minutes=minutes)
+        since_str = since.isoformat()
+        result = self._git(['log', f'--since={since_str}', '--oneline'])
+        if result.success and result.stdout.strip():
+            return len(result.stdout.strip().split('\n'))
+        return 0
+
+    def _count_commits_since_time(self, since_iso: str) -> int:
+        """Count commits since a specific ISO timestamp."""
+        result = self._git(['log', f'--since={since_iso}', '--oneline'])
+        if result.success and result.stdout.strip():
+            return len(result.stdout.strip().split('\n'))
+        return 0
+
+    def _count_unpushed_commits(self, branch: str) -> int:
+        """Count unpushed commits on a branch."""
+        result = self._git(['log', f'origin/{branch}..HEAD', '--oneline'])
+        if result.success and result.stdout.strip():
+            return len(result.stdout.strip().split('\n'))
+        return 0
+
+    def _get_uncommitted_files(self) -> List[str]:
+        """Get list of uncommitted file paths."""
+        result = self._git(['status', '--porcelain'])
+        if result.success and result.stdout.strip():
+            files = []
+            for line in result.stdout.strip().split('\n'):
+                if line.strip():
+                    # Extract filename from status line (format: "XY filename")
+                    parts = line.split(maxsplit=1)
+                    if len(parts) > 1:
+                        files.append(parts[1])
+            return files
+        return []
+
+    def _has_uncommitted_changes(self) -> bool:
+        """Check if there are uncommitted changes."""
+        result = self._git(['status', '--porcelain'])
+        return result.success and len(result.stdout.strip()) > 0
