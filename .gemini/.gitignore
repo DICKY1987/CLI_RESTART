@@ -1,0 +1,12 @@
+# Local settings with sensitive data
+settings.local.json
+oauth_creds.json
+google_accounts.json
+installation_id
+
+# Session data
+sessions/
+tmp/
+
+# Logs
+*.log

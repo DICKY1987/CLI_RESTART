@@ -40,3 +40,12 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: []
+
+  - repo: local
+    hooks:
+      - id: generate-contract-models
+        name: Generate contract models from JSON Schemas
+        entry: python scripts/generate_models.py
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
