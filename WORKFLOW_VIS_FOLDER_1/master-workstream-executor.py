@@ -49,12 +49,31 @@ class WorkstreamStatus:
 class WorkstreamExecutor:
     """Main executor for workstream automation"""
 
-    def __init__(self, workstreams_dir: Path, dry_run: bool = False):
+    def __init__(self, workstreams_dir: Path, dry_run: bool = False, repo_dir: Optional[Path] = None):
         self.workstreams_dir = workstreams_dir
         self.dry_run = dry_run
         self.workstreams: Dict[str, dict] = {}
         self.status: Dict[str, WorkstreamStatus] = {}
         self.execution_log: List[dict] = []
+        self.repo_dir: Path = repo_dir or self._detect_repo_dir()
+
+    def _detect_repo_dir(self) -> Path:
+        """Detect git repo root or fall back to current directory."""
+        try:
+            result = subprocess.run(
+                ['git', 'rev-parse', '--show-toplevel'],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            top = (result.stdout or '').strip()
+            if result.returncode == 0 and top:
+                p = Path(top)
+                if p.exists():
+                    return p
+        except Exception:
+            pass
+        return Path.cwd()
 
     def load_workstreams(self) -> None:
         """Load all workstream JSON files"""
@@ -188,7 +207,7 @@ class WorkstreamExecutor:
                     shell=True,
                     capture_output=True,
                     text=True,
-                    cwd=os.path.expanduser("C:\\Users\\Richard Wilks")
+                    cwd=str(self.repo_dir)
                 )
 
                 if result.returncode != 0:
@@ -233,7 +252,7 @@ class WorkstreamExecutor:
                     shell=True,
                     capture_output=True,
                     text=True,
-                    cwd=os.path.expanduser("C:\\Users\\Richard Wilks")
+                    cwd=str(self.repo_dir)
                 )
                 if result.stdout.strip():
                     raise Exception(f"Working tree not clean:\n{result.stdout}")
@@ -245,7 +264,7 @@ class WorkstreamExecutor:
                     shell=True,
                     capture_output=True,
                     text=True,
-                    cwd=os.path.expanduser("C:\\Users\\Richard Wilks")
+                    cwd=str(self.repo_dir)
                 )
                 if result.returncode != 0:
                     raise Exception(f"Failed to sync with {remote}")
@@ -262,7 +281,7 @@ class WorkstreamExecutor:
                 subprocess.run(
                     step,
                     shell=True,
-                    cwd=os.path.expanduser("C:\\Users\\Richard Wilks")
+                    cwd=str(self.repo_dir)
                 )
 
     def _prompt_continue(self, message: str) -> bool:
