@@ -4,7 +4,13 @@ on:
   pull_request:
     paths:
       - 'contracts/schemas/**.json'
+      - '.ai/schemas/**.json'
       - 'scripts/schema_diff.py'
+      - 'scripts/check_schema_compatibility.py'
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   schema-diff:
@@ -13,11 +19,128 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - name: Run schema diff gate
+
+      - name: Run schema diff gate (contracts)
+        id: schema_diff
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
-          python scripts/schema_diff.py
+          echo "::group::Schema Diff Analysis"
+          python scripts/schema_diff.py | tee schema_diff_output.txt
+          EXIT_CODE=$?
+          echo "::endgroup::"
+          exit $EXIT_CODE
+        continue-on-error: true
+
+      - name: Run schema compatibility check (.ai)
+        id: schema_compat
+        run: |
+          echo "::group::Schema Compatibility Check"
+          python scripts/check_schema_compatibility.py | tee schema_compat_output.txt
+          EXIT_CODE=$?
+          echo "::endgroup::"
+          exit $EXIT_CODE
+        continue-on-error: true
+
+      - name: Generate compatibility report
+        if: always()
+        run: |
+          cat > pr_comment.md << 'EOF'
+          ## 📋 Schema Compatibility Report
+
+          ### Contract Schemas (`contracts/schemas/`)
+          EOF
+
+          if [ "${{ steps.schema_diff.outcome }}" == "success" ]; then
+            echo "✅ **All schema changes are compatible**" >> pr_comment.md
+            if [ -f schema_diff_output.txt ]; then
+              echo "" >> pr_comment.md
+              echo "<details><summary>Details</summary>" >> pr_comment.md
+              echo "" >> pr_comment.md
+              echo '```' >> pr_comment.md
+              cat schema_diff_output.txt >> pr_comment.md
+              echo '```' >> pr_comment.md
+              echo "</details>" >> pr_comment.md
+            fi
+          else
+            echo "❌ **Breaking changes detected without proper version bump**" >> pr_comment.md
+            if [ -f schema_diff_output.txt ]; then
+              echo "" >> pr_comment.md
+              echo '```' >> pr_comment.md
+              cat schema_diff_output.txt >> pr_comment.md
+              echo '```' >> pr_comment.md
+            fi
+          fi
+
+          echo "" >> pr_comment.md
+          echo "### AI Schemas (`.ai/schemas/`)" >> pr_comment.md
+
+          if [ "${{ steps.schema_compat.outcome }}" == "success" ]; then
+            echo "✅ **All schema changes are compatible**" >> pr_comment.md
+            if [ -f schema_compat_output.txt ]; then
+              echo "" >> pr_comment.md
+              echo "<details><summary>Details</summary>" >> pr_comment.md
+              echo "" >> pr_comment.md
+              echo '```' >> pr_comment.md
+              cat schema_compat_output.txt >> pr_comment.md
+              echo '```' >> pr_comment.md
+              echo "</details>" >> pr_comment.md
+            fi
+          else
+            echo "❌ **Breaking changes detected without proper version bump**" >> pr_comment.md
+            if [ -f schema_compat_output.txt ]; then
+              echo "" >> pr_comment.md
+              echo '```' >> pr_comment.md
+              cat schema_compat_output.txt >> pr_comment.md
+              echo '```' >> pr_comment.md
+            fi
+          fi
+
+          echo "" >> pr_comment.md
+          echo "---" >> pr_comment.md
+          echo "*Schema compatibility checks enforce semver versioning to prevent breaking changes.*" >> pr_comment.md
+
+      - name: Post PR comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const comment = fs.readFileSync('pr_comment.md', 'utf8');
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Schema Compatibility Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Fail if incompatible changes
+        if: steps.schema_diff.outcome == 'failure' || steps.schema_compat.outcome == 'failure'
+        run: |
+          echo "::error::Schema compatibility checks failed. Please bump version numbers appropriately."
+          exit 1
