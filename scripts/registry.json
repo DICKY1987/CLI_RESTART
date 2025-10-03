@@ -1,0 +1,125 @@
+{
+  "$schema": "./registry_schema.json",
+  "version": "1.0.0",
+  "description": "CLI Orchestrator centralized script registry",
+  "scripts": {
+    "cross_platform_setup": {
+      "purpose": "Cross-platform repository initialization and tool validation",
+      "description": "Detects platform, validates required tools (git, python, gh, docker), and sets up the development environment",
+      "path": "scripts/cross_platform_setup.sh",
+      "category": "setup",
+      "platform": "all",
+      "interpreter": "bash",
+      "dependencies": ["git", "python3"],
+      "parameters": [],
+      "tags": ["setup", "initialization", "cross-platform"],
+      "examples": [
+        "bash scripts/cross_platform_setup.sh"
+      ]
+    },
+    "generate_models": {
+      "purpose": "Generate Pydantic models from JSON Schemas",
+      "description": "Reads JSON Schema files and generates corresponding Pydantic model classes for type-safe contract validation",
+      "path": "scripts/generate_models.py",
+      "category": "build",
+      "platform": "all",
+      "interpreter": "python",
+      "dependencies": ["pydantic", "datamodel-code-generator"],
+      "parameters": [
+        {
+          "name": "schemas_dir",
+          "description": "Directory containing JSON Schema files",
+          "required": false,
+          "default": "contracts/schemas",
+          "type": "path"
+        },
+        {
+          "name": "output_dir",
+          "description": "Output directory for generated models",
+          "required": false,
+          "default": "src/contracts/generated",
+          "type": "path"
+        }
+      ],
+      "tags": ["codegen", "pydantic", "schemas"],
+      "examples": [
+        "python scripts/generate_models.py",
+        "python scripts/generate_models.py --schemas contracts/schemas --out src/contracts/generated"
+      ]
+    },
+    "setup_tool_environment": {
+      "purpose": "Set up tool-specific environment configurations",
+      "description": "Configures environment variables and settings for various development tools (git, docker, IDEs)",
+      "path": "scripts/setup_tool_environment.py",
+      "category": "setup",
+      "platform": "all",
+      "interpreter": "python",
+      "dependencies": [],
+      "parameters": [],
+      "tags": ["setup", "environment", "tools"],
+      "examples": [
+        "python scripts/setup_tool_environment.py"
+      ]
+    },
+    "healthcheck": {
+      "purpose": "Health check for orchestrator services",
+      "description": "Verifies that all orchestrator services are running and accessible",
+      "path": "scripts/healthcheck.py",
+      "category": "maintenance",
+      "platform": "all",
+      "interpreter": "python",
+      "dependencies": ["requests"],
+      "parameters": [
+        {
+          "name": "endpoint",
+          "description": "Health check endpoint URL",
+          "required": false,
+          "default": "http://localhost:5055/health",
+          "type": "string"
+        }
+      ],
+      "tags": ["health", "monitoring", "services"],
+      "examples": [
+        "python scripts/healthcheck.py",
+        "python scripts/healthcheck.py http://localhost:5055/health"
+      ]
+    },
+    "free_tier_setup": {
+      "purpose": "Configure orchestrator for free-tier cloud services",
+      "description": "Optimizes configuration for running on free-tier cloud platforms with resource constraints",
+      "path": "scripts/free_tier_setup.sh",
+      "category": "setup",
+      "platform": "unix",
+      "interpreter": "bash",
+      "dependencies": [],
+      "parameters": [],
+      "tags": ["setup", "cloud", "optimization"],
+      "examples": [
+        "bash scripts/free_tier_setup.sh"
+      ]
+    },
+    "validate_registry": {
+      "purpose": "Validate script registry against schema",
+      "description": "Ensures script registry JSON is valid and all referenced scripts exist",
+      "path": "scripts/validate_registry.py",
+      "category": "maintenance",
+      "platform": "all",
+      "interpreter": "python",
+      "dependencies": ["jsonschema"],
+      "parameters": [
+        {
+          "name": "registry_path",
+          "description": "Path to registry JSON file",
+          "required": false,
+          "default": "scripts/registry.json",
+          "type": "path"
+        }
+      ],
+      "tags": ["validation", "registry", "qa"],
+      "examples": [
+        "python scripts/validate_registry.py",
+        "python scripts/validate_registry.py --registry scripts/registry.json"
+      ]
+    }
+  }
+}

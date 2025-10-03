@@ -957,9 +957,25 @@ def containers_ps():
         raise typer.Exit(code=1)
 
 
-# Repo command group
+# Repo command group (legacy - keeping for backward compatibility)
 repo_app = typer.Typer(name="repo", help="Repository management commands")
 app.add_typer(repo_app, name="repo")
+
+# Git command group (WS-06 - enhanced git operations)
+from .commands import git_commands
+app.add_typer(git_commands.app, name="git")
+
+# Init command group (WS-06 - repository initialization)
+from .commands import repo_init
+app.add_typer(repo_init.app, name="init")
+
+# State command group (WS-06 - state management)
+from .commands import state
+app.add_typer(state.app, name="state")
+
+# Scripts command group (WS-06 - script registry)
+from .commands import scripts
+app.add_typer(scripts.app, name="scripts")
 
 
 @repo_app.command("clone")

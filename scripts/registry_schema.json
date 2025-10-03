@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cli-orchestrator/schemas/script-registry.schema.json",
+  "title": "Script Registry Schema",
+  "description": "Schema for CLI orchestrator script registry",
+  "type": "object",
+  "required": ["version", "scripts"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Registry schema version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Registry description"
+    },
+    "scripts": {
+      "type": "object",
+      "description": "Map of script name to script metadata",
+      "additionalProperties": {
+        "$ref": "#/definitions/script"
+      }
+    }
+  },
+  "definitions": {
+    "script": {
+      "type": "object",
+      "required": ["purpose", "path"],
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "description": "Brief description of script purpose",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of script functionality"
+        },
+        "path": {
+          "type": "string",
+          "description": "Path to script file relative to repository root",
+          "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "description": "Script category for organization",
+          "enum": [
+            "setup",
+            "build",
+            "test",
+            "deployment",
+            "maintenance",
+            "automation",
+            "analysis",
+            "general"
+          ],
+          "default": "general"
+        },
+        "platform": {
+          "type": "string",
+          "description": "Target platform(s)",
+          "enum": ["all", "windows", "linux", "macos", "unix"],
+          "default": "all"
+        },
+        "interpreter": {
+          "type": "string",
+          "description": "Script interpreter (auto-detected if not specified)",
+          "enum": ["auto", "python", "bash", "powershell", "sh", "node"]
+        },
+        "dependencies": {
+          "type": "array",
+          "description": "List of required dependencies",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "parameters": {
+          "type": "array",
+          "description": "Script parameters/arguments",
+          "items": {
+            "$ref": "#/definitions/parameter"
+          },
+          "default": []
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorization and search",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "examples": {
+          "type": "array",
+          "description": "Example usage commands",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "requires_sudo": {
+          "type": "boolean",
+          "description": "Whether script requires elevated privileges",
+          "default": false
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "description": "Maximum execution time in seconds",
+          "minimum": 1
+        }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "required": ["name", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Parameter name",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Parameter description",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether parameter is required",
+          "default": false
+        },
+        "default": {
+          "description": "Default value if not provided"
+        },
+        "type": {
+          "type": "string",
+          "description": "Parameter type",
+          "enum": ["string", "integer", "boolean", "path", "enum"]
+        },
+        "enum_values": {
+          "type": "array",
+          "description": "Allowed values for enum type",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
