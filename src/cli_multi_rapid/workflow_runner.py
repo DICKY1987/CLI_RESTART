@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 CLI Orchestrator Workflow Runner
 
@@ -120,16 +120,16 @@ class WorkflowRunner:
         gates_enabled = len(config.get("gates", [])) > 0
 
         banner = f"""
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║   🚀 CLI ORCHESTRATOR - WORKFLOW EXECUTION                  ║
-║                                                              ║
-║   Workflow:      {workflow_name:<46}║
-║   Run ID:        {run_id:<46}║
-║   Cost Tracking: {'✓ ENABLED' if cost_tracking else '✗ DISABLED':<46}║
-║   Verification:  {'✓ ENABLED' if gates_enabled else '✗ DISABLED':<46}║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
++--------------------------------------------------------------+
+�                                                              �
+�   ?? CLI ORCHESTRATOR - WORKFLOW EXECUTION                  �
+�                                                              �
+�   Workflow:      {workflow_name:<46}�
+�   Run ID:        {run_id:<46}�
+�   Cost Tracking: {'? ENABLED' if cost_tracking else '? DISABLED':<46}�
+�   Verification:  {'? ENABLED' if gates_enabled else '? DISABLED':<46}�
+�                                                              �
++--------------------------------------------------------------+
 """
         self.console.print(banner)
 
@@ -152,26 +152,26 @@ class WorkflowRunner:
                 pass
 
         summary = f"""
-╔══════════════════════════════════════════════════════════════╗
-║   💾 WORKFLOW EXECUTION SUMMARY                             ║
-║                                                              ║
-║   Duration:          {str(duration).split('.')[0]:<42}║
-║   Steps Executed:    {result.steps_completed:<42}║
-║   Tokens Used:       {result.tokens_used:<42}║
-║                                                              ║
++--------------------------------------------------------------+
+�   ?? WORKFLOW EXECUTION SUMMARY                             �
+�                                                              �
+�   Duration:          {str(duration).split('.')[0]:<42}�
+�   Steps Executed:    {result.steps_completed:<42}�
+�   Tokens Used:       {result.tokens_used:<42}�
+�                                                              �
 """
 
         if git_stats:
-            summary += f"""║   Git Changes:                                               ║
-║   - Commits Created: {git_stats.get('commits_since_start', 0):<42}║
-║   - Unpushed:        {git_stats.get('unpushed', 0):<42}║
-║   - Branch:          {git_stats.get('final_branch', 'unknown'):<42}║
-║                                                              ║
+            summary += f"""�   Git Changes:                                               �
+�   - Commits Created: {git_stats.get('commits_since_start', 0):<42}�
+�   - Unpushed:        {git_stats.get('unpushed', 0):<42}�
+�   - Branch:          {git_stats.get('final_branch', 'unknown'):<42}�
+�                                                              �
 """
 
-        status = '✓ SUCCESS' if result.success else '✗ FAILED'
-        summary += f"""║   Status: {status:<50}║
-╚══════════════════════════════════════════════════════════════╝
+        status = '? SUCCESS' if result.success else '? FAILED'
+        summary += f"""�   Status: {status:<50}�
++--------------------------------------------------------------+
 """
         self.console.print(summary)
 
@@ -236,7 +236,7 @@ class WorkflowRunner:
         try:
             with open(manifest_path, "w", encoding="utf-8") as f:
                 json.dump(manifest, f, indent=2)
-            console.print(f"[dim]💾 Manifest saved: {manifest_path}[/dim]")
+            console.print(f"[dim]?? Manifest saved: {manifest_path}[/dim]")
         except Exception as e:
             console.print(f"[yellow]Warning: Failed to save manifest: {e}[/yellow]")
 
@@ -460,7 +460,7 @@ class WorkflowRunner:
                 logger = self._get_activity_logger()
                 if logger:
                     logger.git_snapshot(git_snapshot_start, event_type="pre-workflow")
-                console.print(f"[dim]📸 Git snapshot: {git_snapshot_start['branch']} @ {git_snapshot_start['commit_hash']}[/dim]")
+                console.print(f"[dim]?? Git snapshot: {git_snapshot_start['branch']} @ {git_snapshot_start['commit_hash']}[/dim]")
             except Exception:
                 pass
 
@@ -542,7 +542,7 @@ class WorkflowRunner:
                 logger = self._get_activity_logger()
                 if logger:
                     logger.git_snapshot(git_snapshot_end, event_type="post-workflow")
-                console.print(f"[dim]📸 Git snapshot: {git_snapshot_end['branch']} @ {git_snapshot_end['commit_hash']}[/dim]")
+                console.print(f"[dim]?? Git snapshot: {git_snapshot_end['branch']} @ {git_snapshot_end['commit_hash']}[/dim]")
             except Exception:
                 pass
 
@@ -567,8 +567,8 @@ class WorkflowRunner:
     ) -> Dict[str, Any]:
         """Execute a single workflow step via adapter registry routing."""
         actor = step.get("actor", "unknown")
-        console.print(f"[dim]Executing actor: {actor}[/dim]
-")
+        console.print(f"[dim]Executing actor: {actor}[/dim]")
+
 
         # Idempotency: skip if already executed with same context
         try:
@@ -1009,7 +1009,7 @@ class WorkflowRunner:
 
         for workflow_name in coordination_plan.execution_order:
             if coordination_id and self._is_cancelled(coordination_id):
-                self.console.print("[yellow]Coordination cancelled â€” stopping sequential execution[/yellow]")
+                self.console.print("[yellow]Coordination cancelled — stopping sequential execution[/yellow]")
                 break
             workflow = next((w for w in workflows if w.get('name') == workflow_name), None)
             if workflow:
