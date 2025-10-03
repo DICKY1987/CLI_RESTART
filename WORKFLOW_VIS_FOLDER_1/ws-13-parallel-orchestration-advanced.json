@@ -1,0 +1,141 @@
+{
+  "workstream_id": 13,
+  "workstream_name": "Parallel Orchestration Advanced",
+  "branch_name": "ws/13-parallel-orchestration-advanced",
+  "est_hours": "48h",
+  "earliest_start_phase": "Phase 3 / Week 11",
+  "blocked_by": ["Parallel Orchestration Foundation"],
+  "priority_note": "Medium priority - Optimizations for parallel execution efficiency.",
+
+  "objectives": [
+    "Implement work-stealing scheduler for dynamic load balancing",
+    "Add dependency graph visualization for debugging",
+    "Configure Redis distributed locking",
+    "Add queue monitoring and metrics"
+  ],
+
+  "code_changes_summary": "This workstream adds advanced parallel execution capabilities including work-stealing for optimal resource utilization, dependency graph visualization for debugging complex workflows, Redis integration for distributed locking across multiple nodes, and queue monitoring for performance tuning.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement work-stealing scheduler",
+      "gap_ids": ["gap_PARALLEL_004"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/coordination/dispatcher.py",
+        "src/cli_multi_rapid/coordination/work_stealing_queue.py"
+      ],
+      "acceptance_criteria": [
+        "Work-stealing queue implemented",
+        "Idle workers steal tasks from busy workers",
+        "Dynamic load balancing across workers",
+        "Work-stealing metrics tracked"
+      ],
+      "test_plan": [
+        "Execute uneven workload distribution",
+        "Verify work stealing occurs",
+        "Verify load balanced across workers",
+        "Check work-stealing metrics"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Add dependency graph visualization",
+      "gap_ids": ["gap_PARALLEL_005"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/coordination/dependency_graph.py",
+        "src/cli_multi_rapid/commands/graph_commands.py"
+      ],
+      "acceptance_criteria": [
+        "Graph export to DOT format",
+        "Graph export to Mermaid format",
+        "cli-orchestrator graph show <workflow> visualizes dependencies",
+        "Graph rendering for complex workflows"
+      ],
+      "test_plan": [
+        "Run cli-orchestrator graph show workflow.yaml",
+        "Verify DOT/Mermaid output generated",
+        "Render graph with Graphviz",
+        "Verify dependencies shown correctly"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Configure Redis distributed locking",
+      "gap_ids": ["gap_PARALLEL_006"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/coordination/redis_lock.py",
+        "config/redis_config.json"
+      ],
+      "acceptance_criteria": [
+        "Redis connection configured",
+        "Redis lock implementation tested",
+        "Fallback to file locks if Redis unavailable",
+        "Lock metrics exposed"
+      ],
+      "test_plan": [
+        "Configure Redis connection",
+        "Acquire lock from multiple processes",
+        "Verify mutual exclusion",
+        "Disable Redis, verify fallback works"
+      ]
+    },
+    {
+      "id": "task-004",
+      "description": "Add queue monitoring and metrics",
+      "gap_ids": ["gap_PARALLEL_007"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/coordination/queue.py",
+        "src/cli_multi_rapid/monitoring/queue_metrics.py"
+      ],
+      "acceptance_criteria": [
+        "Queue depth metric exposed",
+        "Queue throughput metric exposed",
+        "Queue latency metric exposed",
+        "Metrics visualizable in dashboard"
+      ],
+      "test_plan": [
+        "Execute workflows with queuing",
+        "Check metrics endpoint for queue metrics",
+        "Verify metrics accurate",
+        "Visualize in Grafana dashboard"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/13-parallel-orchestration-advanced origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(parallel): add work-stealing, graph visualization, Redis locks, queue monitoring\"",
+      "git push -u origin ws/13-parallel-orchestration-advanced"
+    ],
+    "commit_message_template": "feat(parallel): add work-stealing, graph visualization, Redis locks, queue monitoring\n\nImplement work-stealing scheduler, dependency graph visualization, Redis distributed\nlocking, and queue monitoring metrics.\n\nCloses: gap_PARALLEL_004, gap_PARALLEL_005, gap_PARALLEL_006, gap_PARALLEL_007\nWorkstream: WS-13"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-12 completed (parallel foundation)"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-12 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "Redis optional - ensure graceful degradation if unavailable."
+  ]
+}

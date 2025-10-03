@@ -1,0 +1,148 @@
+{
+  "workstream_id": 1,
+  "workstream_name": "Schema Runtime Enforcement & Contract Validation",
+  "branch_name": "ws/01-schema-runtime-enforcement",
+  "est_hours": "46h",
+  "earliest_start_phase": "Phase 1 / Day 1",
+  "blocked_by": [],
+  "priority_note": "Critical foundation - blocks 6 other workstreams. All adapter I/O must be validated against schemas.",
+
+  "objectives": [
+    "Implement runtime schema validation for all adapter inputs and outputs",
+    "Enforce contract validation at all system boundaries",
+    "Synchronize Pydantic models with JSON schemas",
+    "Establish schema-first development as core architectural principle"
+  ],
+
+  "code_changes_summary": "This workstream establishes schema enforcement as the foundation for deterministic behavior. It modifies BaseAdapter to validate all inputs/outputs against JSON schemas using contract_validator.py, integrates Pydantic model generation from schemas, and ensures every adapter execution enforces declared contracts. This prevents invalid data from propagating through the system and enables reliable, type-safe operation.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement runtime schema validation in BaseAdapter",
+      "gap_ids": ["gap_SCHEMA_001"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/adapters/base_adapter.py",
+        "src/cli_multi_rapid/validation/contract_validator.py"
+      ],
+      "acceptance_criteria": [
+        "BaseAdapter.execute() validates inputs against schema before execution",
+        "BaseAdapter.execute() validates outputs against schema after execution",
+        "Invalid inputs/outputs raise ValidationError with clear messages",
+        "All adapters inherit validation automatically"
+      ],
+      "test_plan": [
+        "Create test adapter with defined schema",
+        "Pass valid inputs, verify execution succeeds",
+        "Pass invalid inputs, verify ValidationError raised",
+        "Verify error messages include schema path and validation details"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Add contract boundary validation decorator",
+      "gap_ids": ["gap_SCHEMA_005"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/adapters/base_adapter.py",
+        "src/cli_multi_rapid/validation/contract_validator.py"
+      ],
+      "acceptance_criteria": [
+        "@validate_contract decorator created",
+        "Decorator validates pre-execution input contracts",
+        "Decorator validates post-execution output contracts",
+        "Contract violations logged with full context"
+      ],
+      "test_plan": [
+        "Apply decorator to test function",
+        "Verify input validation occurs before function execution",
+        "Verify output validation occurs after function execution",
+        "Verify contract violations prevent execution and log details"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Integrate Pydantic model generation into pre-commit hooks",
+      "gap_ids": ["gap_SCHEMA_004"],
+      "files_to_create_or_modify": [
+        ".pre-commit-config.yaml",
+        "scripts/generate_models.py",
+        "src/contracts/models/__init__.py"
+      ],
+      "acceptance_criteria": [
+        "generate_models.py runs automatically on schema changes",
+        "Pydantic models generated match JSON schemas exactly",
+        "Pre-commit hook fails if generated models differ from committed versions",
+        "CI validates model-schema consistency"
+      ],
+      "test_plan": [
+        "Modify a JSON schema",
+        "Run pre-commit hooks",
+        "Verify Pydantic models regenerated",
+        "Verify git diff shows only expected model changes",
+        "Commit without regenerating models, verify hook fails"
+      ]
+    },
+    {
+      "id": "task-004",
+      "description": "Add schema validation tests for all adapters",
+      "gap_ids": ["gap_SCHEMA_001", "gap_SCHEMA_005"],
+      "files_to_create_or_modify": [
+        "tests/adapters/test_schema_validation.py",
+        "tests/validation/test_contract_validator.py"
+      ],
+      "acceptance_criteria": [
+        "Tests verify all adapters have defined schemas",
+        "Tests verify schema validation occurs on execution",
+        "Tests verify invalid data is rejected",
+        "Tests achieve 100% coverage of validation code paths"
+      ],
+      "test_plan": [
+        "Run pytest tests/adapters/test_schema_validation.py",
+        "Verify all adapters tested",
+        "Run pytest tests/validation/test_contract_validator.py",
+        "Verify coverage report shows ≥95% for validation code"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/01-schema-runtime-enforcement origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(schema): implement runtime schema validation and contract enforcement\"",
+      "git push -u origin ws/01-schema-runtime-enforcement"
+    ],
+    "commit_message_template": "feat(schema): implement runtime schema validation and contract enforcement\n\nImplement BaseAdapter schema validation, contract boundary validation decorator,\nand automated Pydantic model generation from JSON schemas.\n\nCloses: gap_SCHEMA_001, gap_SCHEMA_004, gap_SCHEMA_005\nWorkstream: WS-01"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree (git status)",
+      "sync with origin/main (git fetch)",
+      "verify Python 3.10+ available",
+      "verify pyproject.toml dependencies installed",
+      "no blockers in 'blocked_by' (empty for this workstream)"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR with 'revert: ws/01-schema-runtime-enforcement'"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: this is Phase 1, start immediately.",
+    "Do not prompt for approval; proceed automatically after preflight checks.",
+    "Never store credentials in JSON; rely on configured git auth.",
+    "Fail fast on unresolved merge conflicts and emit detailed logs.",
+    "This workstream blocks WS-05, WS-06, WS-07, WS-08, WS-09, WS-18.",
+    "Complete this workstream before starting any Phase 2 work."
+  ]
+}

@@ -53,6 +53,7 @@ src/cli_multi_rapid/contracts/git_snapshot.py
 src/cli_multi_rapid/contracts/models.py
 src/cli_multi_rapid/contracts/session_metadata.py
 src/cli_multi_rapid/coordination/__init__.py
+src/cli_multi_rapid/coordination/coordinator.py
 src/cli_multi_rapid/coordination/deadlock_detector.py
 src/cli_multi_rapid/coordination/dependency_graph.py
 src/cli_multi_rapid/coordination/dispatcher.py
@@ -70,6 +71,8 @@ src/cli_multi_rapid/enterprise/config.py
 src/cli_multi_rapid/enterprise/health_checks.py
 src/cli_multi_rapid/enterprise/metrics.py
 src/cli_multi_rapid/enterprise/workflow_service.py
+src/cli_multi_rapid/errors/error_codes.py
+src/cli_multi_rapid/errors/exceptions.py
 src/cli_multi_rapid/logging/__init__.py
 src/cli_multi_rapid/logging/activity_logger.py
 src/cli_multi_rapid/logging/log_rotation.py
@@ -107,16 +110,6 @@ src/contracts/models/Signal.py
 src/db/__init__.py
 src/db/connection.py
 src/db/models.py
-src/eafix/apps/cli/main.py
-src/eafix/apps/cli/utils.py
-src/eafix/apps/cli/commands/__init__.py
-src/eafix/apps/cli/commands/analysis.py
-src/eafix/apps/cli/commands/guardian.py
-src/eafix/apps/cli/commands/setup.py
-src/eafix/apps/cli/commands/system.py
-src/eafix/apps/cli/commands/trading.py
-src/eafix/system/__init__.py
-src/eafix/system/health_checker.py
 src/idempotency/consumer.py
 src/idempotency/queues.py
 src/idempotency/state.py
@@ -146,10 +139,6 @@ src/observability/correlation.py
 src/observability/logging_json.py
 src/observability/metrics.py
 src/observability/tracing.py
-src/websocket/__init__.py
-src/websocket/auth_middleware.py
-src/websocket/connection_manager.py
-src/websocket/event_broadcaster.py
 tests/test_coordination_cli.py
 tests/test_enterprise_modules.py
 tests/test_gui_parity_exit_optional.py

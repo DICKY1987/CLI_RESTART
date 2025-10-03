@@ -1,0 +1,131 @@
+{
+  "workstream_id": 18,
+  "workstream_name": "Configuration & Architecture",
+  "branch_name": "ws/18-configuration-architecture",
+  "est_hours": "60h",
+  "earliest_start_phase": "Phase 3 / Week 15",
+  "blocked_by": ["Schema Runtime Enforcement & Contract Validation"],
+  "priority_note": "Medium priority - Consolidates configuration and enables plugin architecture.",
+
+  "objectives": [
+    "Consolidate configuration into unified system",
+    "Resolve adapter registry duplication",
+    "Implement plugin system for extensibility",
+    "Establish clear architectural boundaries"
+  ],
+
+  "code_changes_summary": "This workstream consolidates scattered configuration into a unified system with validation, resolves the duplicate adapter registry issue, and implements a formal plugin architecture allowing third-party adapters to extend the system without modifying core code.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Consolidate configuration management",
+      "gap_ids": ["gap_CROSS_002"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/config/unified_config.py",
+        "src/cli_multi_rapid/config/validation.py",
+        "config/application.yaml",
+        "docs/configuration/configuration-guide.md"
+      ],
+      "acceptance_criteria": [
+        "Single unified configuration system",
+        "Configuration precedence: env vars > config files > defaults",
+        "Configuration validation on startup",
+        "Environment-specific configs (dev, staging, prod)",
+        "Configuration documentation complete"
+      ],
+      "test_plan": [
+        "Load configuration from different sources",
+        "Verify precedence correct",
+        "Provide invalid config",
+        "Verify validation catches errors",
+        "Test environment-specific configs"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Resolve adapter registry duplication",
+      "gap_ids": ["gap_ARCH_001"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/adapters/registry.py",
+        "src/cli_multi_rapid/router.py",
+        "docs/architecture/adapter-registry.md"
+      ],
+      "acceptance_criteria": [
+        "Single canonical adapter registry",
+        "Registry supports discovery and registration",
+        "Registry validates adapters on registration",
+        "Router uses unified registry",
+        "Old duplicate registry removed"
+      ],
+      "test_plan": [
+        "Register adapter with registry",
+        "Verify adapter available",
+        "Register invalid adapter",
+        "Verify validation fails",
+        "Verify no duplicate registry files"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Implement plugin system",
+      "gap_ids": ["gap_ARCH_006"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/plugins/plugin_manager.py",
+        "src/cli_multi_rapid/plugins/plugin_interface.py",
+        "docs/development/creating-plugins.md",
+        "examples/plugins/example_adapter_plugin.py"
+      ],
+      "acceptance_criteria": [
+        "Plugin manager with discovery via entry points",
+        "Plugin interface for adapter plugins",
+        "Plugin validation on load",
+        "Plugins loaded dynamically",
+        "Plugin example and documentation"
+      ],
+      "test_plan": [
+        "Create example plugin",
+        "Install plugin package",
+        "Verify plugin discovered",
+        "Verify plugin loaded",
+        "Use plugin adapter in workflow"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/18-configuration-architecture origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"refactor: consolidate config, unify adapter registry, add plugin system\"",
+      "git push -u origin ws/18-configuration-architecture"
+    ],
+    "commit_message_template": "refactor: consolidate config, unify adapter registry, add plugin system\n\nConsolidate configuration into unified system, resolve adapter registry duplication,\nand implement plugin architecture for extensibility.\n\nCloses: gap_CROSS_002, gap_ARCH_001, gap_ARCH_006\nWorkstream: WS-18"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-01 completed (schema enforcement)"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-01 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "Plugin system enables third-party extensions."
+  ]
+}

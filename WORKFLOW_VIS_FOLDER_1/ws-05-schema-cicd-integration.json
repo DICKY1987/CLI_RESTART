@@ -1,0 +1,133 @@
+{
+  "workstream_id": 5,
+  "workstream_name": "Schema CI/CD Integration",
+  "branch_name": "ws/05-schema-cicd-integration",
+  "est_hours": "26h",
+  "earliest_start_phase": "Phase 2 / Week 5",
+  "blocked_by": ["Schema Runtime Enforcement & Contract Validation", "Security & Secrets Foundation"],
+  "priority_note": "High priority - Prevents schema drift and enables frontend integration.",
+
+  "objectives": [
+    "Implement automated schema compatibility checking on PRs",
+    "Generate TypeScript interfaces from JSON schemas for VS Code extension",
+    "Create OpenAPI specification for all API endpoints",
+    "Prevent breaking schema changes without version bumps"
+  ],
+
+  "code_changes_summary": "This workstream extends schema foundation with CI/CD integration. It enhances the schema-diff workflow to enforce compatibility checks, generates TypeScript interfaces from schemas for the VS Code extension, creates OpenAPI specs for API documentation, and prevents breaking changes from merging without proper versioning.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Enhance schema compatibility checking in CI",
+      "gap_ids": ["gap_SCHEMA_002"],
+      "files_to_create_or_modify": [
+        ".github/workflows/schema-diff.yml",
+        "scripts/check_schema_compatibility.py",
+        ".github/workflows/pr-schema-check.yml"
+      ],
+      "acceptance_criteria": [
+        "Schema changes detected automatically on PRs",
+        "Breaking changes identified and flagged",
+        "PR blocked if breaking change without version bump",
+        "Compatibility report posted as PR comment",
+        "Schema versioning enforced"
+      ],
+      "test_plan": [
+        "Create PR with compatible schema change, verify passes",
+        "Create PR with breaking change, verify fails",
+        "Create PR with breaking change + version bump, verify passes",
+        "Check PR comment for compatibility report"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Generate TypeScript interfaces from JSON schemas",
+      "gap_ids": ["gap_SCHEMA_003"],
+      "files_to_create_or_modify": [
+        "scripts/generate_typescript_types.sh",
+        "vscode-extension/src/types/generated/.gitkeep",
+        "package.json",
+        ".github/workflows/generate-types.yml"
+      ],
+      "acceptance_criteria": [
+        "json-schema-to-typescript added to build pipeline",
+        "TypeScript interfaces generated in vscode-extension/src/types/generated/",
+        "Interfaces generated on schema changes automatically",
+        "CI fails if generated types not committed",
+        "Types exported from index.ts"
+      ],
+      "test_plan": [
+        "Modify JSON schema",
+        "Run generation script",
+        "Verify TypeScript interfaces created/updated",
+        "Import generated types in VS Code extension",
+        "Verify type safety in TypeScript compilation"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Generate OpenAPI specification for API endpoints",
+      "gap_ids": ["gap_SCHEMA_006"],
+      "files_to_create_or_modify": [
+        "src/api/openapi_generator.py",
+        "specs/openapi/cli-orchestrator-api.yaml",
+        ".github/workflows/openapi-validation.yml",
+        "docs/api/README.md"
+      ],
+      "acceptance_criteria": [
+        "OpenAPI 3.x spec generated from FastAPI/Pydantic",
+        "Spec includes all endpoints with schemas",
+        "Spec validated in CI",
+        "Swagger UI available for API exploration",
+        "API documentation auto-updated from spec"
+      ],
+      "test_plan": [
+        "Run OpenAPI generator",
+        "Verify YAML spec created",
+        "Validate spec with openapi-spec-validator",
+        "Serve Swagger UI locally",
+        "Verify all endpoints documented"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/05-schema-cicd-integration origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"ci(schema): add schema drift detection and TypeScript generation\"",
+      "git push -u origin ws/05-schema-cicd-integration"
+    ],
+    "commit_message_template": "ci(schema): add schema drift detection and TypeScript generation\n\nImplement schema compatibility checking in CI, TypeScript interface generation,\nand OpenAPI specification generation for API documentation.\n\nCloses: gap_SCHEMA_002, gap_SCHEMA_003, gap_SCHEMA_006\nWorkstream: WS-05"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-01 completed (schema runtime enforcement)",
+      "verify WS-02 completed (security foundation)",
+      "verify json-schema-to-typescript available"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-01 and WS-02 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "This workstream blocks WS-20 (API versioning) and WS-23 (VS Code extension).",
+    "TypeScript generation requires Node.js environment."
+  ]
+}

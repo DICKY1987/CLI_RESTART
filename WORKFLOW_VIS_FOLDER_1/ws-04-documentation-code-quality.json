@@ -1,0 +1,160 @@
+{
+  "workstream_id": 4,
+  "workstream_name": "Documentation & Code Quality",
+  "branch_name": "ws/04-documentation-code-quality",
+  "est_hours": "48h",
+  "earliest_start_phase": "Phase 1 / Week 2",
+  "blocked_by": [],
+  "priority_note": "Medium priority - Can run in parallel with other Phase 1 work. Improves maintainability and onboarding.",
+
+  "objectives": [
+    "Implement dead code detection and cleanup automation",
+    "Establish documentation coverage tracking and freshness validation",
+    "Standardize error messages with error codes and actionable guidance",
+    "Improve overall code maintainability and developer experience"
+  ],
+
+  "code_changes_summary": "This workstream improves code quality and maintainability by adding dead code detection (vulture), implementing documentation coverage tracking with freshness checks, and standardizing error messages with error codes and helpful guidance. These improvements reduce technical debt and enhance developer productivity.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Add dead code detection with vulture",
+      "gap_ids": ["gap_CROSS_001"],
+      "files_to_create_or_modify": [
+        ".github/workflows/code-quality.yml",
+        "pyproject.toml",
+        ".vulture_whitelist.py"
+      ],
+      "acceptance_criteria": [
+        "Vulture integrated into dev dependencies",
+        "Vulture runs in CI as warning (not failure)",
+        "Whitelist created for intentional unused code",
+        "Dead code report generated in artifacts",
+        "Documentation on using vulture added to dev guide"
+      ],
+      "test_plan": [
+        "Run vulture on codebase: vulture src/",
+        "Review dead code report",
+        "Add false positives to whitelist",
+        "Run in CI, verify warnings appear",
+        "Verify CI doesn't fail on dead code (warnings only)"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Implement documentation coverage and freshness tracking",
+      "gap_ids": ["gap_CROSS_004"],
+      "files_to_create_or_modify": [
+        "scripts/check_doc_coverage.py",
+        "scripts/check_doc_freshness.py",
+        ".github/workflows/docs-validation.yml",
+        "docs/maintenance-schedule.md"
+      ],
+      "acceptance_criteria": [
+        "Documentation coverage report shows % of modules documented",
+        "Freshness checker compares code changes to doc updates",
+        "Stale docs flagged (code changed but docs haven't)",
+        "Doc validation runs in CI",
+        "Maintenance schedule created for quarterly doc reviews"
+      ],
+      "test_plan": [
+        "Run coverage checker: python scripts/check_doc_coverage.py",
+        "Review coverage report, identify gaps",
+        "Modify code without updating docs",
+        "Run freshness checker, verify doc flagged as stale",
+        "Update doc, verify freshness check passes"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Standardize error messages with error codes",
+      "gap_ids": ["gap_CROSS_005"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/errors/error_codes.py",
+        "src/cli_multi_rapid/errors/exceptions.py",
+        "docs/reference/error-codes.md",
+        "scripts/migrate_error_messages.py"
+      ],
+      "acceptance_criteria": [
+        "Error code schema defined (E1001, E2002 format)",
+        "Custom exception classes with error codes created",
+        "Error code documentation generated",
+        "All error messages include error code",
+        "Error messages include actionable suggestions",
+        "Error docs include resolution steps"
+      ],
+      "test_plan": [
+        "Trigger various error conditions",
+        "Verify error messages include error codes",
+        "Look up error code in docs, verify resolution steps present",
+        "Verify error messages are helpful and actionable",
+        "Check error code uniqueness (no duplicates)"
+      ]
+    },
+    {
+      "id": "task-004",
+      "description": "Add documentation for new quality tools",
+      "gap_ids": ["gap_CROSS_001", "gap_CROSS_004", "gap_CROSS_005"],
+      "files_to_create_or_modify": [
+        "docs/development/code-quality.md",
+        "docs/development/error-handling.md",
+        "CONTRIBUTING.md"
+      ],
+      "acceptance_criteria": [
+        "Code quality guide documents vulture usage",
+        "Code quality guide documents doc coverage tools",
+        "Error handling guide documents error code system",
+        "CONTRIBUTING.md updated with quality standards",
+        "Examples provided for each tool"
+      ],
+      "test_plan": [
+        "Read code quality guide as new developer",
+        "Follow guide to check for dead code",
+        "Follow guide to write properly documented code",
+        "Follow guide to create error with proper code/message",
+        "Verify all guides are clear and complete"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/04-documentation-code-quality origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"docs: implement doc coverage tracking and standardize error messages\"",
+      "git push -u origin ws/04-documentation-code-quality"
+    ],
+    "commit_message_template": "docs: implement doc coverage tracking and standardize error messages\n\nAdd dead code detection with vulture, documentation coverage/freshness tracking,\nand standardized error codes with actionable messages.\n\nCloses: gap_CROSS_001, gap_CROSS_004, gap_CROSS_005\nWorkstream: WS-04"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify vulture installed",
+      "verify Python 3.10+ available",
+      "no blockers in 'blocked_by' (empty for this workstream)"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Phase 1 work, can be done in parallel with WS-01/02/03.",
+    "Do not prompt for approval; execute automatically.",
+    "This workstream has no downstream blockers.",
+    "Can be completed at lower priority if time is constrained.",
+    "Error code migration can be done incrementally over multiple commits."
+  ]
+}
