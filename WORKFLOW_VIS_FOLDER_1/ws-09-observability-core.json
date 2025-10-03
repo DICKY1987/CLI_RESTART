@@ -1,0 +1,166 @@
+{
+  "workstream_id": 9,
+  "workstream_name": "Observability Core",
+  "branch_name": "ws/09-observability-core",
+  "est_hours": "50h",
+  "earliest_start_phase": "Phase 2 / Week 7",
+  "blocked_by": ["Schema Runtime Enforcement & Contract Validation"],
+  "priority_note": "High severity - Essential for debugging and compliance. AI conversation capture required for auditable AI usage.",
+
+  "objectives": [
+    "Implement complete AI conversation capture with replay capability",
+    "Ensure ActivityLogger used consistently across all adapters",
+    "Integrate enterprise metrics collection into workflow execution",
+    "Configure log rotation with proper retention policies"
+  ],
+
+  "code_changes_summary": "This workstream establishes comprehensive observability for debugging and compliance. It implements AI conversation logging with prompts, responses, and context preservation, ensures consistent activity logging across all adapters, integrates metrics collection for performance monitoring, and configures log rotation to prevent disk exhaustion. These capabilities are essential for production operation and debugging.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement AI conversation capture and replay",
+      "gap_ids": ["gap_OBS_001"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/logging/conversation_logger.py",
+        "src/cli_multi_rapid/adapters/ai_editor.py",
+        "src/cli_multi_rapid/adapters/ai_analyst.py",
+        "src/cli_multi_rapid/commands/replay.py",
+        "logs/conversations/.gitkeep"
+      ],
+      "acceptance_criteria": [
+        "ConversationLogger class captures all AI interactions",
+        "Logs include: prompt, response, context, metadata, timestamp",
+        "Conversations stored in JSONL format for easy parsing",
+        "PII redacted from conversation logs",
+        "cli-orchestrator replay <conversation_id> replays conversation",
+        "Replay shows full conversation flow with timing"
+      ],
+      "test_plan": [
+        "Execute workflow using AI adapter",
+        "Check logs/conversations/ for JSONL file",
+        "Verify conversation captured completely",
+        "Run cli-orchestrator replay <id>",
+        "Verify conversation displayed correctly",
+        "Check PII redaction works"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Ensure ActivityLogger integrated across all adapters",
+      "gap_ids": ["gap_OBS_002"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/adapters/base_adapter.py",
+        "src/cli_multi_rapid/logging/activity_logger.py",
+        "tests/logging/test_activity_integration.py"
+      ],
+      "acceptance_criteria": [
+        "BaseAdapter.execute() calls activity logger automatically",
+        "All adapters inherit activity logging",
+        "Activity logs include: adapter name, inputs, outputs, duration, status",
+        "Activity logs structured (JSONL format)",
+        "Activity log aggregation available",
+        "Missing activity logs detected in tests"
+      ],
+      "test_plan": [
+        "Execute various adapters",
+        "Check activity logs created",
+        "Verify all adapters log activities",
+        "Run test to detect adapters missing logging",
+        "Verify log format is consistent JSONL",
+        "Aggregate logs and verify parsing works"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Integrate metrics collection into workflow execution",
+      "gap_ids": ["gap_OBS_004"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/enterprise/metrics.py",
+        "src/cli_multi_rapid/workflow_runner.py",
+        "src/cli_multi_rapid/adapters/base_adapter.py",
+        "config/metrics_config.json"
+      ],
+      "acceptance_criteria": [
+        "Metrics module integrated into WorkflowRunner",
+        "Metrics collected: workflow duration, step duration, success rate, error rate",
+        "Metrics collected: token usage, API calls, resource usage",
+        "Metrics exposed via Prometheus exporter",
+        "Metrics dashboard configuration created",
+        "Metrics retention configured"
+      ],
+      "test_plan": [
+        "Execute workflows",
+        "Check metrics endpoint (e.g., /metrics)",
+        "Verify metrics exposed in Prometheus format",
+        "Import dashboard config to Grafana",
+        "Verify metrics visualization works",
+        "Check metrics retention policy"
+      ]
+    },
+    {
+      "id": "task-004",
+      "description": "Configure log rotation with retention policy",
+      "gap_ids": ["gap_OBS_005"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/logging/__init__.py",
+        "src/cli_multi_rapid/logging/log_rotation.py",
+        "config/logging_config.json"
+      ],
+      "acceptance_criteria": [
+        "Log rotation configured in logging initialization",
+        "Size-based rotation (e.g., 100MB per file)",
+        "Time-based rotation (e.g., daily)",
+        "Retention policy defined (e.g., 30 days)",
+        "Compression enabled for archived logs",
+        "Log rotation tested and working"
+      ],
+      "test_plan": [
+        "Run system to generate logs",
+        "Verify log files rotate at size limit",
+        "Verify old logs compressed",
+        "Verify logs older than retention deleted",
+        "Check disk usage remains stable",
+        "Verify rotated logs still readable"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/09-observability-core origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(observability): add conversation capture, activity logging, and metrics\"",
+      "git push -u origin ws/09-observability-core"
+    ],
+    "commit_message_template": "feat(observability): add conversation capture, activity logging, and metrics\n\nImplement AI conversation logging with replay, consistent activity logging,\nmetrics collection with Prometheus export, and log rotation with retention.\n\nCloses: gap_OBS_001, gap_OBS_002, gap_OBS_004, gap_OBS_005\nWorkstream: WS-09"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-01 completed (schema enforcement)",
+      "verify prometheus_client installed"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-01 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "This workstream blocks WS-16 (observability advanced) and WS-20 (GUI).",
+    "Conversation logging critical for AI auditing and compliance."
+  ]
+}

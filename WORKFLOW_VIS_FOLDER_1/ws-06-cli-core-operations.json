@@ -1,0 +1,191 @@
+{
+  "workstream_id": 6,
+  "workstream_name": "CLI Core Operations",
+  "branch_name": "ws/06-cli-core-operations",
+  "est_hours": "42h",
+  "earliest_start_phase": "Phase 2 / Week 5",
+  "blocked_by": ["Schema Runtime Enforcement & Contract Validation"],
+  "priority_note": "High priority - Foundational user-facing features for zero-touch automation.",
+
+  "objectives": [
+    "Implement automated repository initialization command",
+    "Add repository clone operation to main CLI",
+    "Integrate branch creation workflow into CLI",
+    "Create centralized script registry with discovery",
+    "Implement state persistence and management API"
+  ],
+
+  "code_changes_summary": "This workstream implements core CLI operations for repository lifecycle management. It adds `cli-orchestrator init` for one-command setup, exposes clone operations, integrates branch creation workflows, creates a script registry for automation discovery, and implements state management with retention policies. These are fundamental operations for zero-touch automation.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement repository initialization command",
+      "gap_ids": ["gap_CLI_001"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/commands/init.py",
+        "src/cli_multi_rapid/main.py",
+        "scripts/cross_platform_setup.sh",
+        "docs/user-guide/getting-started.md"
+      ],
+      "acceptance_criteria": [
+        "cli-orchestrator init command available",
+        "Command detects platform (Windows/Linux/macOS)",
+        "Command installs Python dependencies from pyproject.toml",
+        "Command validates required tools (git, gh cli, etc.)",
+        "Command creates required directories (artifacts/, logs/, state/)",
+        "Command runs cross_platform_setup.sh logic",
+        "Command provides helpful output and error messages"
+      ],
+      "test_plan": [
+        "Clone repository to fresh directory",
+        "Run cli-orchestrator init",
+        "Verify dependencies installed",
+        "Verify tools validated",
+        "Verify directories created",
+        "Run cli-orchestrator commands to verify setup works"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Add clone operation to main CLI",
+      "gap_ids": ["gap_CLI_002"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/commands/clone.py",
+        "src/cli_multi_rapid/main.py",
+        "src/cli_multi_rapid/integrations/vcs.py"
+      ],
+      "acceptance_criteria": [
+        "cli-orchestrator clone <url> command available",
+        "Command supports --init flag for automatic initialization",
+        "Clone operation uses VCS adapter",
+        "Clone+init is atomic operation",
+        "Command validates URL before cloning",
+        "Command handles authentication properly"
+      ],
+      "test_plan": [
+        "Run cli-orchestrator clone <test-repo-url>",
+        "Verify repository cloned",
+        "Run cli-orchestrator clone <url> --init",
+        "Verify repository cloned and initialized",
+        "Test with invalid URL, verify error handling"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Integrate branch creation into CLI with workflow support",
+      "gap_ids": ["gap_CLI_003"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/main.py",
+        "src/cli_multi_rapid/commands/git_commands.py",
+        "scripts/create_branch.py"
+      ],
+      "acceptance_criteria": [
+        "cli-orchestrator branch create <name> command available",
+        "Command supports --workflow flag for workflow integration",
+        "Command supports --template flag for branch templates",
+        "Branch creation integrated with GitOpsAdapter",
+        "Branch creation logged with activity logger",
+        "Metadata captured in session tracking"
+      ],
+      "test_plan": [
+        "Run cli-orchestrator branch create feature/test",
+        "Verify branch created and checked out",
+        "Run with --workflow flag",
+        "Verify workflow metadata attached",
+        "Check activity log for branch creation event"
+      ]
+    },
+    {
+      "id": "task-004",
+      "description": "Create centralized script registry",
+      "gap_ids": ["gap_CLI_005"],
+      "files_to_create_or_modify": [
+        "scripts/registry.json",
+        "scripts/registry_schema.json",
+        "src/cli_multi_rapid/commands/scripts.py",
+        "scripts/validate_registry.py"
+      ],
+      "acceptance_criteria": [
+        "Script registry JSON with metadata created",
+        "Registry includes: purpose, dependencies, parameters for each script",
+        "cli-orchestrator scripts list command shows all scripts",
+        "cli-orchestrator scripts run <name> executes script",
+        "cli-orchestrator scripts validate checks registry consistency",
+        "Registry validated in CI"
+      ],
+      "test_plan": [
+        "Run cli-orchestrator scripts list",
+        "Verify all scripts shown with descriptions",
+        "Run cli-orchestrator scripts run <script-name>",
+        "Verify script executes correctly",
+        "Add invalid entry to registry",
+        "Run validation, verify error caught"
+      ]
+    },
+    {
+      "id": "task-005",
+      "description": "Implement state persistence and management API",
+      "gap_ids": ["gap_CLI_006"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/state/state_manager.py",
+        "src/cli_multi_rapid/commands/state.py",
+        "config/state_retention_policy.json"
+      ],
+      "acceptance_criteria": [
+        "State management service with query API created",
+        "cli-orchestrator state list command shows state files",
+        "cli-orchestrator state clean command removes old state",
+        "Retention policy configured (default 30 days)",
+        "State cleanup can be scheduled",
+        "State archival before cleanup"
+      ],
+      "test_plan": [
+        "Execute workflows to create state files",
+        "Run cli-orchestrator state list",
+        "Verify state files shown with metadata",
+        "Run cli-orchestrator state clean --older-than 0",
+        "Verify old state archived then removed",
+        "Check disk space freed"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/06-cli-core-operations origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(cli): implement init, clone, branch, scripts, and state commands\"",
+      "git push -u origin ws/06-cli-core-operations"
+    ],
+    "commit_message_template": "feat(cli): implement init, clone, branch, scripts, and state commands\n\nAdd repository initialization, clone with init, branch creation workflow integration,\nscript registry with discovery, and state persistence management.\n\nCloses: gap_CLI_001, gap_CLI_002, gap_CLI_003, gap_CLI_005, gap_CLI_006\nWorkstream: WS-06"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-01 completed (schema runtime enforcement)",
+      "verify typer, click, and CLI dependencies installed"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-01 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "This workstream blocks WS-15 (Git integration) and WS-17 (bidirectional ops).",
+    "Test on both Windows and Linux if possible for cross-platform validation."
+  ]
+}

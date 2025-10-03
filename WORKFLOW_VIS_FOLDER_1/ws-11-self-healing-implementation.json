@@ -1,0 +1,128 @@
+{
+  "workstream_id": 11,
+  "workstream_name": "Self-Healing Implementation",
+  "branch_name": "ws/11-self-healing-implementation",
+  "est_hours": "48h",
+  "earliest_start_phase": "Phase 3 / Week 10",
+  "blocked_by": ["Resilience & Circuit Breakers"],
+  "priority_note": "High severity - Zero-touch automation requires self-healing capabilities for common failure modes.",
+
+  "objectives": [
+    "Implement self-healing mechanisms for common failure scenarios",
+    "Add graceful degradation when optional features unavailable",
+    "Create automated recovery procedures",
+    "Establish self-healing as standard operational pattern"
+  ],
+
+  "code_changes_summary": "This workstream implements self-healing capabilities for common failure modes including network errors, rate limits, and transient failures. It integrates self-healing strategies with the circuit breaker and resilience modules, implements graceful degradation with feature detection and fallbacks, and creates automated recovery procedures. This enables true zero-touch automation.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement self-healing strategies for common failures",
+      "gap_ids": ["gap_DETERM_003"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/resilience/self_healing.py",
+        "src/cli_multi_rapid/resilience/recovery_strategies.py",
+        "config/self_healing/strategies.json"
+      ],
+      "acceptance_criteria": [
+        "Self-healing strategies for network errors, rate limits, disk full",
+        "Automatic retry with circuit breaker integration",
+        "Orphan cleanup scheduled jobs",
+        "Self-correcting consistency checks",
+        "Recovery attempts logged with context"
+      ],
+      "test_plan": [
+        "Simulate network failure, verify auto-recovery",
+        "Simulate rate limit, verify backoff and retry",
+        "Simulate disk full, verify cleanup triggered",
+        "Check recovery logs for details"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Implement graceful degradation with feature flags",
+      "gap_ids": ["gap_DETERM_008"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/features/feature_flags.py",
+        "src/cli_multi_rapid/resilience/degradation.py",
+        "config/feature_flags.json"
+      ],
+      "acceptance_criteria": [
+        "Feature detection for optional components",
+        "Graceful fallback when features unavailable",
+        "Degraded mode support with reduced functionality",
+        "Feature availability exposed via health check",
+        "Clear user messaging about degraded functionality"
+      ],
+      "test_plan": [
+        "Disable optional feature (e.g., Redis)",
+        "Verify system continues with fallback (e.g., file locks)",
+        "Check logs for degraded mode messages",
+        "Verify health check shows degraded status",
+        "Re-enable feature, verify full functionality restored"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Create automated recovery procedures",
+      "gap_ids": ["gap_DETERM_003"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/operations/auto_recovery.py",
+        "scripts/recovery_procedures.py",
+        "docs/operations/recovery-runbook.md"
+      ],
+      "acceptance_criteria": [
+        "Automated procedures for common recovery scenarios",
+        "Recovery procedures triggered automatically",
+        "Manual recovery procedures documented",
+        "Recovery success/failure tracked in metrics",
+        "Runbook guides manual recovery when needed"
+      ],
+      "test_plan": [
+        "Trigger failure scenario",
+        "Verify automated recovery attempts",
+        "If automated recovery fails, follow runbook",
+        "Verify manual recovery succeeds",
+        "Check recovery metrics"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/11-self-healing-implementation origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(resilience): implement self-healing and graceful degradation\"",
+      "git push -u origin ws/11-self-healing-implementation"
+    ],
+    "commit_message_template": "feat(resilience): implement self-healing and graceful degradation\n\nAdd self-healing strategies for common failures, graceful degradation with feature\nflags, and automated recovery procedures.\n\nCloses: gap_DETERM_003, gap_DETERM_008\nWorkstream: WS-11"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-10 completed (resilience & circuit breakers)"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-10 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "Self-healing critical for production zero-touch operation."
+  ]
+}

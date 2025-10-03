@@ -1,0 +1,109 @@
+{
+  "workstream_id": 17,
+  "workstream_name": "Contract & E2E Testing",
+  "branch_name": "ws/17-contract-e2e-testing",
+  "est_hours": "56h",
+  "earliest_start_phase": "Phase 3 / Week 14",
+  "blocked_by": ["Core Testing Infrastructure", "Schema CI/CD Integration"],
+  "priority_note": "High severity - Contract tests prevent integration failures, E2E tests validate complete workflows.",
+
+  "objectives": [
+    "Implement comprehensive contract testing for all adapters",
+    "Create end-to-end test suite for critical user journeys",
+    "Validate schema adherence across all boundaries",
+    "Ensure integration reliability"
+  ],
+
+  "code_changes_summary": "This workstream establishes contract and end-to-end testing to prevent integration failures. It creates contract tests validating all adapter inputs/outputs against schemas, implements E2E tests for critical workflows (init→code→test→commit→PR), and ensures reliable integration between components.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement contract tests for all adapters",
+      "gap_ids": ["gap_QUALITY_006"],
+      "files_to_create_or_modify": [
+        "tests/contract/test_adapter_contracts.py",
+        "tests/contract/contract_test_framework.py",
+        ".github/workflows/contract-tests.yml"
+      ],
+      "acceptance_criteria": [
+        "Contract tests for every adapter",
+        "Tests validate input schemas",
+        "Tests validate output schemas",
+        "Contract violations fail CI",
+        "Contract test coverage ≥100% of adapters"
+      ],
+      "test_plan": [
+        "Run pytest tests/contract/ -v",
+        "Verify all adapters tested",
+        "Modify adapter to violate contract",
+        "Verify test fails with clear message",
+        "Fix violation, verify test passes"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Create end-to-end test suite",
+      "gap_ids": ["gap_QUALITY_007"],
+      "files_to_create_or_modify": [
+        "tests/e2e/test_complete_workflow.py",
+        "tests/e2e/test_init_to_pr.py",
+        "tests/e2e/test_parallel_execution.py",
+        "tests/e2e/fixtures/test_repositories.py",
+        ".github/workflows/e2e-tests.yml"
+      ],
+      "acceptance_criteria": [
+        "E2E tests for: init → clone → workflow → commit → PR",
+        "E2E tests for parallel workflow execution",
+        "E2E tests for failure and rollback scenarios",
+        "E2E tests use real (test) repositories",
+        "E2E tests clean up after themselves",
+        "E2E tests run in CI nightly"
+      ],
+      "test_plan": [
+        "Run pytest tests/e2e/ -v",
+        "Verify complete workflows execute",
+        "Check test repositories created/cleaned up",
+        "Verify E2E tests catch integration issues",
+        "Run in CI, verify passes"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/17-contract-e2e-testing origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"test: add comprehensive contract and E2E testing\"",
+      "git push -u origin ws/17-contract-e2e-testing"
+    ],
+    "commit_message_template": "test: add comprehensive contract and E2E testing\n\nImplement contract testing for all adapters and end-to-end test suite for\ncritical user journeys.\n\nCloses: gap_QUALITY_006, gap_QUALITY_007\nWorkstream: WS-17"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-03 completed (testing infrastructure)",
+      "verify WS-05 completed (schema CI/CD)"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-03 and WS-05 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "E2E tests validate complete system integration."
+  ]
+}

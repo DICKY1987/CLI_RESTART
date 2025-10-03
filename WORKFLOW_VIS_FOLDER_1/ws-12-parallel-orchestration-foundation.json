@@ -1,0 +1,134 @@
+{
+  "workstream_id": 12,
+  "workstream_name": "Parallel Orchestration Foundation",
+  "branch_name": "ws/12-parallel-orchestration-foundation",
+  "est_hours": "52h",
+  "earliest_start_phase": "Phase 3 / Week 10",
+  "blocked_by": ["Determinism Core"],
+  "priority_note": "High severity - Parallel execution is core capability. Deadlock prevention and conflict resolution critical.",
+
+  "objectives": [
+    "Integrate deadlock detection into coordination system",
+    "Implement automated conflict resolution strategies",
+    "Add resource pooling with configurable limits",
+    "Enable safe parallel workflow execution"
+  ],
+
+  "code_changes_summary": "This workstream implements the foundation for parallel workflow orchestration. It integrates the deadlock detector into WorkflowCoordinator for active prevention, implements conflict resolution strategies (last-write-wins, semantic merge, custom), adds resource pool management with semaphores for API rate limits and system resources, and enables safe parallel execution of multiple workstreams.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Integrate deadlock detection into coordination system",
+      "gap_ids": ["gap_PARALLEL_001"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/coordination/deadlock_detector.py",
+        "src/cli_multi_rapid/coordination/workflow_coordinator.py",
+        "config/coordination/deadlock_config.json"
+      ],
+      "acceptance_criteria": [
+        "Deadlock detector integrated into WorkflowCoordinator.run()",
+        "Dependency graph analyzed for deadlock potential",
+        "Deadlocks detected before they occur",
+        "Timeout-based detection as fallback",
+        "Deadlock resolution strategies defined"
+      ],
+      "test_plan": [
+        "Create workflow with circular dependencies",
+        "Run coordination, verify deadlock detected",
+        "Check error message for deadlock details",
+        "Verify deadlock prevented (execution doesn't hang)",
+        "Test timeout-based detection"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Implement automated conflict resolution strategies",
+      "gap_ids": ["gap_PARALLEL_002"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/coordination/conflict_resolver.py",
+        "src/cli_multi_rapid/coordination/merge_queue.py",
+        "config/coordination/conflict_strategies.json"
+      ],
+      "acceptance_criteria": [
+        "ConflictResolver with pluggable strategies",
+        "Last-write-wins strategy implemented",
+        "Semantic merge strategy for compatible changes",
+        "User-defined custom strategies supported",
+        "Conflict resolution logged with decisions",
+        "Manual resolution fallback when auto fails"
+      ],
+      "test_plan": [
+        "Execute parallel workflows modifying same file",
+        "Verify conflicts detected",
+        "Verify auto-resolution with last-write-wins",
+        "Create incompatible changes",
+        "Verify manual resolution requested",
+        "Check conflict resolution logs"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Add resource pool management",
+      "gap_ids": ["gap_PARALLEL_003"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/coordination/resource_pool.py",
+        "src/cli_multi_rapid/router.py",
+        "config/coordination/resource_limits.json"
+      ],
+      "acceptance_criteria": [
+        "ResourcePool with semaphores for limiting",
+        "Per-adapter-type resource limits configurable",
+        "CPU, memory, API rate limits enforced",
+        "Resource pool integrated into Router",
+        "Resource availability checked before execution",
+        "Resource metrics exposed"
+      ],
+      "test_plan": [
+        "Configure API rate limit (e.g., 5 concurrent)",
+        "Execute 10 parallel operations",
+        "Verify only 5 execute concurrently",
+        "Verify remaining queued",
+        "Check resource metrics",
+        "Verify limits prevent exhaustion"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/12-parallel-orchestration-foundation origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(parallel): add deadlock detection, conflict resolution, and resource pooling\"",
+      "git push -u origin ws/12-parallel-orchestration-foundation"
+    ],
+    "commit_message_template": "feat(parallel): add deadlock detection, conflict resolution, and resource pooling\n\nIntegrate deadlock detection, implement automated conflict resolution strategies,\nand add resource pool management for safe parallel execution.\n\nCloses: gap_PARALLEL_001, gap_PARALLEL_002, gap_PARALLEL_003\nWorkstream: WS-12"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-08 completed (determinism core)"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-08 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "This workstream blocks WS-13 (parallel advanced) and WS-15 (git integration).",
+    "Parallel execution is core capability - thorough testing critical."
+  ]
+}
