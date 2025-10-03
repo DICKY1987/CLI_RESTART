@@ -1,0 +1,7 @@
+{
+  "github": {
+    "integration": {
+      "token": "your_actual_github_token_here"
+    }
+  }
+}

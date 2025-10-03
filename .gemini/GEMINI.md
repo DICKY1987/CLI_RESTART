@@ -1,4 +1,4 @@
-# Project context for Gemini CLI
+# GEMINI.md - Gemini CLI Configuration Guide
 
 You are operating inside the **CLI Multi-Rapid Enterprise Orchestration Platform** repo. This is a comprehensive enterprise-grade system that provides complete workflow orchestration, cross-language integration, and enterprise capabilities.
 
@@ -8,6 +8,15 @@ You are operating inside the **CLI Multi-Rapid Enterprise Orchestration Platform
 
 **Core Innovation**: Complete enterprise orchestration platform with Python↔MQL4↔PowerShell integration, advanced workflow management, and comprehensive validation systems.
 
+## Gemini CLI Integration
+
+This Gemini instance is configured with:
+- **GitHub Integration**: Full access to DICKY1987 repositories
+- **OAuth Authentication**: Authenticated as richgwilks@gmail.com
+- **Working Directory**: C:\Users\Richard Wilks
+- **Trusted Projects**: CLI_RESTART, cli_multi_rapid_DEV
+- **Session Management**: Auto-save enabled with history tracking
+
 ## Priorities & Guidelines
 
 - Respect schema-locked outputs and existing architectural patterns
@@ -15,6 +24,7 @@ You are operating inside the **CLI Multi-Rapid Enterprise Orchestration Platform
 - Never execute shell or write files without explicit user confirmation
 - When editing code, create a new git branch: `feature/ai-enhancement/<short-task>` and stage minimal diffs
 - If a task spans multiple files, produce a concise plan first, then apply edits in small commits with clear messages
+- Use GitHub integration for PR creation, issue management, and repository operations
 
 ## Repository Structure & Roles
 
@@ -70,8 +80,9 @@ You are operating inside the **CLI Multi-Rapid Enterprise Orchestration Platform
 
 ## Essential Commands
 
+### Core CLI Operations
 ```bash
-# Core CLI operations
+# CLI orchestrator operations
 cli-multi-rapid phase stream list
 cli-multi-rapid phase stream run stream-a --dry
 cli-multi-rapid workflow-status
@@ -86,6 +97,47 @@ python final_validation_launcher.py
 python test_cross_language_bridge.py
 ```
 
+### GitHub Integration Commands
+```bash
+# Check GitHub CLI authentication
+gh auth status
+
+# Repository operations
+gh repo view DICKY1987/CLI_RESTART
+gh repo clone DICKY1987/CLI_RESTART
+
+# Pull request operations
+gh pr list
+gh pr create --title "Feature" --body "Description"
+gh pr view <number>
+
+# Issue management
+gh issue list
+gh issue create --title "Title" --body "Description"
+gh issue view <number>
+
+# Workflow operations
+gh workflow list
+gh workflow run <workflow-name>
+```
+
+### Gemini CLI-Specific Commands
+```bash
+# Validate configuration
+gemini config validate
+
+# Check GitHub integration
+gemini github status
+
+# Session management
+gemini session list
+gemini session resume <session-id>
+
+# Project operations
+gemini project trust <path>
+gemini project list
+```
+
 ## Integration Notes
 
 This system integrates with:
@@ -95,3 +147,4 @@ This system integrates with:
 - **FastAPI**: RESTful API for programmatic access to all framework capabilities
 
 When making changes, ensure compatibility with the existing 98% complete system and maintain the enterprise-grade quality standards established throughout the platform.
+
