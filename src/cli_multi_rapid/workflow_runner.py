@@ -121,14 +121,14 @@ class WorkflowRunner:
 
         banner = f"""
 +--------------------------------------------------------------+
-¦                                                              ¦
-¦   ?? CLI ORCHESTRATOR - WORKFLOW EXECUTION                  ¦
-¦                                                              ¦
-¦   Workflow:      {workflow_name:<46}¦
-¦   Run ID:        {run_id:<46}¦
-¦   Cost Tracking: {'? ENABLED' if cost_tracking else '? DISABLED':<46}¦
-¦   Verification:  {'? ENABLED' if gates_enabled else '? DISABLED':<46}¦
-¦                                                              ¦
+|                                                              |
+|   CLI ORCHESTRATOR - WORKFLOW EXECUTION                      |
+|                                                              |
+|   Workflow:      {workflow_name:<46}|
+|   Run ID:        {run_id:<46}|
+|   Cost Tracking: {'ENABLED' if cost_tracking else 'DISABLED':<46}|
+|   Verification:  {'ENABLED' if gates_enabled else 'DISABLED':<46}|
+|                                                              |
 +--------------------------------------------------------------+
 """
         self.console.print(banner)
@@ -153,24 +153,24 @@ class WorkflowRunner:
 
         summary = f"""
 +--------------------------------------------------------------+
-¦   ?? WORKFLOW EXECUTION SUMMARY                             ¦
-¦                                                              ¦
-¦   Duration:          {str(duration).split('.')[0]:<42}¦
-¦   Steps Executed:    {result.steps_completed:<42}¦
-¦   Tokens Used:       {result.tokens_used:<42}¦
-¦                                                              ¦
+ï¿½   ?? WORKFLOW EXECUTION SUMMARY                             ï¿½
+ï¿½                                                              ï¿½
+ï¿½   Duration:          {str(duration).split('.')[0]:<42}ï¿½
+ï¿½   Steps Executed:    {result.steps_completed:<42}ï¿½
+ï¿½   Tokens Used:       {result.tokens_used:<42}ï¿½
+ï¿½                                                              ï¿½
 """
 
         if git_stats:
-            summary += f"""¦   Git Changes:                                               ¦
-¦   - Commits Created: {git_stats.get('commits_since_start', 0):<42}¦
-¦   - Unpushed:        {git_stats.get('unpushed', 0):<42}¦
-¦   - Branch:          {git_stats.get('final_branch', 'unknown'):<42}¦
-¦                                                              ¦
+            summary += f"""ï¿½   Git Changes:                                               ï¿½
+ï¿½   - Commits Created: {git_stats.get('commits_since_start', 0):<42}ï¿½
+ï¿½   - Unpushed:        {git_stats.get('unpushed', 0):<42}ï¿½
+ï¿½   - Branch:          {git_stats.get('final_branch', 'unknown'):<42}ï¿½
+ï¿½                                                              ï¿½
 """
 
         status = '? SUCCESS' if result.success else '? FAILED'
-        summary += f"""¦   Status: {status:<50}¦
+        summary += f"""ï¿½   Status: {status:<50}ï¿½
 +--------------------------------------------------------------+
 """
         self.console.print(summary)
