@@ -1,0 +1,166 @@
+{
+  "workstream_id": 7,
+  "workstream_name": "Workflow Templates & Composition",
+  "branch_name": "ws/07-workflow-templates-composition",
+  "est_hours": "48h",
+  "earliest_start_phase": "Phase 2 / Week 6",
+  "blocked_by": ["Schema Runtime Enforcement & Contract Validation"],
+  "priority_note": "High priority - Core workflow automation capability. Enables reusable, maintainable workflows.",
+
+  "objectives": [
+    "Implement workflow template system with parameterization and inheritance",
+    "Enable workflow composition from reusable workflow fragments",
+    "Enhance dry-run validation to check all preconditions",
+    "Create template library with common workflow patterns"
+  ],
+
+  "code_changes_summary": "This workstream enables advanced workflow automation through templates and composition. It implements a Jinja2-based template engine for parameterized workflows, adds workflow composition with $ref support for reusable components, enhances dry-run to validate all preconditions comprehensively, and creates a library of common workflow templates for typical tasks.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement workflow template engine with Jinja2",
+      "gap_ids": ["gap_WORKFLOW_001"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/workflows/template_engine.py",
+        "src/cli_multi_rapid/commands/workflow_commands.py",
+        "workflows/templates/base.yaml.j2",
+        "workflows/templates/python_fix.yaml.j2",
+        "workflows/templates/github_automation.yaml.j2"
+      ],
+      "acceptance_criteria": [
+        "Template engine supports Jinja2 syntax",
+        "Templates support parameters and variables",
+        "Templates support inheritance (extends/blocks)",
+        "cli-orchestrator workflow new --template <name> creates from template",
+        "cli-orchestrator workflow list-templates shows available templates",
+        "Template validation ensures required params provided"
+      ],
+      "test_plan": [
+        "Run cli-orchestrator workflow list-templates",
+        "Verify templates shown with descriptions",
+        "Run cli-orchestrator workflow new --template python_fix my-workflow.yaml",
+        "Verify workflow created from template",
+        "Provide parameters, verify substitution works",
+        "Test template inheritance"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Implement workflow composition with reusable fragments",
+      "gap_ids": ["gap_WORKFLOW_003"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/workflows/composer.py",
+        "src/cli_multi_rapid/schemas/workflow_schema_extensions.py",
+        "workflows/fragments/common_steps.yaml",
+        ".ai/workflows/composed_example.yaml"
+      ],
+      "acceptance_criteria": [
+        "Workflow schema extended with $ref support",
+        "Workflow preprocessor resolves $ref to inline content",
+        "Fragment library created with common steps",
+        "Fragments can reference other fragments",
+        "Circular references detected and prevented",
+        "Composed workflows validated against schema"
+      ],
+      "test_plan": [
+        "Create workflow with $ref to fragment",
+        "Run workflow preprocessor",
+        "Verify $ref resolved correctly",
+        "Create circular reference",
+        "Verify error detected with clear message",
+        "Run composed workflow end-to-end"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Enhance dry-run validation to check all preconditions",
+      "gap_ids": ["gap_WORKFLOW_005"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/workflow_runner.py",
+        "src/cli_multi_rapid/validation/preflight_checks.py"
+      ],
+      "acceptance_criteria": [
+        "Dry-run validates file existence for all file inputs",
+        "Dry-run validates schema compatibility for all steps",
+        "Dry-run validates resource availability (disk, memory)",
+        "Dry-run validates adapter availability",
+        "Dry-run estimates execution costs (tokens, API calls)",
+        "Dry-run produces comprehensive report"
+      ],
+      "test_plan": [
+        "Run workflow with --dry-run",
+        "Verify precondition checks executed",
+        "Specify missing file in workflow",
+        "Verify dry-run detects and reports issue",
+        "Specify unavailable adapter",
+        "Verify dry-run detects and reports issue",
+        "Check cost estimation report"
+      ]
+    },
+    {
+      "id": "task-004",
+      "description": "Create workflow template library with documentation",
+      "gap_ids": ["gap_WORKFLOW_001"],
+      "files_to_create_or_modify": [
+        "workflows/templates/README.md",
+        "workflows/templates/code_quality.yaml.j2",
+        "workflows/templates/github_pr.yaml.j2",
+        "workflows/templates/release_automation.yaml.j2",
+        "docs/workflows/template-guide.md"
+      ],
+      "acceptance_criteria": [
+        "At least 5 common templates created",
+        "Each template documented with purpose and parameters",
+        "Template README.md guides usage",
+        "Templates demonstrate best practices",
+        "Template guide linked from main docs"
+      ],
+      "test_plan": [
+        "Read template documentation",
+        "Create workflow from each template",
+        "Verify templates work end-to-end",
+        "Check templates follow best practices",
+        "Verify documentation is complete and accurate"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/07-workflow-templates-composition origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(workflow): add template system, composition, and enhanced dry-run\"",
+      "git push -u origin ws/07-workflow-templates-composition"
+    ],
+    "commit_message_template": "feat(workflow): add template system, composition, and enhanced dry-run\n\nImplement Jinja2 template engine, workflow composition with fragments, comprehensive\ndry-run validation, and workflow template library.\n\nCloses: gap_WORKFLOW_001, gap_WORKFLOW_003, gap_WORKFLOW_005\nWorkstream: WS-07"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-01 completed (schema enforcement)",
+      "verify Jinja2 installed"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-01 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "This workstream blocks WS-14 (workflow rollback) and WS-22 (workflow scheduling).",
+    "Template library can be expanded incrementally."
+  ]
+}

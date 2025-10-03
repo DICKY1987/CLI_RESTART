@@ -1,0 +1,110 @@
+{
+  "workstream_id": 22,
+  "workstream_name": "Workflow Scheduling",
+  "branch_name": "ws/22-workflow-scheduling",
+  "est_hours": "48h",
+  "earliest_start_phase": "Phase 3 / Week 19",
+  "blocked_by": ["Workflow Templates & Composition"],
+  "priority_note": "Low priority - Enables scheduled automation beyond GitHub Actions.",
+
+  "objectives": [
+    "Implement built-in workflow scheduler with cron expressions",
+    "Create centralized schema registry catalog",
+    "Enable scheduled and on-demand workflow execution",
+    "Support complex scheduling scenarios"
+  ],
+
+  "code_changes_summary": "This workstream adds workflow scheduling capabilities with APScheduler for cron-based and interval-based execution, and creates a schema registry for centralized schema management with versioning and search capabilities.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement workflow scheduler",
+      "gap_ids": ["gap_WORKFLOW_008"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/scheduling/scheduler.py",
+        "src/cli_multi_rapid/commands/schedule.py",
+        "config/scheduled_workflows.json",
+        "docs/user-guide/scheduling.md"
+      ],
+      "acceptance_criteria": [
+        "Scheduler using APScheduler or Celery Beat",
+        "cli-orchestrator schedule add <workflow> --cron <expression>",
+        "cli-orchestrator schedule list shows scheduled workflows",
+        "cli-orchestrator schedule remove <id> cancels schedule",
+        "Workflow dependencies honored in scheduling",
+        "Schedule persistence (survives restarts)"
+      ],
+      "test_plan": [
+        "Schedule workflow with cron expression",
+        "Wait for execution time",
+        "Verify workflow executes automatically",
+        "List schedules, verify shown",
+        "Remove schedule, verify cancelled"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Create schema registry catalog",
+      "gap_ids": ["gap_SCHEMA_007"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/schemas/schema_registry.py",
+        "src/cli_multi_rapid/commands/schema_commands.py",
+        "docs/development/schema-registry.md"
+      ],
+      "acceptance_criteria": [
+        "Schema registry with versioning",
+        "cli-orchestrator schema list shows all schemas",
+        "cli-orchestrator schema search <term> finds schemas",
+        "cli-orchestrator schema validate <file> checks compatibility",
+        "Schema metadata (description, version, owner)",
+        "Schema dependency tracking"
+      ],
+      "test_plan": [
+        "Run cli-orchestrator schema list",
+        "Verify all schemas shown",
+        "Search for specific schema",
+        "Verify search works",
+        "Validate file against schema",
+        "Verify validation works"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/22-workflow-scheduling origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(workflow): add scheduler and schema registry\"",
+      "git push -u origin ws/22-workflow-scheduling"
+    ],
+    "commit_message_template": "feat(workflow): add scheduler and schema registry\n\nImplement built-in workflow scheduler with cron support and create centralized\nschema registry with versioning and search.\n\nCloses: gap_WORKFLOW_008, gap_SCHEMA_007\nWorkstream: WS-22"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-07 completed (workflow templates)",
+      "verify APScheduler installed"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-07 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "Scheduling enables lights-out automation."
+  ]
+}

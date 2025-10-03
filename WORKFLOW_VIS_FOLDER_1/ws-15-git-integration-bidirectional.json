@@ -1,0 +1,155 @@
+{
+  "workstream_id": 15,
+  "workstream_name": "Git Integration & Bidirectional Ops",
+  "branch_name": "ws/15-git-integration-bidirectional",
+  "est_hours": "48h",
+  "earliest_start_phase": "Phase 3 / Week 13",
+  "blocked_by": ["CLI Core Operations", "Parallel Orchestration Foundation"],
+  "priority_note": "High priority - Bidirectional sync critical for parallel workstreams.",
+
+  "objectives": [
+    "Implement bidirectional sync mechanism for remote repository state",
+    "Add artifact lifecycle management with retention and archival",
+    "Integrate git hooks installation into repository initialization",
+    "Enable automated workflow triggering based on repository events"
+  ],
+
+  "code_changes_summary": "This workstream completes git integration with bidirectional sync for conflict-free parallel execution, artifact management to prevent disk exhaustion, git hooks integration for quality gates, and event-driven workflow automation. These capabilities enable truly distributed, parallel development.",
+
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Implement bidirectional repository sync",
+      "gap_ids": ["gap_CLI_004"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/commands/sync.py",
+        "src/cli_multi_rapid/integrations/git_ops.py",
+        "src/cli_multi_rapid/coordination/merge_queue.py"
+      ],
+      "acceptance_criteria": [
+        "cli-orchestrator sync command detects local/remote drift",
+        "Automatic conflict detection before sync",
+        "Merge queue integration for conflict resolution",
+        "Synchronization state tracked",
+        "Bidirectional sync preserves both local and remote changes"
+      ],
+      "test_plan": [
+        "Make local changes, remote changes simultaneously",
+        "Run cli-orchestrator sync",
+        "Verify drift detected",
+        "Verify conflicts resolved or flagged",
+        "Verify sync completes successfully"
+      ]
+    },
+    {
+      "id": "task-002",
+      "description": "Implement artifact lifecycle management",
+      "gap_ids": ["gap_CLI_007"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/artifacts/artifact_manager.py",
+        "src/cli_multi_rapid/commands/artifact_commands.py",
+        "config/artifact_retention_policy.json"
+      ],
+      "acceptance_criteria": [
+        "Artifact manager with retention policies",
+        "cli-orchestrator artifacts list shows all artifacts",
+        "cli-orchestrator artifacts clean removes old artifacts",
+        "Compression before archival",
+        "Archival to external storage (S3/Azure/GCS)",
+        "Retention configurable by artifact type"
+      ],
+      "test_plan": [
+        "Execute workflows generating artifacts",
+        "Run cli-orchestrator artifacts list",
+        "Run cli-orchestrator artifacts clean --older-than 30d",
+        "Verify old artifacts archived and removed",
+        "Check disk space freed"
+      ]
+    },
+    {
+      "id": "task-003",
+      "description": "Integrate git hooks installation",
+      "gap_ids": ["gap_CLI_008"],
+      "files_to_create_or_modify": [
+        "src/cli_multi_rapid/commands/init.py",
+        "scripts/install_hooks.sh",
+        ".githooks/pre-commit",
+        "docs/development/git-hooks.md"
+      ],
+      "acceptance_criteria": [
+        "cli-orchestrator init installs git hooks automatically",
+        "Pre-commit hooks run linting and formatting",
+        "Pre-push hooks run tests",
+        "Hooks documented for manual installation",
+        "Hook bypass available with --no-verify"
+      ],
+      "test_plan": [
+        "Run cli-orchestrator init",
+        "Verify git hooks installed in .git/hooks/",
+        "Make commit with linting errors",
+        "Verify pre-commit hook blocks commit",
+        "Fix errors, verify commit succeeds"
+      ]
+    },
+    {
+      "id": "task-004",
+      "description": "Add automated workflow triggering",
+      "gap_ids": ["gap_WORKFLOW_002"],
+      "files_to_create_or_modify": [
+        ".github/workflows/workflow-dispatcher.yml",
+        "src/cli_multi_rapid/automation/event_handler.py",
+        "config/workflow_triggers.json"
+      ],
+      "acceptance_criteria": [
+        "Workflows triggered by issue labels",
+        "Workflows triggered by PR comments",
+        "Workflows triggered by file changes",
+        "Workflows triggered by schedule (cron)",
+        "Event matchers configured per workflow"
+      ],
+      "test_plan": [
+        "Add label to issue, verify workflow triggered",
+        "Comment on PR, verify workflow triggered",
+        "Modify specific file, verify workflow triggered",
+        "Wait for scheduled time, verify workflow triggered"
+      ]
+    }
+  ],
+
+  "git": {
+    "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
+    "remote": "origin",
+    "base_branch": "main",
+    "auto_commit_and_push": true,
+    "commands": [
+      "git fetch origin",
+      "git checkout -B ws/15-git-integration-bidirectional origin/main",
+      "apply code changes (programmatic)",
+      "git add -A",
+      "git commit -m \"feat(git): add bidirectional sync, artifact management, hooks, and triggers\"",
+      "git push -u origin ws/15-git-integration-bidirectional"
+    ],
+    "commit_message_template": "feat(git): add bidirectional sync, artifact management, hooks, and triggers\n\nImplement bidirectional repository sync, artifact lifecycle management, git hooks\ninstallation, and event-driven workflow triggering.\n\nCloses: gap_CLI_004, gap_CLI_007, gap_CLI_008, gap_WORKFLOW_002\nWorkstream: WS-15"
+  },
+
+  "safety_and_rollback": {
+    "idempotent_reentry": true,
+    "preflight_checks": [
+      "ensure clean working tree",
+      "sync with origin/main",
+      "verify WS-06 completed (CLI core)",
+      "verify WS-12 completed (parallel foundation)"
+    ],
+    "rollback_plan": [
+      "git reset --hard origin/main",
+      "git clean -fd",
+      "if pushed, create revert PR"
+    ]
+  },
+
+  "execution_notes": [
+    "Single-developer constraint: Start only after WS-06 and WS-12 complete.",
+    "Do not prompt for approval; execute automatically.",
+    "Bidirectional sync critical for parallel development."
+  ]
+}
