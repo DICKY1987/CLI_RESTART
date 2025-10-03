@@ -1,0 +1,65 @@
+{
+  "user_info": {
+    "email": "richgwilks@gmail.com",
+    "displayName": "bill reed",
+    "github_username": "DICKY1987",
+    "organization": "richgwilks@gmail.com's Organization"
+  },
+  "editor": {
+    "default_formatter": "google",
+    "format_on_save": true,
+    "tab_size": 2,
+    "insert_spaces": true,
+    "auto_closing_brackets": true,
+    "word_wrap": true
+  },
+  "git": {
+    "auto_fetch": true,
+    "auto_pull": false,
+    "auto_push": false,
+    "default_branch": "main",
+    "commit_message_template": "feat: {description}\n\n🤖 Generated with Gemini CLI\n\nCo-Authored-By: Gemini <noreply@google.com>",
+    "signed_commits": true
+  },
+  "github": {
+    "default_repo_visibility": "private",
+    "auto_create_pr": false,
+    "pr_template_enabled": true,
+    "issue_template_enabled": true,
+    "default_pr_branch": "main",
+    "enable_actions": true
+  },
+  "workspace": {
+    "default_working_directory": "C:\\Users\\Richard Wilks",
+    "recent_projects": [
+      "C:\\Users\\Richard Wilks\\CLI_RESTART",
+      "C:\\Users\\Richard Wilks\\cli_multi_rapid_DEV",
+      "C:\\Users\\Richard Wilks"
+    ],
+    "auto_load_last_project": true
+  },
+  "notifications": {
+    "enable_desktop_notifications": true,
+    "notify_on_completion": true,
+    "notify_on_error": true,
+    "notify_on_github_events": true
+  },
+  "privacy": {
+    "telemetry_enabled": true,
+    "crash_reports_enabled": true,
+    "usage_statistics": true
+  },
+  "performance": {
+    "max_concurrent_requests": 5,
+    "request_timeout_ms": 60000,
+    "enable_caching": true,
+    "cache_ttl_minutes": 60
+  },
+  "ui": {
+    "theme": "auto",
+    "show_line_numbers": true,
+    "show_status_bar": true,
+    "show_git_info": true,
+    "compact_mode": false
+  }
+}

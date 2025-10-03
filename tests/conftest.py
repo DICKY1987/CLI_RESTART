@@ -584,4 +584,4 @@ def pytest_collection_modifyitems(config, items):
 
 
 # Coverage and Test Plugins
-pytest_plugins = ["pytest_asyncio", "pytest_mock", "pytest_timeout"]
+pytest_plugins = ["pytest_asyncio", "pytest_timeout"]

@@ -1,0 +1,79 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "user": {
+    "email": "your_email@gmail.com",
+    "displayName": "Your Name",
+    "organizationName": "Your Organization"
+  },
+  "github": {
+    "integration": {
+      "enabled": true,
+      "api_url": "https://api.github.com",
+      "token": "YOUR_GITHUB_TOKEN_HERE",
+      "username": "YOUR_GITHUB_USERNAME",
+      "permissions": {
+        "full_repo_access": true,
+        "create_pull_requests": true,
+        "create_issues": true,
+        "modify_files": true,
+        "workflow_access": true,
+        "read_org": true
+      },
+      "scopes": [
+        "repo",
+        "workflow",
+        "read:org",
+        "gist"
+      ]
+    }
+  },
+  "local_environment": {
+    "working_directory": "YOUR_WORKING_DIRECTORY",
+    "allow_git_operations": true,
+    "allow_file_operations": true,
+    "auto_commit": false,
+    "auto_push": false
+  },
+  "projects": {},
+  "preferences": {
+    "autoUpdates": true,
+    "alwaysThinkingEnabled": true,
+    "statusLine": {
+      "enabled": true,
+      "showGitBranch": true,
+      "showGitStatus": true,
+      "showWorkingDirectory": true,
+      "showModel": true
+    },
+    "sessionManagement": {
+      "autoSave": true,
+      "keepHistory": true,
+      "maxHistoryItems": 100
+    }
+  },
+  "features": {
+    "web_search": {
+      "enabled": true,
+      "provider": "google"
+    },
+    "code_execution": {
+      "enabled": true,
+      "timeout_ms": 30000
+    },
+    "file_search": {
+      "enabled": true,
+      "max_results": 100
+    }
+  },
+  "api_config": {
+    "google_ai": {
+      "model": "gemini-2.0-flash-exp",
+      "temperature": 0.7,
+      "max_tokens": 8192
+    }
+  }
+}

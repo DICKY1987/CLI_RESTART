@@ -1,0 +1,101 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "user": {
+    "email": "richgwilks@gmail.com",
+    "displayName": "bill reed",
+    "organizationName": "richgwilks@gmail.com's Organization"
+  },
+  "github": {
+    "integration": {
+      "enabled": true,
+      "api_url": "https://api.github.com",
+      "token": "${GITHUB_TOKEN}",
+      "username": "DICKY1987",
+      "permissions": {
+        "full_repo_access": true,
+        "create_pull_requests": true,
+        "create_issues": true,
+        "modify_files": true,
+        "workflow_access": true,
+        "read_org": true
+      },
+      "scopes": [
+        "repo",
+        "workflow",
+        "read:org",
+        "gist"
+      ]
+    }
+  },
+  "local_environment": {
+    "working_directory": "C:\\Users\\Richard Wilks",
+    "allow_git_operations": true,
+    "allow_file_operations": true,
+    "auto_commit": false,
+    "auto_push": false
+  },
+  "projects": {
+    "C:\\Users\\Richard Wilks": {
+      "trust_level": "trusted",
+      "allowedTools": [],
+      "enabledFeatures": [
+        "github_integration",
+        "file_operations",
+        "git_operations",
+        "web_search"
+      ],
+      "hasCompletedProjectOnboarding": true
+    },
+    "C:\\Users\\Richard Wilks\\CLI_RESTART": {
+      "trust_level": "trusted",
+      "allowedTools": [],
+      "enabledFeatures": [
+        "github_integration",
+        "file_operations",
+        "git_operations",
+        "workflow_execution"
+      ]
+    }
+  },
+  "preferences": {
+    "autoUpdates": true,
+    "alwaysThinkingEnabled": true,
+    "statusLine": {
+      "enabled": true,
+      "showGitBranch": true,
+      "showGitStatus": true,
+      "showWorkingDirectory": true,
+      "showModel": true
+    },
+    "sessionManagement": {
+      "autoSave": true,
+      "keepHistory": true,
+      "maxHistoryItems": 100
+    }
+  },
+  "features": {
+    "web_search": {
+      "enabled": true,
+      "provider": "google"
+    },
+    "code_execution": {
+      "enabled": true,
+      "timeout_ms": 30000
+    },
+    "file_search": {
+      "enabled": true,
+      "max_results": 100
+    }
+  },
+  "api_config": {
+    "google_ai": {
+      "model": "gemini-2.0-flash-exp",
+      "temperature": 0.7,
+      "max_tokens": 8192
+    }
+  }
+}

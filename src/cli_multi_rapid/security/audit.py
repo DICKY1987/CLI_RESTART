@@ -3,12 +3,26 @@ Audit logging for CLI Orchestrator.
 
 Provides comprehensive audit trail for security events,
 workflow executions, and system operations.
+
+Enhancements:
+- Append-only JSONL log with tamper-evident hash chain (prev_hash + sha256).
+- Basic PII redaction for common sensitive fields and email patterns.
+- Verification utilities to validate the hash chain offline.
+
+Enhancements:
+- Append-only JSONL log with tamper-evident hash chain (prev_hash + sha256).
+- Basic PII redaction for common sensitive fields and email patterns.
+- Verification utilities to validate the hash chain offline.
 """
 
 import asyncio
 import json
 import time
+import hashlib
+import re
 from dataclasses import asdict, dataclass
+import hashlib
+import re
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -40,6 +54,134 @@ class AuditLogger:
         self.log_file = log_file
         self.log_file.parent.mkdir(exist_ok=True)
         self._lock = asyncio.Lock()
+        self._prev_hash = self._compute_last_hash()
+
+    @staticmethod
+    def default_log_path() -> Path:
+        return Path("logs") / "audit" / "audit.log"
+
+    def _compute_last_hash(self) -> str:
+        if not self.log_file.exists():
+            return "0" * 64
+        last_line = ""
+        try:
+            with open(self.log_file, "rb") as f:
+                try:
+                    f.seek(-4096, 2)
+                except Exception:
+                    f.seek(0)
+                chunk = f.read().decode("utf-8", errors="ignore")
+                lines = [ln for ln in chunk.splitlines() if ln.strip()]
+                if lines:
+                    last_line = lines[-1]
+        except Exception:
+            return "0" * 64
+
+        try:
+            obj = json.loads(last_line)
+            if isinstance(obj, dict) and "hash" in obj and "prev_hash" in obj and "event" in obj:
+                h = obj.get("hash")
+                if isinstance(h, str) and len(h) == 64:
+                    return h
+        except Exception:
+            pass
+        return "0" * 64
+
+    @staticmethod
+    def _redact_details(details: Dict[str, Any]) -> Dict[str, Any]:
+        if not details:
+            return {}
+        sensitive_keys = {
+            "password",
+            "secret",
+            "token",
+            "api_key",
+            "apikey",
+            "access_token",
+            "refresh_token",
+            "authorization",
+            "auth",
+        }
+        email_re = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+
+        redacted: Dict[str, Any] = {}
+        for k, v in details.items():
+            if k.lower() in sensitive_keys:
+                redacted[k] = "***REDACTED***"
+                continue
+            if isinstance(v, str):
+                redacted[k] = email_re.sub("***REDACTED_EMAIL***", v)
+            else:
+                redacted[k] = v
+        return redacted
+        self._prev_hash = self._compute_last_hash()
+
+    @staticmethod
+    def default_log_path() -> Path:
+        return Path("logs") / "audit" / "audit.log"
+
+    def _compute_last_hash(self) -> str:
+        # Reads tail of file to find last computed record hash, if present.
+        if not self.log_file.exists():
+            return "0" * 64
+        last_line = ""
+        try:
+            with open(self.log_file, "rb") as f:
+                try:
+                    f.seek(-4096, 2)
+                except Exception:
+                    f.seek(0)
+                chunk = f.read().decode("utf-8", errors="ignore")
+                lines = [ln for ln in chunk.splitlines() if ln.strip()]
+                if lines:
+                    last_line = lines[-1]
+        except Exception:
+            return "0" * 64
+
+        try:
+            obj = json.loads(last_line)
+            # New format: {event: {...}, prev_hash: str, hash: str}
+            if isinstance(obj, dict) and "hash" in obj and "prev_hash" in obj and "event" in obj:
+                h = obj.get("hash")
+                if isinstance(h, str) and len(h) == 64:
+                    return h
+        except Exception:
+            pass
+        # Legacy format without chain
+        return "0" * 64
+
+    @staticmethod
+    def _redact_details(details: Dict[str, Any]) -> Dict[str, Any]:
+        """Redact obvious PII or credentials in a shallow dict.
+
+        - Masks values of keys likely to contain secrets.
+        - Masks email-like strings.
+        """
+        if not details:
+            return {}
+        sensitive_keys = {
+            "password",
+            "secret",
+            "token",
+            "api_key",
+            "apikey",
+            "access_token",
+            "refresh_token",
+            "authorization",
+            "auth",
+        }
+        email_re = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+
+        redacted: Dict[str, Any] = {}
+        for k, v in details.items():
+            if k.lower() in sensitive_keys:
+                redacted[k] = "***REDACTED***"
+                continue
+            if isinstance(v, str):
+                redacted[k] = email_re.sub("***REDACTED_EMAIL***", v)
+            else:
+                redacted[k] = v
+        return redacted
 
     async def log_event(
         self,
@@ -61,7 +203,7 @@ class AuditLogger:
             resource=resource,
             resource_id=resource_id,
             success=success,
-            details=details or {},
+            details=self._redact_details(details or {}),
             session_id=session_id,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -156,13 +298,23 @@ class AuditLogger:
         )
 
     async def _write_event(self, event: AuditEvent) -> None:
-        """Write audit event to log file."""
+        """Write audit event to log file with hash chain."""
         async with self._lock:
             try:
-                event_json = json.dumps(asdict(event), separators=(",", ":"))
+                event_dict = asdict(event)
+                # Stable serialization for hashing
+                payload = json.dumps(event_dict, separators=(",", ":"), sort_keys=True)
+                m = hashlib.sha256()
+                m.update(self._prev_hash.encode("utf-8"))
+                m.update(payload.encode("utf-8"))
+                record_hash = m.hexdigest()
 
-                with open(self.log_file, "a") as f:
-                    f.write(event_json + "\n")
+                record = {"event": event_dict, "prev_hash": self._prev_hash, "hash": record_hash}
+
+                with open(self.log_file, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(record, separators=(",", ":")) + "\n")
+
+                self._prev_hash = record_hash
 
             except Exception as e:
                 # Fallback logging to avoid losing audit events
@@ -189,14 +341,17 @@ class AuditLogger:
         count = 0
 
         try:
-            with open(self.log_file) as f:
+            with open(self.log_file, encoding="utf-8") as f:
                 for line in f:
                     if count >= limit:
                         break
 
                     try:
                         event_data = json.loads(line.strip())
-                        event = AuditEvent(**event_data)
+                        if isinstance(event_data, dict) and "event" in event_data:
+                            event = AuditEvent(**event_data["event"])  # new format
+                        else:
+                            event = AuditEvent(**event_data)  # legacy format
 
                         # Apply filters
                         if user_id and event.user_id != user_id:
@@ -319,11 +474,14 @@ class AuditLogger:
         exported_count = 0
 
         try:
-            with open(self.log_file) as infile, open(output_file, "w") as outfile:
+            with open(self.log_file, encoding="utf-8") as infile, open(output_file, "w", encoding="utf-8") as outfile:
                 for line in infile:
                     try:
                         event_data = json.loads(line.strip())
-                        event = AuditEvent(**event_data)
+                        if isinstance(event_data, dict) and "event" in event_data:
+                            event = AuditEvent(**event_data["event"])  # new format
+                        else:
+                            event = AuditEvent(**event_data)  # legacy format
 
                         # Apply time filters
                         if start_time and event.timestamp < start_time:
@@ -349,6 +507,58 @@ class AuditLogger:
             logging.error(f"Failed to export audit log: {e}")
 
         return exported_count
+
+    def verify_hash_chain(self, max_lines: int = 100000) -> dict[str, Any]:
+        """Verify the hash chain of the audit log.
+
+        Returns a dict with keys: valid, checked, first_invalid_line, reason
+        """
+        if not self.log_file.exists():
+            return {"valid": True, "checked": 0}
+
+        prev = "0" * 64
+        checked = 0
+        try:
+            with open(self.log_file, encoding="utf-8") as f:
+                for i, line in enumerate(f, start=1):
+                    if checked >= max_lines:
+                        break
+                    if not line.strip():
+                        continue
+                    try:
+                        obj = json.loads(line.strip())
+                    except json.JSONDecodeError:
+                        return {
+                            "valid": False,
+                            "checked": checked,
+                            "first_invalid_line": i,
+                            "reason": "invalid json",
+                        }
+
+                    if not (isinstance(obj, dict) and {"event", "prev_hash", "hash"} <= obj.keys()):
+                        # Legacy entries are not verifiable; skip but break chain
+                        prev = "0" * 64
+                        checked += 1
+                        continue
+
+                    payload = json.dumps(obj["event"], separators=(",", ":"), sort_keys=True)
+                    m = hashlib.sha256()
+                    m.update(prev.encode("utf-8"))
+                    m.update(payload.encode("utf-8"))
+                    expected = m.hexdigest()
+                    if obj.get("prev_hash") != prev or obj.get("hash") != expected:
+                        return {
+                            "valid": False,
+                            "checked": checked,
+                            "first_invalid_line": i,
+                            "reason": "hash mismatch",
+                        }
+                    prev = expected
+                    checked += 1
+        except Exception as e:  # noqa: BLE001
+            return {"valid": False, "checked": checked, "reason": str(e)}
+
+        return {"valid": True, "checked": checked}
 
     def get_log_stats(self) -> Dict[str, Any]:
         """Get audit log statistics."""

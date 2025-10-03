@@ -1,5 +1,16 @@
 [run]
+source = src
+branch = True
 omit =
+    */tests/*
+    */test_*
+    */__pycache__/*
+    */venv/*
+    */.venv/*
+    */dist/*
+    */build/*
+    */.tox/*
+    */migrations/*
     src/integrations/*
     src/components/*
     src/services/*
@@ -10,9 +21,23 @@ omit =
     src/compliance/*
 
 [report]
+precision = 2
+show_missing = True
+skip_covered = False
+fail_under = 85
 exclude_lines =
     pragma: no cover
-    if __name__ == .__main__.
-    @overload
-    @abstractmethod
+    def __repr__
+    raise AssertionError
     raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abc.abstractmethod
+    @overload
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

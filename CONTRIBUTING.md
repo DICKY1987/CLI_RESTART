@@ -18,6 +18,13 @@ Thanks for your interest in improving `cli_multi_rapid_DEV`!
 - Run formatting, linting, type checks, and tests locally before pushing.
 - Ensure CI passes; coverage is gated at 80%.
 
+## Code Quality and Error Handling
+
+To maintain a high-quality and maintainable codebase, we have specific standards for code quality and error handling. All contributors are expected to follow these guidelines.
+
+- **Code Quality:** Please read our [Code Quality Guide](docs/development/code-quality.md) to learn about our standards for code style, documentation, and dead code detection.
+- **Error Handling:** All errors should be handled using our standardized exception and error code system. Please read our [Error Handling Guide](docs/development/error-handling.md) for details.
+
 ## Pull requests
 
 - Describe the problem and solution clearly, referencing issues if applicable.
