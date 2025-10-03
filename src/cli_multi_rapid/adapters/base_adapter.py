@@ -4,6 +4,8 @@ Base Adapter Interface
 
 Defines the abstract interface that all CLI Orchestrator adapters must implement.
 Supports both deterministic tools and AI services with consistent execution patterns.
+
+Enhanced with runtime schema validation for all inputs and outputs.
 """
 
 import logging
@@ -11,6 +13,17 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+# Import contract validator for schema validation
+try:
+    from cli_multi_rapid.validation.contract_validator import (
+        ContractValidator,
+        ValidationError,
+    )
+    VALIDATION_AVAILABLE = True
+except ImportError:
+    VALIDATION_AVAILABLE = False
+    ValidationError = Exception
 
 logger = logging.getLogger(__name__)
 
@@ -63,13 +76,87 @@ class AdapterResult:
 
 
 class BaseAdapter(ABC):
-    """Abstract base class for all workflow step adapters."""
+    """
+    Abstract base class for all workflow step adapters.
+
+    Enhanced with automatic schema validation for all inputs and outputs.
+    """
 
     def __init__(self, name: str, adapter_type: AdapterType, description: str):
         self.name = name
         self.adapter_type = adapter_type
         self.description = description
         self.logger = logging.getLogger(f"adapter.{name}")
+
+        # Initialize contract validator for schema enforcement
+        if VALIDATION_AVAILABLE:
+            self._contract_validator = ContractValidator()
+        else:
+            self._contract_validator = None
+            self.logger.warning("Schema validation not available - install jsonschema package")
+
+    def get_input_schema(self) -> Optional[str]:
+        """
+        Return the name of the JSON schema for input validation.
+
+        Override this in subclasses to enable input schema validation.
+
+        Returns:
+            Schema name (e.g., "workflow_step") or None to skip validation
+        """
+        return None
+
+    def get_output_schema(self) -> Optional[str]:
+        """
+        Return the name of the JSON schema for output validation.
+
+        Override this in subclasses to enable output schema validation.
+
+        Returns:
+            Schema name (e.g., "adapter_result") or None to skip validation
+        """
+        return None
+
+    def validate_input_schema(self, step: Dict[str, Any]) -> None:
+        """
+        Validate step definition against input schema.
+
+        Args:
+            step: The workflow step definition
+
+        Raises:
+            ValidationError: If validation fails
+        """
+        input_schema = self.get_input_schema()
+
+        if input_schema and self._contract_validator:
+            try:
+                self._contract_validator.validate_input(step, input_schema)
+                self.logger.debug(f"Input schema validation passed for {self.name}")
+            except ValidationError as e:
+                self.logger.error(f"Input schema validation failed for {self.name}: {e}")
+                raise
+
+    def validate_output_schema(self, result: AdapterResult) -> None:
+        """
+        Validate adapter result against output schema.
+
+        Args:
+            result: The adapter execution result
+
+        Raises:
+            ValidationError: If validation fails
+        """
+        output_schema = self.get_output_schema()
+
+        if output_schema and self._contract_validator:
+            try:
+                output_data = result.to_dict()
+                self._contract_validator.validate_output(output_data, output_schema)
+                self.logger.debug(f"Output schema validation passed for {self.name}")
+            except ValidationError as e:
+                self.logger.error(f"Output schema validation failed for {self.name}: {e}")
+                raise
 
     @abstractmethod
     def execute(
