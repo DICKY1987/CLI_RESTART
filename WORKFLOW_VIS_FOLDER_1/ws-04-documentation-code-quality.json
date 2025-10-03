@@ -122,14 +122,12 @@
     "repo_url": "https://github.com/DICKY1987/CLI_RESTART.git",
     "remote": "origin",
     "base_branch": "main",
-    "auto_commit_and_push": true,
+    "auto_commit_and_push": false,
     "commands": [
-      "git fetch origin",
-      "git checkout -B ws/04-documentation-code-quality origin/main",
-      "apply code changes (programmatic)",
-      "git add -A",
-      "git commit -m \"docs: implement doc coverage tracking and standardize error messages\"",
-      "git push -u origin ws/04-documentation-code-quality"
+      "git -C C\\\\Users\\\\Richard Wilks\\\\CLI_RESTART fetch origin --prune",
+      "git -C C\\\\Users\\\\Richard Wilks\\\\CLI_RESTART switch main",
+      "git -C C\\\\Users\\\\Richard Wilks\\\\CLI_RESTART pull --ff-only",
+      "git -C C\\\\Users\\\\Richard Wilks\\\\CLI_RESTART status"
     ],
     "commit_message_template": "docs: implement doc coverage tracking and standardize error messages\n\nAdd dead code detection with vulture, documentation coverage/freshness tracking,\nand standardized error codes with actionable messages.\n\nCloses: gap_CROSS_001, gap_CROSS_004, gap_CROSS_005\nWorkstream: WS-04"
   },
@@ -137,18 +135,13 @@
   "safety_and_rollback": {
     "idempotent_reentry": true,
     "preflight_checks": [
-      "ensure clean working tree",
-      "sync with origin/main",
-      "verify vulture installed",
       "verify Python 3.10+ available",
-      "no blockers in 'blocked_by' (empty for this workstream)"
+      "verify required dev tools installed"
     ],
-    "rollback_plan": [
-      "git reset --hard origin/main",
-      "git clean -fd",
-      "if pushed, create revert PR"
-    ]
+    "rollback_plan": []
   },
+
+  "already_applied": true,
 
   "execution_notes": [
     "Single-developer constraint: Phase 1 work, can be done in parallel with WS-01/02/03.",
