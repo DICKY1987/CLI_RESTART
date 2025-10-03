@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 CLI Orchestrator Router System
 
@@ -245,6 +245,25 @@ class Router:
         if policy:
             prefer_deterministic = policy.get("prefer_deterministic", True)
             complexity_threshold = policy.get("complexity_threshold", 0.7)
+        # Early preference: if actor is AI and deterministic is preferred and feasible, switch
+        if adapter_info.get("type") == "ai" and prefer_deterministic:
+            try:
+                alt_adapter = self._find_deterministic_alternative(actor)
+                if alt_adapter and self.registry.is_available(alt_adapter):
+                    det_confidence = self._calculate_deterministic_confidence(complexity, alt_adapter)
+                    if det_confidence > 0.6 and complexity.score <= complexity_threshold:
+                        return RoutingDecision(
+                            adapter_name=alt_adapter,
+                            adapter_type="deterministic",
+                            reasoning=f"Prefer deterministic: routed {actor} -> {alt_adapter} (score: {complexity.score:.2f})",
+                            estimated_tokens=0,
+                            complexity_score=complexity.score,
+                            confidence=det_confidence,
+                            performance_hint="prefer_deterministic"
+                        )
+            except Exception:
+                # Non-fatal; continue with normal routing
+                pass
 
         # Enhanced routing logic with complexity scoring
         if adapter_info["type"] == "deterministic":
