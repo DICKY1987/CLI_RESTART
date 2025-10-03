@@ -1,9 +1,11 @@
+api
 cli_multi_rapid
 compliance
 contracts
-core
+db
 eafix
 idempotency
 integrations
+notifications
 observability
 websocket
