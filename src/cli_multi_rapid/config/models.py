@@ -1,15 +1,16 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 """Pydantic settings models for application configuration."""
 
 from typing import Optional
 
-from pydantic import BaseModel, BaseSettings, Field, HttpUrl, validator
+
+from pydantic_settings import BaseSettings
 
 
 class AppConfig(BaseModel):
     name: str = "cli-multi-rapid"
-    log_level: str = Field("INFO", regex=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
+    log_level: str = Field("INFO", pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
     debug: bool = False
     api_port: int = Field(8000, ge=1, le=65535)
 
@@ -69,4 +70,5 @@ class Settings(BaseSettings):
     def _normalize_log_level(cls, v: AppConfig) -> AppConfig:
         v.log_level = v.log_level.upper()
         return v
+
 

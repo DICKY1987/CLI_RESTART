@@ -1,0 +1,24 @@
+{
+  "$schema": "../.ai/schemas/state_retention_policy.schema.json",
+  "description": "State retention policy for CLI orchestrator state management",
+  "max_age_days": 30,
+  "max_size_mb": 1000,
+  "archive_before_delete": true,
+  "archive_path": "state/archive",
+  "excluded_patterns": [
+    "*.lock",
+    "*.tmp",
+    "*.swp",
+    ".gitkeep"
+  ],
+  "cleanup_schedule": {
+    "enabled": false,
+    "cron": "0 2 * * 0",
+    "description": "Weekly cleanup at 2 AM on Sunday"
+  },
+  "size_warning_threshold_mb": 800,
+  "critical_state_patterns": [
+    "state/coordination/coord_*.json",
+    "state/checkpoints/*.json"
+  ]
+}
