@@ -1,0 +1,96 @@
+{
+  "$schema": "../.ai/schemas/logging_config.schema.json",
+  "version": "1.0",
+  "log_dir": "logs",
+  "default_level": "INFO",
+  "rotation": {
+    "enabled": true,
+    "max_size_mb": 100,
+    "max_backup_files": 10,
+    "compression_enabled": true,
+    "time_based_rotation": {
+      "enabled": true,
+      "interval": "daily",
+      "backup_count": 7
+    }
+  },
+  "retention": {
+    "enabled": true,
+    "retention_days": 30,
+    "archive_old_logs": true,
+    "archive_format": "gzip"
+  },
+  "loggers": {
+    "workflow_execution": {
+      "level": "INFO",
+      "file": "logs/workflow_execution.log",
+      "format": "[%(asctime)s] [%(levelname)s] %(message)s",
+      "rotation": {
+        "max_size_mb": 100,
+        "max_files": 10
+      }
+    },
+    "activity": {
+      "level": "INFO",
+      "file": "logs/activity/activity.log",
+      "format": "[%(asctime)s] [%(levelname)s] %(message)s",
+      "rotation": {
+        "max_size_mb": 50,
+        "max_files": 20
+      }
+    },
+    "conversations": {
+      "level": "INFO",
+      "file": "logs/conversations/{date}.jsonl",
+      "format": "jsonl",
+      "rotation": {
+        "time_based": true,
+        "interval": "daily"
+      }
+    },
+    "adapter_activity": {
+      "level": "DEBUG",
+      "file": "logs/activity/{adapter_name}_activity.log",
+      "format": "[%(asctime)s] [%(levelname)s] [%(adapter)s] %(message)s",
+      "rotation": {
+        "max_size_mb": 25,
+        "max_files": 15
+      }
+    },
+    "errors": {
+      "level": "ERROR",
+      "file": "logs/errors.log",
+      "format": "[%(asctime)s] [%(levelname)s] [%(name)s:%(lineno)d] %(message)s",
+      "rotation": {
+        "max_size_mb": 50,
+        "max_files": 30
+      }
+    }
+  },
+  "handlers": {
+    "console": {
+      "enabled": true,
+      "level": "INFO",
+      "format": "%(levelname)s: %(message)s"
+    },
+    "file": {
+      "enabled": true,
+      "buffer_size": 8192
+    },
+    "syslog": {
+      "enabled": false,
+      "address": "/dev/log",
+      "facility": "local0"
+    }
+  },
+  "filters": {
+    "pii_redaction": {
+      "enabled": true,
+      "patterns": ["email", "api_key", "password", "token"]
+    },
+    "rate_limiting": {
+      "enabled": true,
+      "max_messages_per_second": 100
+    }
+  }
+}

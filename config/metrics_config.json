@@ -1,0 +1,50 @@
+{
+  "$schema": "../.ai/schemas/metrics_config.schema.json",
+  "service_name": "cli_orchestrator",
+  "enabled": true,
+  "retention_days": 30,
+  "prometheus": {
+    "enabled": true,
+    "export_port": 9090,
+    "export_path": "/metrics",
+    "scrape_interval_seconds": 15
+  },
+  "metrics": {
+    "workflows": {
+      "enabled": true,
+      "track_duration": true,
+      "track_success_rate": true,
+      "track_tokens": true,
+      "track_steps": true
+    },
+    "adapters": {
+      "enabled": true,
+      "track_execution_time": true,
+      "track_errors": true,
+      "track_tokens": true
+    },
+    "system": {
+      "enabled": true,
+      "track_memory": true,
+      "track_cpu": false,
+      "track_disk": false
+    }
+  },
+  "aggregation": {
+    "window_size_seconds": 60,
+    "percentiles": [50, 90, 95, 99],
+    "retention_windows": {
+      "1min": 3600,
+      "5min": 86400,
+      "1hour": 604800
+    }
+  },
+  "alerting": {
+    "enabled": false,
+    "thresholds": {
+      "workflow_duration_p95_seconds": 300,
+      "error_rate_percent": 5,
+      "token_budget_usage_percent": 90
+    }
+  }
+}
