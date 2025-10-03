@@ -1,0 +1,154 @@
+name: PR Schema Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  schema-validation:
+    runs-on: ubuntu-latest
+    name: Schema Validation & Compatibility
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install jsonschema pydantic pydantic-settings
+
+      - name: Check for schema changes
+        id: detect_changes
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.schema\.json$|schemas/.*\.json$' || true)
+          if [ -z "$CHANGED" ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No schema changes detected"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Schema changes detected:"
+            echo "$CHANGED"
+            echo "$CHANGED" > changed_schemas.txt
+          fi
+
+      - name: Validate schema syntax
+        if: steps.detect_changes.outputs.has_changes == 'true'
+        id: validate_syntax
+        run: |
+          echo "Validating schema syntax..."
+          EXIT_CODE=0
+          while IFS= read -r schema_file; do
+            if [ -f "$schema_file" ]; then
+              echo "Validating $schema_file"
+              python -c "import json; json.load(open('$schema_file'))" || EXIT_CODE=1
+            fi
+          done < changed_schemas.txt
+          exit $EXIT_CODE
+
+      - name: Check schema versioning
+        if: steps.detect_changes.outputs.has_changes == 'true'
+        id: check_versioning
+        run: |
+          echo "Checking schema versioning..."
+          EXIT_CODE=0
+          while IFS= read -r schema_file; do
+            if [ -f "$schema_file" ]; then
+              VERSION=$(python -c "import json; s=json.load(open('$schema_file')); print(s.get('version', ''))")
+              if [ -z "$VERSION" ]; then
+                echo "::warning file=$schema_file::Schema missing version field"
+                EXIT_CODE=1
+              fi
+              SCHEMA_ID=$(python -c "import json; s=json.load(open('$schema_file')); print(s.get('\$schema', ''))")
+              if [ -z "$SCHEMA_ID" ]; then
+                echo "::warning file=$schema_file::Schema missing \$schema field"
+                EXIT_CODE=1
+              fi
+            fi
+          done < changed_schemas.txt
+          exit $EXIT_CODE
+
+      - name: Run compatibility checks
+        if: steps.detect_changes.outputs.has_changes == 'true'
+        id: compatibility
+        continue-on-error: true
+        run: |
+          # Check contract schemas
+          if [ -d "contracts/schemas" ]; then
+            echo "::group::Contract Schema Compatibility"
+            python scripts/schema_diff.py
+            CONTRACT_EXIT=$?
+            echo "::endgroup::"
+          else
+            CONTRACT_EXIT=0
+          fi
+
+          # Check AI schemas
+          echo "::group::AI Schema Compatibility"
+          python scripts/check_schema_compatibility.py
+          AI_EXIT=$?
+          echo "::endgroup::"
+
+          if [ $CONTRACT_EXIT -ne 0 ] || [ $AI_EXIT -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Generate check summary
+        if: always() && steps.detect_changes.outputs.has_changes == 'true'
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          # Schema Validation Summary
+
+          ## Status Overview
+          EOF
+
+          if [ "${{ steps.validate_syntax.outcome }}" == "success" ]; then
+            echo "- ✅ Schema syntax validation passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Schema syntax validation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.check_versioning.outcome }}" == "success" ]; then
+            echo "- ✅ Schema versioning check passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ Schema versioning warnings detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.compatibility.outcome }}" == "success" ]; then
+            echo "- ✅ Schema compatibility check passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Schema compatibility check failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Changed Schemas" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat changed_schemas.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail on validation errors
+        if: |
+          steps.validate_syntax.outcome == 'failure' ||
+          steps.compatibility.outcome == 'failure'
+        run: |
+          echo "::error::Schema validation failed. Check the summary for details."
+          exit 1
+
+      - name: Skip message
+        if: steps.detect_changes.outputs.has_changes == 'false'
+        run: |
+          echo "No schema changes detected in this PR. Skipping schema validation."
+          echo "# Schema Validation" >> $GITHUB_STEP_SUMMARY
+          echo "No schema changes detected in this PR." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,207 @@
+name: Generate TypeScript Types
+
+on:
+  push:
+    branches:
+      - main
+      - 'ws/**'
+    paths:
+      - '.ai/schemas/**.json'
+      - 'contracts/schemas/**.json'
+      - 'scripts/generate_typescript_types.sh'
+  pull_request:
+    paths:
+      - '.ai/schemas/**.json'
+      - 'contracts/schemas/**.json'
+      - 'scripts/generate_typescript_types.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-types:
+    runs-on: ubuntu-latest
+    name: Generate TypeScript Interfaces
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Install VS Code extension dependencies
+        working-directory: vscode-extension
+        run: |
+          npm ci
+          npm install --save-dev json-schema-to-typescript
+
+      - name: Generate TypeScript types
+        run: |
+          chmod +x scripts/generate_typescript_types.sh
+          bash scripts/generate_typescript_types.sh
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain vscode-extension/src/types/generated/)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Generated types have changes"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes in generated types"
+          fi
+
+      - name: Commit generated types (on push to branches)
+        if: |
+          github.event_name == 'push' &&
+          steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add vscode-extension/src/types/generated/
+          git commit -m "chore(types): auto-generate TypeScript interfaces from schemas
+
+          Generated from schemas in .ai/schemas/ and contracts/schemas/
+
+          [skip ci]"
+          git push
+
+      - name: Create comment on PR
+        if: |
+          github.event_name == 'pull_request' &&
+          steps.changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## 🔄 TypeScript Types Update Required
+
+            Schema changes detected that require TypeScript type regeneration.
+
+            ### Action Required
+            Please run locally:
+            \`\`\`bash
+            cd vscode-extension
+            npm run generate:types
+            git add src/types/generated/
+            git commit -m "chore(types): regenerate TypeScript interfaces"
+            git push
+            \`\`\`
+
+            Or merge this PR and the types will be auto-generated on the next push to \`main\`.
+
+            ### Changed Schemas
+            \`\`\`
+            ${require('child_process').execSync('git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} | grep -E "\\.schema\\.json$|schemas/.*\\.json$" || echo "No schema files"').toString()}
+            \`\`\`
+
+            <details>
+            <summary>View Generated Files</summary>
+
+            \`\`\`
+            ${require('child_process').execSync('ls -lh vscode-extension/src/types/generated/').toString()}
+            \`\`\`
+            </details>
+            `;
+
+            // Find and update existing comment or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('TypeScript Types Update Required')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Fail CI if types not committed on PR
+        if: |
+          github.event_name == 'pull_request' &&
+          steps.changes.outputs.has_changes == 'true'
+        run: |
+          echo "::error::Generated TypeScript types are out of sync with schemas. Please regenerate and commit them."
+          echo "Run: npm run generate:types"
+          exit 1
+
+      - name: Upload generated types as artifact
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-typescript-types
+          path: vscode-extension/src/types/generated/
+          retention-days: 30
+
+  validate-types:
+    runs-on: ubuntu-latest
+    needs: generate-types
+    name: Validate Generated Types
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Install dependencies
+        working-directory: vscode-extension
+        run: npm ci
+
+      - name: Download generated types
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-typescript-types
+          path: vscode-extension/src/types/generated/
+        continue-on-error: true
+
+      - name: Compile TypeScript
+        working-directory: vscode-extension
+        run: |
+          npm run compile
+
+      - name: Run type checks
+        working-directory: vscode-extension
+        run: |
+          npx tsc --noEmit
+
+      - name: Summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          # TypeScript Type Generation Summary
+
+          ✅ TypeScript types generated successfully
+          ✅ TypeScript compilation passed
+          ✅ Type checking passed
+
+          Generated types are available in `vscode-extension/src/types/generated/`
+          EOF
