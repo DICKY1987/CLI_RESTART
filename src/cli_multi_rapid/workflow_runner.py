@@ -494,7 +494,7 @@ class WorkflowRunner:
                 continue
 
             # Execute step (adapter-backed)
-            start_step = time.time()
+            
             if per_phase_seconds:
                 # Soft timeout: if exceeded, mark failure gracefully
                 try:
