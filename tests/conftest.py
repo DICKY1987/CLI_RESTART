@@ -584,4 +584,6 @@ def pytest_collection_modifyitems(config, items):
 
 
 # Coverage and Test Plugins
-pytest_plugins = ["pytest_asyncio", "pytest_timeout"]
+# Note: Third-party pytest plugins (e.g., pytest-asyncio, pytest-timeout)
+# are discovered automatically via entry points. Avoid manual registration
+# to prevent duplicate-plugin errors during collection.

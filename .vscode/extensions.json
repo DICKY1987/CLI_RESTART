@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "github.vscode-pull-request-github",
+    "eamodio.gitlens",
+    "vivaxy.vscode-conventional-commits",
+    "redhat.vscode-yaml",
+    "esbenp.prettier-vscode"
+  ],
+  "unwantedRecommendations": [
+    "elagil.pre-commit-helper"
+  ]
+}

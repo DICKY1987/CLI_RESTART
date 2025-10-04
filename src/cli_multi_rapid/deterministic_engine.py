@@ -15,6 +15,53 @@ from typing import Any, Dict, List, Optional
 from rich.console import Console
 
 from .workflow_runner import CoordinatedWorkflowResult, WorkflowResult
+from dataclasses import dataclass
+
+
+@dataclass
+class DeterminismAnalysis:
+    deterministic: bool
+    issues: list[str]
+
+
+class DeterministicEngine:
+    """Lightweight deterministic analyzer used by tests.
+
+    Mode 'strict' applies conservative checks for non-determinism.
+    """
+
+    def __init__(self, mode: str = "strict") -> None:
+        self.mode = mode
+
+    def analyze_step(self, step: dict, context: dict | None = None) -> DeterminismAnalysis:
+        issues: list[str] = []
+        actor = (step.get("actor") or "").lower()
+        params = step.get("with") or {}
+
+        # Flag explicitly non-deterministic parameters
+        for k in ("random", "seed", "time", "timestamp"):
+            if params.get(k) is True:
+                issues.append(f"param:{k}")
+
+        # Inspect shell commands for time/entropy sources
+        cmd = params.get("cmd") or params.get("command") or ""
+        cmd_l = str(cmd).lower()
+        if any(tok in cmd_l for tok in ["date", "openssl rand", "uuidgen", "$random"]):
+            issues.append("command:time_entropy")
+
+        deterministic = True
+        if self.mode == "strict":
+            # Non-deterministic if shell-like actor with risky params
+            if actor in {"shell", "bash", "sh", "powershell"} and issues:
+                deterministic = False
+            # Deterministic for known deterministic actors
+            elif actor in {"code_fixers", "pytest_runner", "vscode_diagnostics"}:
+                deterministic = len(issues) == 0
+            else:
+                # Default: deterministic unless checks failed
+                deterministic = len(issues) == 0
+
+        return DeterminismAnalysis(deterministic=deterministic, issues=issues)
 
 console = Console()
 

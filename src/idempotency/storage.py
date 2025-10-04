@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 from dataclasses import dataclass
+import time
 from typing import Protocol
 
 
@@ -48,6 +49,7 @@ class RedisStore:
 
 
 _store: IdempotencyStore | None = None
+_cache: dict[str, tuple[float, dict]] = {}
 
 
 def get_store() -> IdempotencyStore:
@@ -76,3 +78,21 @@ def make_step_key(step: dict, files: str | None = None) -> str:
     raw = json.dumps(basis, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
+
+def set_cached(key: str, data: dict, ttl_seconds: int) -> None:
+    """Store a cached result with a TTL in seconds."""
+    expires_at = time.time() + max(0, int(ttl_seconds))
+    _cache[key] = (expires_at, data)
+
+
+def get_cached(key: str) -> dict | None:
+    """Retrieve a cached result if not expired; otherwise return None."""
+    entry = _cache.get(key)
+    if not entry:
+        return None
+    expires_at, data = entry
+    if time.time() >= expires_at:
+        # Expired; clean up and return None
+        _cache.pop(key, None)
+        return None
+    return data
