@@ -1,10 +1,47 @@
-from prometheus_client import (
-    CONTENT_TYPE_LATEST,
-    Counter,
-    Gauge,
-    Histogram,
-    generate_latest,
-)
+try:
+    from prometheus_client import (  # type: ignore
+        CONTENT_TYPE_LATEST,
+        Counter,
+        Gauge,
+        Histogram,
+        generate_latest,
+    )
+except Exception:  # Fallback no-op metrics when dependency is absent
+    CONTENT_TYPE_LATEST = "text/plain; version=0.0.4; charset=utf-8"
+
+    class _NoLabels:
+        def inc(self, *args, **kwargs):
+            return None
+
+        def dec(self, *args, **kwargs):
+            return None
+
+        def observe(self, *args, **kwargs):
+            return None
+
+    class _Metric:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def labels(self, *args, **kwargs):
+            return _NoLabels()
+
+        # Some gauges are used directly without labels
+        def inc(self, *args, **kwargs):
+            return None
+
+        def dec(self, *args, **kwargs):
+            return None
+
+        def observe(self, *args, **kwargs):
+            return None
+
+    def generate_latest():  # type: ignore
+        return b""
+
+    Counter = _Metric  # type: ignore
+    Gauge = _Metric  # type: ignore
+    Histogram = _Metric  # type: ignore
 
 # Business/workflow metrics
 WORKFLOW_EXECUTIONS = Counter(

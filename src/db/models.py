@@ -19,7 +19,9 @@ class Workstream(Base):
     status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    metadata: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    # 'metadata' is reserved on SQLAlchemy declarative classes.
+    # Map attribute 'meta' to DB column named 'metadata'.
+    meta: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSON, nullable=True)
     correlation_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -27,4 +29,3 @@ class Workstream(Base):
 
 
 target_metadata = Base.metadata
-

@@ -11,7 +11,8 @@ from src.db.models import Workstream
 
 def create_workstream(name: str, metadata: Optional[dict[str, Any]] = None, correlation_id: Optional[str] = None) -> Workstream:
     with get_session() as session:
-        ws = Workstream(name=name, status="pending", metadata=metadata, correlation_id=correlation_id)
+        # Map incoming 'metadata' to model attribute 'meta' (DB column 'metadata').
+        ws = Workstream(name=name, status="pending", meta=metadata, correlation_id=correlation_id)
         session.add(ws)
         session.flush()
         return ws
@@ -52,4 +53,3 @@ def list_workstreams(
         if end:
             stmt = stmt.where(Workstream.created_at <= end)
         return list(session.scalars(stmt).all())
-
