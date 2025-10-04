@@ -50,4 +50,3 @@ def test_git_ops_basic_branch_and_commit(tmp_path: Path):
         assert len(res_c.artifacts) == 1
     finally:
         os.chdir(old)
-

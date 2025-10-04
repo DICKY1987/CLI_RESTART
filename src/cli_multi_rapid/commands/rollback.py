@@ -2,11 +2,6 @@
 
 from __future__ import annotations
 
-import json
-from datetime import datetime
-from pathlib import Path
-from typing import List, Optional
-
 import typer
 
 app = typer.Typer(help="Rollback and undo operations")
@@ -114,7 +109,7 @@ def undo(
         result = manager.restore_snapshot(latest['id'])
 
         if result.success:
-            typer.secho(f"✓ Undo successful", fg=typer.colors.GREEN)
+            typer.secho("✓ Undo successful", fg=typer.colors.GREEN)
         else:
             typer.secho(f"✗ Undo failed: {result.error}", fg=typer.colors.RED)
             raise typer.Exit(1)

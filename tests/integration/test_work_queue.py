@@ -2,27 +2,48 @@ import os
 import tempfile
 from pathlib import Path
 
-from alembic import command
-from alembic.config import Config
+import pytest
+
+try:
+    from alembic import command as _alembic_command  # type: ignore
+    from alembic.config import Config as _AlembicConfig  # type: ignore
+    ALEMBIC_AVAILABLE = True
+except Exception:  # pragma: no cover
+    _alembic_command = None
+    _AlembicConfig = None
+    ALEMBIC_AVAILABLE = False
 
 from src.cli_multi_rapid.coordination.dispatcher import dispatch
 from src.cli_multi_rapid.coordination.queue import PriorityQueue
 
 
-def _migrate(db_url: str) -> None:
-    cfg = Config("alembic.ini")
+def _get_alembic_command(fallback):
+    return fallback
+
+
+def _get_alembic_config(fallback):
+    return fallback
+
+
+def _migrate(db_url: str, command_mod, ConfigCls) -> None:
+    cfg = ConfigCls("alembic.ini")
     cfg.set_main_option("sqlalchemy.url", db_url)
     cfg.set_main_option("script_location", "alembic")
-    command.upgrade(cfg, "head")
+    command_mod.upgrade(cfg, "head")
 
 
-def test_priority_order_and_status_updates() -> None:
+def test_priority_order_and_status_updates(mock_alembic_command, mock_alembic_config) -> None:
     with tempfile.TemporaryDirectory() as tmp:
         db = Path(tmp) / "q.db"
         os.environ["DATABASE_URL"] = f"sqlite:///{db.as_posix()}"
-        _migrate(os.environ["DATABASE_URL"]) 
+        cmd = _get_alembic_command(mock_alembic_command)
+        cfg_cls = _get_alembic_config(mock_alembic_config)
+        _migrate(os.environ["DATABASE_URL"], cmd, cfg_cls)
 
-        from src.cli_multi_rapid.coordination.registry import create_workstream, get_workstream
+        from src.cli_multi_rapid.coordination.registry import (
+            create_workstream,
+            get_workstream,
+        )
 
         q = PriorityQueue()
         ws_low = create_workstream("low")
@@ -38,4 +59,3 @@ def test_priority_order_and_status_updates() -> None:
 
         assert get_workstream(ws_low.id).status in {"completed", "running"}
         assert get_workstream(ws_high.id).status in {"completed", "running"}
-

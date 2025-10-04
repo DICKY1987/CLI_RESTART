@@ -16,4 +16,3 @@ regexes = [
 
 [rules]
 # Use built-in default rules from gitleaks
-

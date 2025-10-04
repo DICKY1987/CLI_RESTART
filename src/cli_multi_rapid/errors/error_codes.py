@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class ErrorCode(Enum):
     """
     Enumeration of standardized error codes for the application.

@@ -179,7 +179,7 @@ class ConversationLogger:
         # Search through all log files
         for log_file in sorted(self.log_dir.glob("*.jsonl")):
             try:
-                with open(log_file, "r", encoding="utf-8") as f:
+                with open(log_file, encoding="utf-8") as f:
                     for line in f:
                         if not line.strip():
                             continue
@@ -230,7 +230,7 @@ class ConversationLogger:
                 continue
 
             try:
-                with open(log_file, "r", encoding="utf-8") as f:
+                with open(log_file, encoding="utf-8") as f:
                     for line in f:
                         if not line.strip():
                             continue

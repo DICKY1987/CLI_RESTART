@@ -1,0 +1,240 @@
+name: "Workstream Implementation Verification"
+description: "Verify that workstream JSON specifications have been fully implemented in the repository"
+version: "1.0.0"
+
+inputs:
+  workstreams_dir:
+    type: "string"
+    description: "Directory containing workstream JSON files"
+    default: "C:/Users/Richard Wilks/Downloads/WORKFLOW_VIS_FOLDER_1"
+
+  output_format:
+    type: "string"
+    description: "Report output format (json, markdown, html, all)"
+    default: "all"
+    enum: ["json", "markdown", "html", "all"]
+
+  verify_tests:
+    type: "boolean"
+    description: "Run tests during verification"
+    default: false
+
+  verify_coverage:
+    type: "boolean"
+    description: "Check test coverage requirements"
+    default: false
+
+policy:
+  max_tokens: 50000
+  prefer_deterministic: true
+  timeout_seconds: 600
+
+outputs:
+  verification_report:
+    type: "object"
+    description: "Complete verification results"
+
+  summary:
+    type: "object"
+    description: "Summary statistics"
+
+  recommendations:
+    type: "array"
+    description: "List of recommendations for missing implementations"
+
+steps:
+  - id: "1.001"
+    name: "Parse Workstream Specifications"
+    actor: python_script
+    with:
+      script: "scripts/verify_workstreams.py"
+      args:
+        - "--workstreams-dir"
+        - "${{ inputs.workstreams_dir }}"
+        - "--output-format"
+        - "json"
+    emits:
+      - "artifacts/workstream_parsing.json"
+    gates:
+      - type: "file_exists"
+        path: "artifacts/workstream_parsing.json"
+
+  - id: "2.001"
+    name: "Verify File Implementation"
+    actor: file_checker
+    description: "Check if files specified in workstreams exist and have content"
+    with:
+      source: "${{ steps.1.001.output }}"
+      check_type: "existence_and_content"
+    emits:
+      - "artifacts/file_verification.json"
+    gates:
+      - type: "schema_valid"
+        schema: ".ai/schemas/file_verification.schema.json"
+
+  - id: "2.002"
+    name: "Verify Git Branch Status"
+    actor: git_ops
+    description: "Check branch existence and merge status"
+    with:
+      operation: "branch_status"
+      branches: "${{ steps.1.001.output.branches }}"
+    emits:
+      - "artifacts/branch_verification.json"
+    gates:
+      - type: "schema_valid"
+        schema: ".ai/schemas/branch_verification.schema.json"
+
+  - id: "3.001"
+    name: "Run Test Verification"
+    actor: pytest_runner
+    condition: "${{ inputs.verify_tests }}"
+    description: "Execute tests mentioned in workstream test plans"
+    with:
+      test_paths: "${{ steps.1.001.output.test_files }}"
+      coverage: "${{ inputs.verify_coverage }}"
+      markers: "not expensive"
+    emits:
+      - "artifacts/test_verification.json"
+      - "artifacts/coverage_report.json"
+    gates:
+      - type: "tests_exist"
+        min_count: 1
+
+  - id: "3.002"
+    name: "Validate Acceptance Criteria"
+    actor: contract_validator
+    description: "Check if acceptance criteria can be validated"
+    with:
+      criteria_source: "${{ steps.1.001.output.acceptance_criteria }}"
+      validation_context:
+        files: "${{ steps.2.001.output }}"
+        branches: "${{ steps.2.002.output }}"
+        tests: "${{ steps.3.001.output }}"
+    emits:
+      - "artifacts/acceptance_validation.json"
+    gates:
+      - type: "schema_valid"
+        schema: ".ai/schemas/acceptance_validation.schema.json"
+
+  - id: "4.001"
+    name: "Generate Comprehensive Report"
+    actor: python_script
+    description: "Generate verification report in requested formats"
+    with:
+      script: "scripts/verify_workstreams.py"
+      args:
+        - "--workstreams-dir"
+        - "${{ inputs.workstreams_dir }}"
+        - "--output-format"
+        - "${{ inputs.output_format }}"
+    emits:
+      - "artifacts/workstream_verification_*.json"
+      - "artifacts/workstream_verification_*.md"
+      - "artifacts/workstream_verification_*.html"
+    gates:
+      - type: "file_exists"
+        pattern: "artifacts/workstream_verification_*"
+
+  - id: "4.002"
+    name: "Generate Recommendations"
+    actor: ai_analyst
+    description: "Analyze gaps and generate recommendations"
+    with:
+      prompt: |
+        Analyze the workstream verification results and provide recommendations for:
+        1. Missing file implementations
+        2. Failed or missing tests
+        3. Unmet acceptance criteria
+        4. Branch management (unmerged branches, missing branches)
+        5. Priority order for completing missing workstreams
+
+        Context:
+        - Verification report: {{ steps.4.001.output }}
+        - File verification: {{ steps.2.001.output }}
+        - Branch status: {{ steps.2.002.output }}
+        - Test results: {{ steps.3.001.output }}
+
+        Provide actionable, prioritized recommendations.
+      max_tokens: 4000
+    emits:
+      - "artifacts/recommendations.json"
+      - "artifacts/recommendations.md"
+    gates:
+      - type: "file_exists"
+        path: "artifacts/recommendations.md"
+
+  - id: "5.001"
+    name: "Create Summary Dashboard"
+    actor: template_renderer
+    description: "Render HTML dashboard with interactive visualizations"
+    with:
+      template: "templates/verification_dashboard.html"
+      data:
+        summary: "${{ steps.4.001.output.summary }}"
+        workstreams: "${{ steps.4.001.output.workstreams }}"
+        recommendations: "${{ steps.4.002.output }}"
+    emits:
+      - "artifacts/verification_dashboard.html"
+    gates:
+      - type: "file_exists"
+        path: "artifacts/verification_dashboard.html"
+
+  - id: "6.001"
+    name: "Validate Report Schema"
+    actor: verifier
+    description: "Ensure report conforms to verification result schema"
+    with:
+      artifact: "artifacts/workstream_verification_*.json"
+      schema: ".ai/schemas/verification_result.schema.json"
+    gates:
+      - type: "schema_valid"
+        schema: ".ai/schemas/verification_result.schema.json"
+
+final_gates:
+  - type: "file_exists"
+    path: "artifacts/workstream_verification_*.json"
+    description: "Verification report must be generated"
+
+  - type: "file_exists"
+    path: "artifacts/recommendations.md"
+    description: "Recommendations must be generated"
+
+on_success:
+  - action: "log"
+    message: "Workstream verification completed successfully"
+
+  - action: "notify"
+    channel: "console"
+    message: |
+      ✅ Workstream verification complete!
+
+      Reports generated:
+      - JSON: artifacts/workstream_verification_*.json
+      - Markdown: artifacts/workstream_verification_*.md
+      - HTML: artifacts/workstream_verification_*.html
+      - Dashboard: artifacts/verification_dashboard.html
+      - Recommendations: artifacts/recommendations.md
+
+on_failure:
+  - action: "log"
+    level: "error"
+    message: "Workstream verification failed: ${{ error.message }}"
+
+  - action: "create_issue"
+    title: "Workstream Verification Failed"
+    body: |
+      Verification workflow failed at step: ${{ error.step }}
+      Error: ${{ error.message }}
+
+      Please review the logs and artifacts.
+
+metadata:
+  author: "CLI Orchestrator"
+  category: "verification"
+  tags:
+    - "workstream"
+    - "verification"
+    - "quality-assurance"
+    - "implementation-tracking"
+  documentation: "docs/workflows/workstream-verification.md"

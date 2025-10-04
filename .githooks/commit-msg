@@ -16,4 +16,3 @@ fi
 echo "Commit message does not follow Conventional Commits." >&2
 echo "Example: feat(parser): add new option" >&2
 exit 1
-

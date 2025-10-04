@@ -376,6 +376,7 @@ class Verifier:
         try:
             import json
             from pathlib import Path
+
             import jsonschema  # type: ignore
             import yaml  # type: ignore
 
@@ -395,9 +396,9 @@ class Verifier:
                     message=f"Schema file not found: {schema_path}",
                 )
 
-            with open(yaml_path, "r", encoding="utf-8") as yf:
+            with open(yaml_path, encoding="utf-8") as yf:
                 data = yaml.safe_load(yf)
-            with open(schema_path, "r", encoding="utf-8") as sf:
+            with open(schema_path, encoding="utf-8") as sf:
                 schema = json.load(sf)
 
             jsonschema.validate(data, schema)
@@ -425,6 +426,7 @@ class Verifier:
         try:
             import json
             from pathlib import Path
+
             import jsonschema  # type: ignore
             import yaml  # type: ignore
 
@@ -444,9 +446,9 @@ class Verifier:
                     message=f"Schema file not found: {schema_path}",
                 )
 
-            with open(yaml_path, "r", encoding="utf-8") as yf:
+            with open(yaml_path, encoding="utf-8") as yf:
                 data = yaml.safe_load(yf)
-            with open(schema_path, "r", encoding="utf-8") as sf:
+            with open(schema_path, encoding="utf-8") as sf:
                 schema = json.load(sf)
 
             jsonschema.validate(data, schema)

@@ -4,9 +4,9 @@ from pathlib import Path
 import pytest
 
 from cli_multi_rapid.config.loader import (
+    UnknownEnvironmentError,
     load_config,
     resolve_environment,
-    UnknownEnvironmentError,
 )
 
 
@@ -33,4 +33,3 @@ def test_load_config_merges(tmp_path, monkeypatch):
     assert cfg["app"]["debug"] is True
     assert cfg["workflow"]["max_concurrent"] == 2
     assert cfg["redis"]["url"].startswith("redis://")
-

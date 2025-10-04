@@ -1,5 +1,6 @@
 from .error_codes import ErrorCode
 
+
 class CLIOrchestratorException(Exception):
     """Base exception class for the CLI Orchestrator."""
     def __init__(self, error_code, details="", *args):

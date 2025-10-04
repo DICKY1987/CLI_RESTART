@@ -1,4 +1,8 @@
-from src.observability.correlation import new_correlation_id, get_correlation_id, bind_correlation_id
+from src.observability.correlation import (
+    bind_correlation_id,
+    get_correlation_id,
+    new_correlation_id,
+)
 
 
 def test_correlation_id_generation_and_binding():

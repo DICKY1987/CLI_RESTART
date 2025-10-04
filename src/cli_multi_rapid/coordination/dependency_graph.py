@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Set
+from typing import Dict, Set
 
 
 def has_cycle(graph: Dict[str, Set[str]]) -> bool:
@@ -21,4 +21,3 @@ def has_cycle(graph: Dict[str, Set[str]]) -> bool:
         return False
 
     return any(dfs(n) for n in list(graph.keys()))
-

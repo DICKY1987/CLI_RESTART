@@ -10,4 +10,3 @@
   "required": ["$schema", "version"],
   "additionalProperties": true
 }
-

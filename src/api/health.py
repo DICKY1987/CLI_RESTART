@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import timedelta
 import os
 import time
 from typing import Any, Dict
@@ -72,4 +71,3 @@ async def ready() -> Dict[str, Any]:
         "uptime_seconds": int(time.time() - start_time),
         "version": os.getenv("FRAMEWORK_VERSION", "simplified-25ops"),
     }
-

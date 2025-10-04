@@ -5,8 +5,11 @@ from pathlib import Path
 import pytest
 
 from lib.gdw_runner import run_gdw
+from tests.conftest import BENCHMARK_AVAILABLE
 
 
+@pytest.mark.benchmark
+@pytest.mark.skipif(not BENCHMARK_AVAILABLE, reason="pytest-benchmark not installed")
 def test_gdw_dry_run_benchmark():
     pytest.importorskip("pytest_benchmark")
     from pytest_benchmark.fixture import BenchmarkFixture  # type: ignore

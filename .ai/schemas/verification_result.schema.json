@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cli-orchestrator.dev/schemas/verification_result.schema.json",
+  "title": "Workstream Verification Result",
+  "description": "Schema for workstream implementation verification results",
+  "type": "object",
+  "required": ["timestamp", "summary", "workstreams"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when verification was performed"
+    },
+    "summary": {
+      "type": "object",
+      "description": "Summary statistics for all workstreams",
+      "required": [
+        "total_workstreams",
+        "completed",
+        "partial",
+        "missing",
+        "completion_percentage"
+      ],
+      "properties": {
+        "total_workstreams": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of workstreams"
+        },
+        "completed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of fully completed workstreams"
+        },
+        "partial": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of partially completed workstreams"
+        },
+        "missing": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of not started workstreams"
+        },
+        "completion_percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Overall completion percentage"
+        },
+        "files_total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of files across all workstreams"
+        },
+        "files_implemented": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of files successfully implemented"
+        },
+        "file_completion_percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percentage of files implemented"
+        }
+      }
+    },
+    "workstreams": {
+      "type": "array",
+      "description": "Individual workstream verification results",
+      "items": {
+        "$ref": "#/definitions/workstream"
+      }
+    }
+  },
+  "definitions": {
+    "status": {
+      "type": "string",
+      "enum": ["completed", "partial", "missing", "failed", "unknown"],
+      "description": "Verification status"
+    },
+    "workstream": {
+      "type": "object",
+      "required": [
+        "workstream_id",
+        "name",
+        "branch_name",
+        "branch_exists",
+        "branch_merged",
+        "status",
+        "completion_percentage"
+      ],
+      "properties": {
+        "workstream_id": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Workstream ID number"
+        },
+        "name": {
+          "type": "string",
+          "description": "Workstream name"
+        },
+        "branch_name": {
+          "type": "string",
+          "description": "Git branch name for this workstream"
+        },
+        "branch_exists": {
+          "type": "boolean",
+          "description": "Whether the branch exists (local or remote)"
+        },
+        "branch_merged": {
+          "type": "boolean",
+          "description": "Whether the branch has been merged to main"
+        },
+        "status": {
+          "$ref": "#/definitions/status"
+        },
+        "completion_percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Completion percentage for this workstream"
+        },
+        "files_implemented": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of files implemented"
+        },
+        "files_total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of files required"
+        },
+        "tests_passed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of tests passed"
+        },
+        "tests_total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of tests"
+        },
+        "tasks": {
+          "type": "array",
+          "description": "Task verification results",
+          "items": {
+            "$ref": "#/definitions/task"
+          }
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "required": ["task_id", "description", "status"],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "description": "Task identifier"
+        },
+        "description": {
+          "type": "string",
+          "description": "Task description"
+        },
+        "status": {
+          "$ref": "#/definitions/status"
+        },
+        "files": {
+          "type": "array",
+          "description": "File verification results",
+          "items": {
+            "$ref": "#/definitions/file_verification"
+          }
+        },
+        "tests_passed": {
+          "type": "boolean",
+          "description": "Whether tests for this task passed"
+        },
+        "acceptance_criteria_met": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of acceptance criteria met"
+        },
+        "acceptance_criteria_total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of acceptance criteria"
+        },
+        "details": {
+          "type": "string",
+          "description": "Additional details about task verification"
+        }
+      }
+    },
+    "file_verification": {
+      "type": "object",
+      "required": ["file_path", "exists", "status"],
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Path to the file being verified"
+        },
+        "exists": {
+          "type": "boolean",
+          "description": "Whether the file exists"
+        },
+        "status": {
+          "$ref": "#/definitions/status"
+        },
+        "details": {
+          "type": "string",
+          "description": "Additional details about file verification"
+        }
+      }
+    }
+  }
+}

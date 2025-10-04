@@ -7,11 +7,11 @@ import json
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-
-from src.integrations.integration_manager import IntegrationManager, IntegrationType
 from src.websocket.auth_middleware import WebSocketAuthMiddleware
 from src.websocket.connection_manager import ConnectionManager
 from src.websocket.event_broadcaster import EventBroadcaster, EventType
+
+from src.integrations.integration_manager import IntegrationManager, IntegrationType
 
 
 @pytest.fixture

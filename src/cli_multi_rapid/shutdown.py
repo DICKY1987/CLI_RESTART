@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import signal
-from typing import Awaitable, Callable, List
+from collections.abc import Awaitable
+from typing import Callable, List
 
 
 class GracefulShutdown:
@@ -45,4 +46,3 @@ class GracefulShutdown:
         except asyncio.TimeoutError:
             # Best-effort cleanup; let process exit
             pass
-

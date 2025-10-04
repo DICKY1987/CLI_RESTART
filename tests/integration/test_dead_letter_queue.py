@@ -7,4 +7,3 @@ def test_dlq_add_and_list(tmp_path):
     items = dlq.list()
     assert len(items) == 1
     assert items[0].workflow == "wf1"
-

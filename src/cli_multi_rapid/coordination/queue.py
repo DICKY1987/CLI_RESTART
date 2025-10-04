@@ -3,10 +3,9 @@ from __future__ import annotations
 import heapq
 import itertools
 from dataclasses import dataclass, field
-from typing import Any, Callable, List, Tuple
+from typing import Any, List, Tuple
 
 from src.cli_multi_rapid.coordination.registry import update_status
-
 
 PRIORITY = {"high": 0, "medium": 1, "low": 2}
 
@@ -41,4 +40,3 @@ class PriorityQueue:
 
     def empty(self) -> bool:
         return not self._heap
-

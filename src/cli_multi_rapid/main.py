@@ -8,7 +8,7 @@ CLI orchestrator that routes between deterministic tools and AI agents.
 
 import sys
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import typer
 from rich.console import Console
@@ -21,6 +21,16 @@ app = typer.Typer(
 )
 console = Console()
 
+
+# Cross-platform safe success/failure symbols (avoid Unicode on legacy Windows)
+# Attempt to force UTF-8 output on capable Python versions (Windows-friendly)
+try:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 # Cross-platform safe success/failure symbols (avoid Unicode on legacy Windows)
 def _symbol(ok: bool) -> str:
@@ -90,9 +100,20 @@ def run_workflow(
             max_tokens=max_tokens,
         )
         if result.success:
-            console.print(f"[green]{_symbol(True)} Workflow completed successfully[/green]")
+            console.print(f"[green]{_safe_symbol(True)} Workflow completed successfully[/green]")
         else:
-            console.print(f"[red]{_symbol(False)} Workflow failed: {result.error}[/red]")
+            try:
+                console.print(f"[red]{_safe_symbol(False)} Workflow failed: {result.error}[/red]")
+            except UnicodeEncodeError:
+                enc = (getattr(sys.stdout, "encoding", None) or "utf-8")
+                safe_err = (
+                    str(result.error)
+                    .encode(enc, errors="replace")
+                    .decode(enc, errors="ignore")
+                )
+                console.print(
+                    f"[red]{_safe_symbol(False)} Workflow failed: {safe_err}[/red]"
+                )
             raise typer.Exit(code=1)
     except ImportError:
         console.print("[red]CLI orchestrator workflow runner not available[/red]")
@@ -115,12 +136,86 @@ def verify_artifact(
         verifier = Verifier()
         is_valid = verifier.verify_artifact(artifact_file, schema_file)
         if is_valid:
-            console.print(f"[green]{_symbol(True)} Artifact is valid[/green]")
+            console.print(f"[green]{_safe_symbol(True)} Artifact is valid[/green]")
         else:
-            console.print(f"[red]{_symbol(False)} Artifact validation failed[/red]")
+            console.print(f"[red]{_safe_symbol(False)} Artifact validation failed[/red]")
             raise typer.Exit(code=1)
     except ImportError:
         console.print("[red]CLI orchestrator verifier not available[/red]")
+        raise typer.Exit(code=1)
+
+
+@app.command("verify-workstreams")
+def verify_workstreams(
+    workstreams_dir: Path = typer.Option(
+        Path("Downloads/WORKFLOW_VIS_FOLDER_1"),
+        "--workstreams-dir",
+        help="Directory containing workstream JSON files"
+    ),
+    output_format: str = typer.Option(
+        "all",
+        "--output-format",
+        help="Report output format (json, markdown, html, all)"
+    ),
+    output_dir: Path = typer.Option(
+        Path("artifacts"),
+        "--output-dir",
+        help="Directory for output reports"
+    ),
+):
+    """Verify workstream implementation status from JSON specifications."""
+    console.print("[bold blue]Verifying workstream implementations...[/bold blue]")
+
+    # Resolve paths
+    repo_root = Path.cwd()
+    workstreams_dir = repo_root / workstreams_dir
+    output_dir = repo_root / output_dir
+
+    if not workstreams_dir.exists():
+        console.print(f"[red]{_symbol(False)} Workstreams directory not found: {workstreams_dir}[/red]")
+        raise typer.Exit(code=1)
+
+    # Create output directory
+    output_dir.mkdir(exist_ok=True, parents=True)
+
+    try:
+        import subprocess
+
+        # Run the verification script
+        script_path = repo_root / "scripts" / "verify_workstreams.py"
+
+        if not script_path.exists():
+            console.print(f"[red]{_symbol(False)} Verification script not found: {script_path}[/red]")
+            raise typer.Exit(code=1)
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(script_path),
+                "--workstreams-dir", str(workstreams_dir),
+                "--repo-root", str(repo_root),
+                "--output-dir", str(output_dir),
+                "--output-format", output_format
+            ],
+            capture_output=True,
+            text=True
+        )
+
+        # Print stdout
+        if result.stdout:
+            console.print(result.stdout)
+
+        if result.returncode == 0:
+            console.print(f"\n[green]{_symbol(True)} Verification completed successfully[/green]")
+            console.print(f"[dim]Reports saved to: {output_dir}[/dim]")
+        else:
+            console.print(f"\n[red]{_symbol(False)} Verification failed[/red]")
+            if result.stderr:
+                console.print(f"[red]{result.stderr}[/red]")
+            raise typer.Exit(code=1)
+
+    except Exception as e:
+        console.print(f"[red]{_symbol(False)} Error running verification: {e}[/red]")
         raise typer.Exit(code=1)
 
 
@@ -321,8 +416,10 @@ def coordination_plan(
     """Create coordination plan with conflict detection."""
     try:
         import json
-        import yaml
         from dataclasses import asdict
+
+        import yaml
+
         from .coordination import WorkflowCoordinator
 
         # Load workflows
@@ -426,6 +523,7 @@ def coordination_dashboard(
     try:
         import json
         import time
+
         from rich.live import Live
 
         state_dir = _ensure_state_dir()
@@ -494,8 +592,8 @@ def coordination_report(
 ):
     """Generate a simple coordination report."""
     try:
-        import json
         import csv
+        import json
 
         state_file = _ensure_state_dir() / f"{coordination_id}.json"
         if not state_file.exists():
@@ -963,18 +1061,22 @@ app.add_typer(repo_app, name="repo")
 
 # Git command group (WS-06 - enhanced git operations)
 from .commands import git_commands
+
 app.add_typer(git_commands.app, name="git")
 
 # Init command group (WS-06 - repository initialization)
 from .commands import repo_init
+
 app.add_typer(repo_init.app, name="init")
 
 # State command group (WS-06 - state management)
 from .commands import state
+
 app.add_typer(state.app, name="state")
 
 # Scripts command group (WS-06 - script registry)
 from .commands import scripts
+
 app.add_typer(scripts.app, name="scripts")
 
 

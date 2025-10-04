@@ -7,7 +7,6 @@ from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.table import Table
@@ -226,7 +225,7 @@ def search(
             continue
 
         try:
-            with open(log_file, "r", encoding="utf-8") as f:
+            with open(log_file, encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         continue
@@ -343,7 +342,7 @@ def stats(
             continue
 
         try:
-            with open(log_file, "r", encoding="utf-8") as f:
+            with open(log_file, encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         continue

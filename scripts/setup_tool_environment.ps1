@@ -56,4 +56,3 @@ if (-not $Quiet) {
     Write-Host (" - {0,-16} [{1}] {2} {3}" -f $name, $ok, $item.version, $item.path)
   }
 }
-

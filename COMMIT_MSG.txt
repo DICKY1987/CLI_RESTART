@@ -1,6 +1,4 @@
-﻿VS Code: integrate Codex config package + merge tooling
+chore: add vscode extension recommendations
 
-- Add scripts to merge/copy Codex VS Code configs with backups
-- Normalize Windows cmd for chained tasks (Codex package)
-- Add title/status color cues for "Codex Active / 99% Target"
-- Document usage in VSCODE_SETUP.md and README
+- Recommend Python, Pylance, Ruff, Black, isort, GitHub PRs, GitLens, YAML, Prettier
+- Replace pre-commit helper with Conventional Commits extension

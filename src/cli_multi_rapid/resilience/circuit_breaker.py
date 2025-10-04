@@ -40,4 +40,3 @@ class SimpleCircuitBreaker:
             self.state.failures = 0
             return False
         return True
-

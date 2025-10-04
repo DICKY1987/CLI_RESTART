@@ -1,6 +1,6 @@
 import json
-from io import StringIO
 import logging
+from io import StringIO
 
 from src.observability.logging_json import configure_json_logging
 

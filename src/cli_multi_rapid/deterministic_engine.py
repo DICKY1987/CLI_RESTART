@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional
 from rich.console import Console
 
 from .workflow_runner import CoordinatedWorkflowResult, WorkflowResult
-from dataclasses import dataclass
 
 
 @dataclass

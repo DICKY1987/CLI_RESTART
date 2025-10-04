@@ -32,7 +32,8 @@ steps:
     # Run validation script in this temp repo root
     script = Path("scripts/validate_schemas.py").read_text()
     # Execute script with cwd redirected
-    import runpy, os
+    import os
+    import runpy
 
     cwd = os.getcwd()
     try:
@@ -42,4 +43,3 @@ steps:
         os.chdir(cwd)
 
     assert True  # If we reached here without SystemExit error, pass
-

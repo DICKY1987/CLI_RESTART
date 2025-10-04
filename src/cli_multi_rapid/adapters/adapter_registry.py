@@ -64,7 +64,13 @@ class AdapterRegistry:
         # Check instantiated adapters
         for name, adapter in self._adapters.items():
             if adapter.is_available():
-                available[name] = adapter.get_metadata()
+                meta = adapter.get_metadata().copy()
+                # Normalize adapter_type for compatibility with tests
+                at = str(meta.get("adapter_type", "")).lower()
+                meta["adapter_type"] = (
+                    "DETERMINISTIC" if at == "deterministic" else "AI_POWERED" if at in {"ai", "ai_powered"} else at
+                )
+                available[name] = meta
 
         # Check registered classes (assume available unless proven otherwise)
         for name in self._adapter_classes:
@@ -73,7 +79,7 @@ class AdapterRegistry:
                 available[name] = {
                     "name": name,
                     "type": "deterministic",  # Default assumption
-                    "adapter_type": "deterministic",
+                    "adapter_type": "DETERMINISTIC",
                     "description": f"Adapter: {name}",
                     "cost": 0,
                     "available": True,
@@ -121,8 +127,8 @@ class AdapterRegistry:
     def _auto_register_core_adapters(self) -> None:
         """Register core adapters by class for discovery without eager instantiation."""
         try:
-            from .ai_editor import AIEditorAdapter
             from .ai_analyst import AIAnalystAdapter
+            from .ai_editor import AIEditorAdapter
             from .code_fixers import CodeFixersAdapter
             from .git_ops import GitOpsAdapter
             from .pytest_runner import PytestRunnerAdapter

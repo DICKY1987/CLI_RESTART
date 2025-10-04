@@ -11,4 +11,3 @@ url = os.environ.get("DATABASE_URL", "sqlite:///.data/registry.db")
 path = backup_database(url, "${DEST_DIR}")
 print(path)
 PY
-

@@ -25,4 +25,3 @@ Next Phases (at a glance)
 - Phase 3: Plugin system, session persistence
 - Phase 4: Comprehensive tests, security/performance benchmarking
 - Phase 5: Docs and deployment automation
-

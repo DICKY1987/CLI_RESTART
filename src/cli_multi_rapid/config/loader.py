@@ -8,12 +8,11 @@ environment variables. No secrets are stored in YAML; secrets must come from
 environment variables.
 """
 
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import os
 import yaml
-
 
 CONFIG_DIR = Path("config")
 BASE_FILE = CONFIG_DIR / "base.yaml"
@@ -98,4 +97,3 @@ __all__ = [
     "resolve_environment",
     "load_config",
 ]
-

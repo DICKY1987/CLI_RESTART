@@ -22,4 +22,3 @@ def test_compare_schemas_detects_type_change() -> None:
     curr = {"required": ["a"], "properties": {"a": {"type": "number"}}}
     ok, reasons = compare_schemas(base, curr)
     assert not ok and any("Changed type" in r for r in reasons)
-

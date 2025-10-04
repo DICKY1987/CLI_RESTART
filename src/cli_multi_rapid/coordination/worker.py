@@ -14,4 +14,3 @@ def run_task(workstream_id: int, func: Callable[[dict[str, Any]], Any], payload:
     except Exception:
         update_status(workstream_id, "failed")
         raise
-

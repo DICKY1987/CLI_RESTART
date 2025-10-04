@@ -24,4 +24,3 @@ def validate_and_build_settings(explicit_env: Optional[str] = None) -> Tuple[str
     except Exception as e:  # pydantic ValidationError
         raise ConfigValidationError(str(e))
     return env, settings
-

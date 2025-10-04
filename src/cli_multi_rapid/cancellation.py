@@ -25,4 +25,3 @@ class CancellationToken:
             return self._path.exists()
         except Exception:
             return False
-

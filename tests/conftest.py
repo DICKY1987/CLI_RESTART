@@ -20,6 +20,14 @@ import pytest
 import pytest_asyncio
 import yaml
 
+# Optional pytest-benchmark plugin availability
+try:
+    import pytest_benchmark  # type: ignore  # noqa: F401
+    BENCHMARK_AVAILABLE = True
+except Exception:
+    BENCHMARK_AVAILABLE = False
+    pytest_benchmark = None  # type: ignore
+
 from src.cli_multi_rapid.adapters.base_adapter import (
     AdapterResult,
     AdapterType,
@@ -44,6 +52,28 @@ pytestmark = [
     pytest.mark.asyncio,
     pytest.mark.timeout(30),  # Default timeout for all tests
 ]
+
+# Optional pytest-benchmark plugin availability and marker registration
+try:
+    import pytest_benchmark  # type: ignore  # noqa: F401
+    BENCHMARK_AVAILABLE = True
+except Exception:
+    BENCHMARK_AVAILABLE = False
+    pytest_benchmark = None  # type: ignore
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "benchmark: marks tests requiring pytest-benchmark plugin (skip if not installed)",
+    )
+
+
+# Provide a no-op benchmark fixture to allow collection when plugin absent
+if not BENCHMARK_AVAILABLE:
+    @pytest.fixture
+    def benchmark():  # type: ignore
+        pytest.skip("pytest-benchmark not installed")
 
 
 class TestCategories:
@@ -401,6 +431,55 @@ def test_data_factory():
     return TestDataFactory()
 
 
+# --- Alembic mocking fixtures (to avoid hard dependency in unit envs) ---
+
+@pytest.fixture
+def mock_alembic_command():
+    m = MagicMock()
+    m.upgrade.return_value = None
+    m.downgrade.return_value = None
+    return m
+
+
+@pytest.fixture
+def mock_alembic_config():
+    class _Config:
+        def __init__(self, ini_path: str):
+            self.ini_path = ini_path
+            self.options: Dict[str, Any] = {}
+
+        def set_main_option(self, key: str, value: str) -> None:
+            self.options[key] = value
+
+    return _Config
+
+
+# --- Alembic mocking fixtures (phase0: avoid hard dependency in unit env) ---
+
+@pytest.fixture
+def mock_alembic_command():
+    """Mock object emulating alembic.command with upgrade/downgrade no-ops."""
+    m = MagicMock()
+    m.upgrade.return_value = None
+    m.downgrade.return_value = None
+    return m
+
+
+@pytest.fixture
+def mock_alembic_config():
+    """Lightweight Config replacement capturing set_main_option calls."""
+
+    class _Config:
+        def __init__(self, ini_path: str):
+            self.ini_path = ini_path
+            self.options: Dict[str, Any] = {}
+
+        def set_main_option(self, key: str, value: str) -> None:
+            self.options[key] = value
+
+    return _Config
+
+
 # Test Utilities
 
 
@@ -562,6 +641,10 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "performance: Performance tests")
     config.addinivalue_line("markers", "security: Security tests")
     config.addinivalue_line("markers", "slow: Slow tests")
+    config.addinivalue_line(
+        "markers",
+        "benchmark: marks tests requiring pytest-benchmark plugin (skip if not installed)",
+    )
 
 
 def pytest_collection_modifyitems(config, items):

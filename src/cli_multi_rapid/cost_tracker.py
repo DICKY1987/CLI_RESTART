@@ -7,11 +7,11 @@ workflow executions that involve AI services.
 """
 
 import json
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Dict, Optional, List
-from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 from rich.console import Console
 
@@ -182,7 +182,7 @@ class CostTracker:
                 cls._COST_REGISTRY_CACHE = None
                 return cls._COST_REGISTRY_CACHE
 
-            with open(registry_path, "r", encoding="utf-8") as f:
+            with open(registry_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)  # type: ignore[no-untyped-call]
 
             result: Dict[str, float] = {}
@@ -201,7 +201,7 @@ class CostTracker:
                         elif isinstance(out, (int, float)):
                             per_1k = float(out)
                         elif isinstance(mdata.get("per_1k"), (int, float)):
-                            per_1k = float(mdata["per_1k"]) 
+                            per_1k = float(mdata["per_1k"])
 
                     if per_1k is not None:
                         result[str(model_name).lower()] = per_1k / 1000.0
@@ -225,7 +225,7 @@ class CostTracker:
 
         try:
             if self.usage_file.exists():
-                with open(self.usage_file, "r", encoding="utf-8") as f:
+                with open(self.usage_file, encoding="utf-8") as f:
                     for line in f:
                         if line.strip():
                             usage = json.loads(line.strip())
@@ -289,7 +289,7 @@ class CostTracker:
             operations = []
             try:
                 if self.usage_file.exists():
-                    with open(self.usage_file, "r", encoding="utf-8") as f:
+                    with open(self.usage_file, encoding="utf-8") as f:
                         for line in f:
                             if line.strip():
                                 operations.append(json.loads(line.strip()))
@@ -404,7 +404,7 @@ class CostTracker:
 
         try:
             if self.usage_file.exists():
-                with open(self.usage_file, "r", encoding="utf-8") as f:
+                with open(self.usage_file, encoding="utf-8") as f:
                     for line in f:
                         if line.strip():
                             usage = json.loads(line.strip())
@@ -457,7 +457,7 @@ class CostTracker:
 
         try:
             if self.usage_file.exists():
-                with open(self.usage_file, "r", encoding="utf-8") as f:
+                with open(self.usage_file, encoding="utf-8") as f:
                     successful_ops = 0
                     total_ops = 0
 

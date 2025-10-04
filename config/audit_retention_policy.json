@@ -1,0 +1,10 @@
+{
+  "active_days": 90,
+  "archive_years": 7,
+  "archive_dir": "artifacts/audit_archive",
+  "cloud": {
+    "provider": null,
+    "bucket": null,
+    "prefix": null
+  }
+}

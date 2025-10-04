@@ -75,6 +75,11 @@ test = [
     "httpx>=0.24.0",
 ]
 
+# Optional group for performance benchmarking
+benchmark = [
+    "pytest-benchmark>=4.0.0",
+]
+
 [tool.coverage.run]
 source = ["src"]
 branch = true
@@ -97,6 +102,12 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "alembic: marks tests requiring alembic database migrations",
+]
+
+# Markers defined in tests/conftest.py
+# benchmark: requires pytest-benchmark plugin
 
 [tool.black]
 line-length = 88
@@ -152,7 +163,7 @@ ignore = [
 "__init__.py" = ["F401"]
 "tests/**/*" = ["B011", "F401", "F811", "F821"]
 
- 
+
 
 [tool.setuptools]
 package-dir = {"" = "src"}

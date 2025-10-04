@@ -13,4 +13,3 @@ Local usage
 
 - Copy `.env.example` to `.env` and set your local values.
 - Run `python -m cli_multi_rapid.main --env dev --help` to verify startup validation.
-

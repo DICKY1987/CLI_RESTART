@@ -37,4 +37,3 @@ def test_lock_released_on_exception() -> None:
     # Should be able to reacquire
     with lock(backend, "boom", timeout=0.5, ttl=5.0):
         pass
-

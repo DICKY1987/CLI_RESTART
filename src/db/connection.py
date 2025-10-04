@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 
 
 def get_database_url() -> str:
@@ -33,7 +33,13 @@ def get_engine() -> Engine:
     global ENGINE, SessionLocal
     if ENGINE is None:
         ENGINE = create_db_engine()
-        SessionLocal = sessionmaker(bind=ENGINE, autocommit=False, autoflush=False, future=True)
+        SessionLocal = sessionmaker(
+            bind=ENGINE,
+            autocommit=False,
+            autoflush=False,
+            expire_on_commit=False,
+            future=True,
+        )
     return ENGINE
 
 
@@ -51,4 +57,3 @@ def get_session() -> Iterator[Session]:
         raise
     finally:
         session.close()
-

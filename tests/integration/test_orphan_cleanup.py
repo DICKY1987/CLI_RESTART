@@ -1,5 +1,5 @@
-from pathlib import Path
 import time
+from pathlib import Path
 
 from scripts.cleanup_orphans import list_abandoned_locks
 
@@ -16,4 +16,3 @@ def test_list_abandoned_locks(tmp_path: Path) -> None:
     os.utime(f, (old, old))
     found = list_abandoned_locks(1, base_dir=str(locks))
     assert f in found
-

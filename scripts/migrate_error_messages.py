@@ -1,6 +1,7 @@
 import os
 import re
 
+
 def find_unstructured_exceptions(directory="src"):
     """
     Scans for unstructured 'raise Exception(...)' statements and suggests

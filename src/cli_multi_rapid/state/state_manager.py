@@ -66,7 +66,7 @@ class StateManager:
         """Load retention policy from configuration file."""
         if self.policy_file.exists():
             try:
-                with open(self.policy_file, "r", encoding="utf-8") as f:
+                with open(self.policy_file, encoding="utf-8") as f:
                     data = json.load(f)
                 return RetentionPolicy(**data)
             except Exception:
@@ -109,7 +109,7 @@ class StateManager:
 
             # Try to extract workflow/session IDs from file content
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
                     metadata.workflow_id = data.get("workflow_id")
                     metadata.session_id = data.get("session_id") or data.get(
@@ -143,7 +143,7 @@ class StateManager:
             return None
 
         try:
-            with open(state_file, "r", encoding="utf-8") as f:
+            with open(state_file, encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             return None

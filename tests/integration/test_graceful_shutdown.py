@@ -1,4 +1,5 @@
 import asyncio
+
 import pytest
 
 from cli_multi_rapid.shutdown import GracefulShutdown
@@ -17,4 +18,3 @@ async def test_graceful_shutdown_runs_callbacks():
     # Directly call shutdown rather than sending OS signals
     await gs.shutdown()
     assert called == [True]
-

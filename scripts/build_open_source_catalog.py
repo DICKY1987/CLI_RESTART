@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, List, Set
+from typing import List, Set
 
 
 def normalize_name(raw: str) -> str:

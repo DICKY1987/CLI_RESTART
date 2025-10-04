@@ -7,7 +7,6 @@ configured policies and step requirements.
 """
 
 import glob
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -21,6 +20,7 @@ from .adapters.code_fixers import CodeFixersAdapter
 from .adapters.pytest_runner import PytestRunnerAdapter
 from .adapters.vscode_diagnostics import VSCodeDiagnosticsAdapter
 from .coordination import FileScopeManager
+
 
 # Local lightweight placeholders to avoid import errors; full
 # implementations are not required for the current tests.
@@ -109,6 +109,10 @@ class Router:
         self.performance_history = {}  # adapter_name -> performance metrics
         self._load_performance_history()
 
+    # Backwards compatibility for tests expecting a private helper
+    def _route_step(self, step: Dict[str, Any], policy: Optional[Dict[str, Any]] = None):
+        return self.route_step(step, policy)
+
     def _initialize_adapters(self) -> None:
         """Initialize available adapters in the registry."""
         # Register deterministic adapters
@@ -187,7 +191,7 @@ class Router:
             history_file = state_dir / "performance_history.json"
             if history_file.exists():
                 import json
-                with open(history_file, 'r') as f:
+                with open(history_file) as f:
                     self.performance_history = json.load(f)
         except Exception:
             # Non-fatal if loading fails
@@ -880,6 +884,20 @@ class Router:
             availability[adapter_name] = self.registry.is_available(adapter_name)
 
         return availability
+
+    def get_available_actors(self) -> List[str]:
+        """Return a list of available adapter actor names."""
+        meta = self.registry.get_available_adapters()
+        return sorted(list(meta.keys()))
+
+    def get_available_actors(self) -> List[str]:
+        """Return a list of available adapter actor names.
+
+        Uses the registry to ensure the latest view, not just the cached
+        snapshot from initialization.
+        """
+        meta = self.registry.get_available_adapters()
+        return sorted(list(meta.keys()))
 
     def _create_execution_groups(
         self, steps: List[Dict[str, Any]], conflicts: List[ScopeConflict]

@@ -31,5 +31,3 @@ class RedisLockBackend(LockBackend):
             self._redis.delete(name)
         except Exception:
             pass
-
-

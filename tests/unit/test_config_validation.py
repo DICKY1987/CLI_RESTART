@@ -1,7 +1,11 @@
 import os
+
 import pytest
 
-from cli_multi_rapid.config.validation import validate_and_build_settings, ConfigValidationError
+from cli_multi_rapid.config.validation import (
+    ConfigValidationError,
+    validate_and_build_settings,
+)
 
 
 def test_validation_success(monkeypatch):
@@ -32,4 +36,3 @@ def test_env_overrides(monkeypatch):
     monkeypatch.setenv("CLI_ENV", "prod")
     env, settings = validate_and_build_settings()
     assert env == "prod"
-

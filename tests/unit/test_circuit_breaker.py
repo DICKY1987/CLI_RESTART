@@ -17,4 +17,3 @@ def test_circuit_opens_after_failures(monkeypatch):
     # Now should be open
     with pytest.raises(RuntimeError):
         cb.call(lambda: 1)
-

@@ -7,9 +7,9 @@ Create Date: 2025-10-01
 
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "002_workstream_registry"
 down_revision = "001_initial_schema"
@@ -28,12 +28,11 @@ def upgrade() -> None:
         sa.Column("metadata", sa.JSON, nullable=True),
         sa.Column("correlation_id", sa.String(length=255), nullable=True),
     )
-    op.create_index("ix_workstreams_status", "workstreams", ["status"]) 
-    op.create_index("ix_workstreams_created_at", "workstreams", ["created_at"]) 
+    op.create_index("ix_workstreams_status", "workstreams", ["status"])
+    op.create_index("ix_workstreams_created_at", "workstreams", ["created_at"])
 
 
 def downgrade() -> None:
     op.drop_index("ix_workstreams_created_at", table_name="workstreams")
     op.drop_index("ix_workstreams_status", table_name="workstreams")
     op.drop_table("workstreams")
-

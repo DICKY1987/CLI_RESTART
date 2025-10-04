@@ -15,7 +15,6 @@ from fastapi import FastAPI
 from cli_multi_rapid.config.validation import validate_and_build_settings
 from src.api.health import router as health_router
 
-
 app = FastAPI(title="CLI Multi-Rapid API")
 app.include_router(health_router)
 
@@ -61,4 +60,3 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
-

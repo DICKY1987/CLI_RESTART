@@ -52,4 +52,3 @@ jobs:
           name: pester-results
           path: TestResults.xml
           if-no-files-found: warn
-

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import typer
 from typing import Optional
+
+import typer
 
 app = typer.Typer(help="Git lifecycle operations")
 
@@ -88,10 +89,11 @@ def branch(
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without executing"),
 ):
     """Create or switch git branches with workflow integration support."""
-    from cli_multi_rapid.adapters.git_ops import GitOpsAdapter
     import json
     from datetime import datetime
     from pathlib import Path
+
+    from cli_multi_rapid.adapters.git_ops import GitOpsAdapter
 
     adapter = GitOpsAdapter()
     operation = "create_branch" if create else "switch_branch"
@@ -215,7 +217,7 @@ def merge(
     )
 
     if result.success:
-        typer.secho(f"✓ Merged successfully", fg=typer.colors.GREEN)
+        typer.secho("✓ Merged successfully", fg=typer.colors.GREEN)
     else:
         typer.secho(f"✗ Failed: {result.error}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)

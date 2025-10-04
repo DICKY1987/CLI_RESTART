@@ -25,7 +25,7 @@ def load_registry(registry_path: str = "scripts/registry.json") -> Dict[str, Any
         raise typer.Exit(1)
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         console.print(f"[red]Failed to load registry: {e}[/red]")
@@ -42,7 +42,7 @@ def validate_registry_schema(registry_data: Dict[str, Any]) -> bool:
     try:
         import jsonschema
 
-        with open(schema_path, "r", encoding="utf-8") as f:
+        with open(schema_path, encoding="utf-8") as f:
             schema = json.load(f)
 
         jsonschema.validate(registry_data, schema)
@@ -131,12 +131,12 @@ def script_info(
         console.print(f"\n[bold]Description:[/bold]\n{meta['description']}")
 
     if meta.get("dependencies"):
-        console.print(f"\n[bold]Dependencies:[/bold]")
+        console.print("\n[bold]Dependencies:[/bold]")
         for dep in meta["dependencies"]:
             console.print(f"  - {dep}")
 
     if meta.get("parameters"):
-        console.print(f"\n[bold]Parameters:[/bold]")
+        console.print("\n[bold]Parameters:[/bold]")
         for param in meta["parameters"]:
             required = " [red](required)[/red]" if param.get("required") else ""
             default = f" (default: {param.get('default')})" if param.get("default") else ""
@@ -146,7 +146,7 @@ def script_info(
         console.print(f"\n[bold]Tags:[/bold] {', '.join(meta['tags'])}")
 
     if meta.get("examples"):
-        console.print(f"\n[bold]Examples:[/bold]")
+        console.print("\n[bold]Examples:[/bold]")
         for example in meta["examples"]:
             console.print(f"  {example}")
 
@@ -215,7 +215,7 @@ def run_script(
             console.print(f"[red]{result.stderr}[/red]", file=sys.stderr)
 
         if result.returncode == 0:
-            console.print(f"\n[green]✓ Script completed successfully[/green]")
+            console.print("\n[green]✓ Script completed successfully[/green]")
         else:
             console.print(f"\n[red]✗ Script failed with exit code {result.returncode}[/red]")
             raise typer.Exit(result.returncode)

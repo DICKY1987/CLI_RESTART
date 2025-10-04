@@ -8,8 +8,6 @@ Maintains backward-compatible APIs and provides access to generic idempotency st
 
 from typing import Set, Tuple
 
-from .storage import get_store, make_step_key  # re-export for convenience
-
 # Legacy API retained for compatibility with previous integrations
 _seen: Set[Tuple[str, str, str, int]] = set()
 

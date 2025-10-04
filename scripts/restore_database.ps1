@@ -12,4 +12,3 @@ url = os.environ.get("DATABASE_URL", "sqlite:///.data/registry.db")
 restore_database(url, os.environ["BackupFile"])
 print("restored")
 PY
-

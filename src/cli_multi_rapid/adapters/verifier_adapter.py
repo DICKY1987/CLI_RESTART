@@ -13,8 +13,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from ..verifier import GateResult, Verifier
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
-from ..verifier import Verifier, GateResult
 
 
 class VerifierAdapter(BaseAdapter):

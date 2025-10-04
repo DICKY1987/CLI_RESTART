@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Adapter Result",
+  "description": "Minimal schema for adapter execution result",
+  "type": "object",
+  "required": ["success", "tokens_used", "artifacts", "output", "metadata"],
+  "properties": {
+    "success": { "type": "boolean" },
+    "tokens_used": { "type": "integer", "minimum": 0 },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "output": { "type": "string" },
+    "error": { "type": ["string", "null"] },
+    "metadata": { "type": "object" }
+  },
+  "additionalProperties": true
+}

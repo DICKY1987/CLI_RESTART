@@ -14,4 +14,3 @@ def test_timeout_detection() -> None:
     graph = {"a": set()}
     report = detect_deadlock(graph, {"a": now - 10}, timeout_seconds=1)
     assert "a" in report.timed_out
-

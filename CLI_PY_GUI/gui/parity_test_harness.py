@@ -11,7 +11,11 @@ Tests validate:
   - Unicode/UTF-8 handling
   - Exit code propagation
 """
-import os, sys, time, json, socket
+import json
+import os
+import socket
+import sys
+import time
 
 HOST, PORT = "127.0.0.1", 45454
 

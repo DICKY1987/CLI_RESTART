@@ -19,4 +19,3 @@ def test_ready_endpoint_ok():
     data = r.json()
     assert data["status"] in {"healthy", "degraded", "unhealthy"}
     assert isinstance(data.get("checks"), dict)
-

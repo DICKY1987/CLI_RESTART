@@ -8,13 +8,12 @@ and AI escalation patterns.
 
 import json
 import secrets
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import asyncio
-import time
-from datetime import datetime
 
 import yaml
 from rich.console import Console
@@ -22,9 +21,21 @@ from rich.console import Console
 from .coordination import (
     CoordinationMode,
     CoordinationPlan,
+    FileScopeManager,
     WorkflowCoordinator,
-    FileScopeManager
 )
+
+# Provide a module-level jsonschema symbol for tests to patch
+try:  # pragma: no cover
+    import jsonschema as jsonschema  # type: ignore
+except Exception:  # pragma: no cover
+    jsonschema = None  # type: ignore
+
+# Expose jsonschema at module level so tests can patch it
+try:  # pragma: no cover
+    import jsonschema as jsonschema  # type: ignore
+except Exception:  # pragma: no cover
+    jsonschema = None  # type: ignore
 
 console = Console()
 
@@ -103,6 +114,64 @@ class WorkflowRunner:
             except Exception:
                 pass
         return self.activity_logger
+
+    def _process_template_variables(
+        self, workflow: Dict[str, Any], *, files: Optional[str] = None, lane: Optional[str] = None
+    ) -> Dict[str, Any]:
+        wf = dict(workflow)
+        inputs = dict(wf.get("inputs", {}))
+
+        def _sub(val: Any) -> Any:
+            if isinstance(val, str):
+                s = val.strip()
+                if s == "{{ inputs.files }}" and files is not None:
+                    return files
+                if s == "{{ inputs.lane }}" and lane is not None:
+                    return lane
+            return val
+
+        if "files" in inputs:
+            inputs["files"] = _sub(inputs.get("files"))
+        if "lane" in inputs:
+            inputs["lane"] = _sub(inputs.get("lane"))
+        wf["inputs"] = inputs
+        return wf
+
+    def _should_execute_step(self, step: Dict[str, Any], context: Dict[str, Any]) -> bool:
+        return True
+
+    def _process_template_variables(
+        self, workflow: Dict[str, Any], *, files: Optional[str] = None, lane: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Replace simple input placeholders with provided values.
+
+        Supports:
+        - "{{ inputs.files }}" -> files
+        - "{{ inputs.lane }}" -> lane
+        """
+        wf = dict(workflow)
+        inputs = dict(wf.get("inputs", {}))
+
+        def _sub(val: Any) -> Any:
+            if isinstance(val, str):
+                s = val.strip()
+                if s == "{{ inputs.files }}" and files is not None:
+                    return files
+                if s == "{{ inputs.lane }}" and lane is not None:
+                    return lane
+            return val
+
+        if "files" in inputs:
+            inputs["files"] = _sub(inputs.get("files"))
+        if "lane" in inputs:
+            inputs["lane"] = _sub(inputs.get("lane"))
+
+        wf["inputs"] = inputs
+        return wf
+
+    def _should_execute_step(self, step: Dict[str, Any], context: Dict[str, Any]) -> bool:
+        """Evaluate optional 'when' expression. Minimal impl returns True."""
+        return True
 
     @staticmethod
     def generate_run_id() -> str:
@@ -320,7 +389,9 @@ class WorkflowRunner:
         schema_path = Path(".ai/schemas/atom_catalog.schema.json")
         if schema_path.exists():
             try:
-                import json, jsonschema
+                import json
+
+                import jsonschema
 
                 schema = json.loads(schema_path.read_text(encoding="utf-8"))
                 jsonschema.validate(instance=data, schema=schema)
@@ -393,7 +464,7 @@ class WorkflowRunner:
                 console.print(f"[red]Workflow file not found: {workflow_file}[/red]")
                 return None
 
-            with open(workflow_file, "r", encoding="utf-8") as f:
+            with open(workflow_file, encoding="utf-8") as f:
                 workflow = yaml.safe_load(f)
 
             console.print(
@@ -408,27 +479,20 @@ class WorkflowRunner:
     def _validate_schema(self, workflow: Dict[str, Any]) -> bool:
         """Validate workflow against JSON schema."""
         try:
-            # Import jsonschema only when needed
-            import jsonschema
-
             schema_path = Path(".ai/schemas/workflow.schema.json")
             if not schema_path.exists():
-                console.print(
-                    "[yellow]Schema validation skipped - schema file not found[/yellow]"
-                )
+                console.print("[yellow]Schema validation skipped - schema file not found[/yellow]")
                 return True
 
-            with open(schema_path, "r", encoding="utf-8") as f:
+            with open(schema_path, encoding="utf-8") as f:
                 schema = json.load(f)
 
-            jsonschema.validate(workflow, schema)
-            console.print("[green]OK Workflow schema validation passed[/green]")
-            return True
+            if jsonschema is None:
+                console.print("[yellow]Schema validation skipped - jsonschema not available[/yellow]")
+                return True
 
-        except ImportError:
-            console.print(
-                "[yellow]Schema validation skipped - jsonschema not available[/yellow]"
-            )
+            jsonschema.validate(workflow, schema)  # type: ignore[attr-defined]
+            console.print("[green]OK Workflow schema validation passed[/green]")
             return True
         except Exception as e:
             console.print(f"[red]Schema validation failed: {e}[/red]")
@@ -464,6 +528,8 @@ class WorkflowRunner:
             except Exception:
                 pass
 
+        # Apply simple template variable substitution
+        workflow = self._process_template_variables(workflow, files=files, lane=lane)
         steps = workflow.get("steps", [])
         if not steps:
             result = WorkflowResult(success=True, steps_completed=0)
@@ -562,6 +628,34 @@ class WorkflowRunner:
 
         return result
 
+    def _process_template_variables(
+        self, workflow: Dict[str, Any], *, files: Optional[str], lane: Optional[str]
+    ) -> Dict[str, Any]:
+        """Replace simple Jinja-like placeholders in inputs.
+
+        Only supports strings equal to "{{ inputs.files }}" and "{{ inputs.lane }}".
+        """
+        wf = dict(workflow)
+        inputs = dict(wf.get("inputs", {}))
+        def _sub(val: Any) -> Any:
+            if isinstance(val, str):
+                if val.strip() == "{{ inputs.files }}" and files is not None:
+                    return files
+                if val.strip() == "{{ inputs.lane }}" and lane is not None:
+                    return lane
+            return val
+        # Apply to known keys
+        if "files" in inputs:
+            inputs["files"] = _sub(inputs["files"])
+        if "lane" in inputs:
+            inputs["lane"] = _sub(inputs["lane"])
+        wf["inputs"] = inputs
+        return wf
+
+    def _should_execute_step(self, step: Dict[str, Any], context: Dict[str, Any]) -> bool:
+        """Evaluate 'when' condition. Minimal implementation returns True."""
+        return True
+
     def _execute_step(
         self, step: Dict[str, Any], files: Optional[str] = None, timeout_seconds: Optional[int] = None
     ) -> Dict[str, Any]:
@@ -589,33 +683,31 @@ class WorkflowRunner:
             store = None
             key = None
 
-        # Resolve adapter
+        # Resolve adapter via router decision if available
         adapter = None
+        exec_step = dict(step)
         if self.router is not None:
             try:
-                adapter = self.router.registry.get_adapter(actor)
+                decision = self.router.route_step(step)
+                adapter_name = getattr(decision, "adapter_name", actor)
+                exec_step["actor"] = adapter_name
+                adapter = self.router.registry.get_adapter(adapter_name)
             except Exception:
                 adapter = None
         if adapter is None:
-            # Fallback to direct registry import
+            # Fallback to direct registry import by actor name
             try:
                 from .adapters.adapter_registry import registry as global_registry
-
-                adapter = global_registry.get_adapter(actor)
+                adapter = global_registry.get_adapter(exec_step.get("actor", actor))
             except Exception:
                 adapter = None
 
         if adapter is None:
-            return {
-                "success": False,
-                "error": f"Adapter not found: {actor}",
-                "artifacts": [],
-                "tokens_used": 0,
-            }
+            return {"success": False, "error": f"Adapter not found: {exec_step.get('actor', actor)}", "artifacts": [], "tokens_used": 0}
 
         # Validate step
-        if hasattr(adapter, "validate_step") and not adapter.validate_step(step):
-            return {"success": False, "error": f"Invalid step for adapter {actor}", "artifacts": [], "tokens_used": 0}
+        if hasattr(adapter, "validate_step") and not adapter.validate_step(exec_step):
+            return {"success": False, "error": f"Invalid step for adapter {exec_step.get('actor', actor)}", "artifacts": [], "tokens_used": 0}
 
         # Cancellation token via file
         cancel_token = None
@@ -630,7 +722,7 @@ class WorkflowRunner:
         start = time.time()
         try:
             context = {"cancel_token": cancel_token}
-            result_obj = adapter.execute(step, context=context, files=files)
+            result_obj = adapter.execute(exec_step, context=context, files=files)
         except Exception as e:
             return {"success": False, "error": str(e), "artifacts": [], "tokens_used": 0}
 

@@ -3,8 +3,9 @@
 
 from __future__ import annotations
 
-import typer
 from pathlib import Path
+
+import typer
 
 app = typer.Typer()
 
@@ -57,8 +58,6 @@ def generate(
 @app.command()
 def install(shell: str = typer.Argument(..., help="Shell type (bash, zsh, powershell)")):
     """Install completion script to standard location."""
-    import os
-    import shutil
 
     home = Path.home()
     locations = {
@@ -75,8 +74,9 @@ def install(shell: str = typer.Argument(..., help="Shell type (bash, zsh, powers
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     # Generate and install
-    from cli_multi_rapid.main import app as main_app
     import click
+
+    from cli_multi_rapid.main import app as main_app
 
     ctx = click.Context(main_app)
     completion_class = click.shell_completion.get_completion_class(shell)

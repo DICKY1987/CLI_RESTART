@@ -44,7 +44,7 @@ def main() -> None:
     cfg_path = Path("config") / "tool_adapters.yaml"
     data: Dict[str, Any] = {}
     if cfg_path.exists():
-        with open(cfg_path, "r", encoding="utf-8") as f:
+        with open(cfg_path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
 
     env_to_set: Dict[str, str] = {}
@@ -77,4 +77,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

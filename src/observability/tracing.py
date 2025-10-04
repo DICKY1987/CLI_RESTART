@@ -1,5 +1,5 @@
-from typing import Optional
 import os
+from typing import Optional
 
 
 def init_tracing(service_name: str = "cli-multi-rapid", otlp_endpoint: Optional[str] = None) -> None:
@@ -10,10 +10,15 @@ def init_tracing(service_name: str = "cli-multi-rapid", otlp_endpoint: Optional[
     """
     try:
         from opentelemetry import trace  # type: ignore
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter  # type: ignore
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+            OTLPSpanExporter,  # type: ignore
+        )
         from opentelemetry.sdk.resources import Resource  # type: ignore
         from opentelemetry.sdk.trace import TracerProvider  # type: ignore
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter  # type: ignore
+        from opentelemetry.sdk.trace.export import (  # type: ignore
+            BatchSpanProcessor,
+            ConsoleSpanExporter,
+        )
     except Exception:
         # OpenTelemetry not installed; run without tracing
         return None

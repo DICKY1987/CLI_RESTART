@@ -1,10 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 """Pydantic settings models for application configuration."""
 
 from typing import Optional
 
-
+from pydantic import BaseModel, Field, validator
 from pydantic_settings import BaseSettings
 
 
@@ -70,5 +70,3 @@ class Settings(BaseSettings):
     def _normalize_log_level(cls, v: AppConfig) -> AppConfig:
         v.log_level = v.log_level.upper()
         return v
-
-

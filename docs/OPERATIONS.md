@@ -38,4 +38,3 @@ This guide summarizes the recommended flow for a conflict-free setup and introdu
 
 - Keep changes deterministic and schema-driven.
 - Prefer orchestrator adapters over calling tools directly.
-

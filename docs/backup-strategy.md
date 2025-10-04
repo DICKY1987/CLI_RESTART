@@ -15,4 +15,3 @@ Retention Policy
 
 Validation
 - Periodic restore tests into a scratch database, verifying core tables and recent records are present.
-

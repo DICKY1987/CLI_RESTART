@@ -1,15 +1,15 @@
 """Initial schema baseline
 
 Revision ID: 001_initial_schema
-Revises: 
+Revises:
 Create Date: 2025-10-01
 """
 
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "001_initial_schema"
 down_revision = None
@@ -28,4 +28,3 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("schema_info")
-

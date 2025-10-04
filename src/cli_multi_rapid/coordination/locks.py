@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass
-from typing import Protocol, Iterator, Optional
+from typing import Protocol
 
 
 class LockBackend(Protocol):
@@ -31,5 +31,3 @@ def lock(backend: LockBackend, name: str, *, timeout: float | None = None, ttl: 
         except Exception:
             # best effort release
             pass
-
-

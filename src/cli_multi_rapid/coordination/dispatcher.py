@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, List
 
 from .queue import PriorityQueue, _QItem
 from .worker import run_task
@@ -17,4 +17,3 @@ def dispatch(queue: PriorityQueue, func: Callable[[dict[str, Any]], Any], *, wor
         for fut in as_completed(futures):
             results.append(fut.result())
     return results
-

@@ -4,7 +4,7 @@ import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, List
+from typing import List
 
 
 @dataclass
@@ -38,4 +38,3 @@ class FileDLQ:
 
     def _write(self, items: List[DLQEntry]) -> None:
         self.path.write_text(json.dumps([asdict(x) for x in items], indent=2), encoding="utf-8")
-

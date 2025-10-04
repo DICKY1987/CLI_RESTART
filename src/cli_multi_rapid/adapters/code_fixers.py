@@ -16,7 +16,12 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
+from .base_adapter import (
+    AdapterPerformanceProfile,
+    AdapterResult,
+    AdapterType,
+    BaseAdapter,
+)
 
 
 class CodeFixersAdapter(BaseAdapter):

@@ -9,6 +9,7 @@ import pytest
 import yaml
 
 from cli_multi_rapid.workflow_runner import WorkflowRunner
+from tests.conftest import BENCHMARK_AVAILABLE
 
 
 @pytest.fixture
@@ -32,6 +33,8 @@ def benchmark_workflow(tmp_path: Path):
     return workflow_file
 
 
+@pytest.mark.benchmark
+@pytest.mark.skipif(not BENCHMARK_AVAILABLE, reason="pytest-benchmark not installed")
 def test_workflow_execution_performance(benchmark, benchmark_workflow: Path):
     """Benchmark single workflow execution time."""
 
@@ -48,6 +51,8 @@ def test_workflow_execution_performance(benchmark, benchmark_workflow: Path):
     assert result.stats["stddev"] < 2.0, "Workflow execution too variable"
 
 
+@pytest.mark.benchmark
+@pytest.mark.skipif(not BENCHMARK_AVAILABLE, reason="pytest-benchmark not installed")
 def test_workflow_startup_overhead(benchmark, tmp_path: Path):
     """Measure workflow initialization overhead."""
 
@@ -68,6 +73,8 @@ def test_workflow_startup_overhead(benchmark, tmp_path: Path):
     assert result.stats["mean"] < 0.1, "Workflow initialization too slow"
 
 
+@pytest.mark.benchmark
+@pytest.mark.skipif(not BENCHMARK_AVAILABLE, reason="pytest-benchmark not installed")
 def test_artifact_generation_performance(benchmark, tmp_path: Path):
     """Benchmark artifact generation speed."""
     artifacts_dir = tmp_path / "artifacts"
@@ -99,6 +106,8 @@ def test_artifact_generation_performance(benchmark, tmp_path: Path):
     assert result.stats["mean"] < 10.0, "Artifact generation too slow"
 
 
+@pytest.mark.benchmark
+@pytest.mark.skipif(not BENCHMARK_AVAILABLE, reason="pytest-benchmark not installed")
 def test_schema_validation_performance(benchmark, tmp_path: Path):
     """Benchmark JSON schema validation speed."""
     from cli_multi_rapid.validation import validate_workflow

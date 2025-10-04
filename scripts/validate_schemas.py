@@ -23,8 +23,8 @@ def find_files(patterns: List[str]) -> List[Path]:
 
 def validate_workflows() -> int:
     try:
-        import yaml  # type: ignore
         import jsonschema  # type: ignore
+        import yaml  # type: ignore
     except Exception:
         print("jsonschema and PyYAML are required for schema validation", file=sys.stderr)
         return 2
@@ -57,4 +57,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

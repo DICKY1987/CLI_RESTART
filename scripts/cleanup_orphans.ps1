@@ -18,4 +18,3 @@ for b in list_stale_branches(days):
 for lf in list_abandoned_locks(hours):
     print(f"Abandoned lock: {lf}")
 PY
-

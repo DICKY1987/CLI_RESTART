@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Tuple
 def load_json_file(file_path: Path) -> Dict[str, Any]:
     """Load JSON file."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         print(f"ERROR: Failed to load {file_path}: {e}")
