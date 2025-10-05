@@ -76,6 +76,11 @@ class WorkflowRunner:
         self._state_base = Path("state/coordination")
         self.git_ops = None  # Lazy-loaded
         self.activity_logger = None  # Lazy-loaded
+        
+        # Log working directory for debugging
+        cwd = Path.cwd()
+        self.console.print(f"[dim]WorkflowRunner initialized in directory: {cwd}[/dim]", style="dim")
+        
         try:
             from .router import Router
 
