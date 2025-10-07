@@ -92,6 +92,7 @@ class PipelineScaffolder:
 
     def __init__(self, repo_root: Path | None = None):
         self.root = repo_root or Path.cwd()
+        console.print(f"[dim]PipelineScaffolder using repository root: {self.root}[/dim]")
         self.config_dir = self.root / "config"
         self.config_dir.mkdir(parents=True, exist_ok=True)
 

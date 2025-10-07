@@ -70,10 +70,13 @@ class WorkstreamExecutor:
             if result.returncode == 0 and top:
                 p = Path(top)
                 if p.exists():
+                    logger.info(f"Detected repository root: {p}")
                     return p
         except Exception:
             pass
-        return Path.cwd()
+        fallback = Path.cwd()
+        logger.info(f"Using current directory as repository root: {fallback}")
+        return fallback
 
     def load_workstreams(self) -> None:
         """Load all workstream JSON files"""

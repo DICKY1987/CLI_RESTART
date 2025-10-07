@@ -26,6 +26,7 @@ coverage/
 # Local artifacts
 artifacts/
 logs/
+*.log
 .sessions/
 .tmp-tests/
 
