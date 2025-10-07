@@ -38,8 +38,13 @@ def restore(
     snapshot_id: str = typer.Argument(..., help="Snapshot ID to restore"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without executing"),
     force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation"),
+    backup_current: bool = typer.Option(False, "--backup-current", help="Create backup of current state before restoring"),
 ):
-    """Restore from a snapshot."""
+    """Restore from a snapshot.
+    
+    Note: By default, no backup is created before restoring to avoid infinite backup loops.
+    Use --backup-current if you need to preserve the current state before restoring.
+    """
     from cli_multi_rapid.adapters.backup_manager import BackupManager
 
     manager = BackupManager()
@@ -63,8 +68,8 @@ def restore(
             typer.secho("Cancelled", fg=typer.colors.YELLOW)
             raise typer.Exit(0)
 
-    # Create backup of current state first
-    if not dry_run:
+    # Create backup of current state if requested
+    if backup_current and not dry_run:
         typer.secho("\nCreating backup of current state...", fg=typer.colors.YELLOW)
         current_backup = manager.create_snapshot(f"pre-restore-{snapshot_id}")
         typer.secho(f"✓ Current state backed up: {current_backup}", fg=typer.colors.GREEN)
