@@ -7,3 +7,4 @@ idempotency
 integrations
 notifications
 observability
+websocket

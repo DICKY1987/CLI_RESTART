@@ -2,6 +2,7 @@ LICENSE
 README.md
 pyproject.toml
 src/api/health.py
+src/api/openapi_generator.py
 src/cli_multi_rapid/__init__.py
 src/cli_multi_rapid/cancellation.py
 src/cli_multi_rapid/cli.py
@@ -40,8 +41,13 @@ src/cli_multi_rapid/adapters/tool_adapter_bridge.py
 src/cli_multi_rapid/adapters/type_checker.py
 src/cli_multi_rapid/adapters/verifier_adapter.py
 src/cli_multi_rapid/adapters/vscode_diagnostics.py
+src/cli_multi_rapid/commands/__init__.py
 src/cli_multi_rapid/commands/git_commands.py
+src/cli_multi_rapid/commands/replay.py
+src/cli_multi_rapid/commands/repo_init.py
 src/cli_multi_rapid/commands/rollback.py
+src/cli_multi_rapid/commands/scripts.py
+src/cli_multi_rapid/commands/state.py
 src/cli_multi_rapid/config/__init__.py
 src/cli_multi_rapid/config/coordination.py
 src/cli_multi_rapid/config/github_config.py
@@ -75,6 +81,7 @@ src/cli_multi_rapid/errors/error_codes.py
 src/cli_multi_rapid/errors/exceptions.py
 src/cli_multi_rapid/logging/__init__.py
 src/cli_multi_rapid/logging/activity_logger.py
+src/cli_multi_rapid/logging/conversation_logger.py
 src/cli_multi_rapid/logging/log_rotation.py
 src/cli_multi_rapid/resilience/circuit_breaker.py
 src/cli_multi_rapid/resilience/dlq.py
@@ -91,6 +98,8 @@ src/cli_multi_rapid/setup/__init__.py
 src/cli_multi_rapid/setup/platform_setup.py
 src/cli_multi_rapid/setup/tool_discovery.py
 src/cli_multi_rapid/setup/validation.py
+src/cli_multi_rapid/state/__init__.py
+src/cli_multi_rapid/state/state_manager.py
 src/cli_multi_rapid/validation/__init__.py
 src/cli_multi_rapid/validation/contract_validator.py
 src/cli_orchestrator.egg-info/PKG-INFO
@@ -139,6 +148,10 @@ src/observability/correlation.py
 src/observability/logging_json.py
 src/observability/metrics.py
 src/observability/tracing.py
+src/websocket/__init__.py
+src/websocket/auth_middleware.py
+src/websocket/connection_manager.py
+src/websocket/event_broadcaster.py
 tests/test_coordination_cli.py
 tests/test_enterprise_modules.py
 tests/test_gui_parity_exit_optional.py
