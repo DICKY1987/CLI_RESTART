@@ -70,9 +70,6 @@ cd vscode-extension && npm ci
 
 ### CLI Usage
 ```bash
-# Check where the repository thinks it's located
-python3 scripts/show_directory_detection.py
-
 # Run a workflow with dry-run
 cli-orchestrator run .ai/workflows/PY_EDIT_TRIAGE.yaml --files "src/**/*.py" --lane lane/ai-coding/fix-imports --dry-run
 
@@ -94,8 +91,6 @@ simplified-run --workflow .ai/workflows/SIMPLE_PY_FIX.yaml
 # Check budget/cost limits
 cost-check
 ```
-
-**Note**: Always run commands from the repository root directory. See [Directory Detection](docs/directory_detection.md) for details.
 
 ### Alternative Build Systems
 

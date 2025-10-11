@@ -1,16 +1,10 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 """Pydantic settings models for application configuration."""
 
 from typing import Optional
 
-<<<<<<< HEAD
 
-||||||| 51536fa
-from pydantic import BaseModel, BaseSettings, Field, HttpUrl, validator
-=======
-from pydantic import BaseModel, Field, HttpUrl, validator
->>>>>>> origin/ws/08-determinism-core
 from pydantic_settings import BaseSettings
 
 
@@ -78,8 +72,3 @@ class Settings(BaseSettings):
         return v
 
 
-<<<<<<< HEAD
-||||||| 51536fa
-=======
-
->>>>>>> origin/ws/08-determinism-core

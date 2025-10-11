@@ -84,7 +84,7 @@ class SystemValidator:
 
         try:
             # Check for remote origin
-            subprocess.run(
+            result = subprocess.run(
                 ["git", "remote", "get-url", "origin"],
                 capture_output=True,
                 text=True,
@@ -156,7 +156,7 @@ class SystemValidator:
         ]
 
         missing_packages = []
-        for package in required_packages: `r`n            from importlib.util import find_spec 
+        for package in required_packages:
             try:
                 if package == "yaml":
                     import yaml
@@ -178,12 +178,12 @@ class SystemValidator:
         try:
             # Try importing the main module
             sys.path.insert(0, str(self.project_root / "src"))
-            import importlib; importlib.import_module(\ cli_multi_rapid.main\)
+            from cli_multi_rapid.main import app
 
             self.successes.append("✅ CLI module imports successfully")
 
             # Try running the CLI help command
-            subprocess.run(
+            result = subprocess.run(
                 [sys.executable, "-m", "cli_multi_rapid.main", "--help"],
                 capture_output=True,
                 text=True,
@@ -219,7 +219,7 @@ class SystemValidator:
 
         for tool_name, command in tools.items():
             try:
-                subprocess.run(
+                result = subprocess.run(
                     command, capture_output=True, text=True, check=True, timeout=10
                 )
                 tool_status[tool_name] = True
@@ -339,7 +339,7 @@ class SystemValidator:
 
         try:
             # Test dry run execution
-            subprocess.run(
+            result = subprocess.run(
                 [
                     sys.executable,
                     "-m",

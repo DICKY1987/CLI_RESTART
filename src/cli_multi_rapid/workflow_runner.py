@@ -76,11 +76,6 @@ class WorkflowRunner:
         self._state_base = Path("state/coordination")
         self.git_ops = None  # Lazy-loaded
         self.activity_logger = None  # Lazy-loaded
-        
-        # Log working directory for debugging
-        cwd = Path.cwd()
-        self.console.print(f"[dim]WorkflowRunner initialized in directory: {cwd}[/dim]", style="dim")
-        
         try:
             from .router import Router
 
@@ -499,7 +494,7 @@ class WorkflowRunner:
                 continue
 
             # Execute step (adapter-backed)
-            
+            start_step = time.time()
             if per_phase_seconds:
                 # Soft timeout: if exceeded, mark failure gracefully
                 try:

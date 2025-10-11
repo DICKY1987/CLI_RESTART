@@ -602,6 +602,7 @@ class SecurityScannerAdapter(BaseAdapter):
 
     def _apply_regex_patterns(self, content: str, patterns: List[Dict], result: Dict[str, Any]) -> None:
         """Apply regex patterns to content and add issues."""
+        lines = content.split('\n')
 
         for pattern_info in patterns:
             pattern = pattern_info["pattern"]

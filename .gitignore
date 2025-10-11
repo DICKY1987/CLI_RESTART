@@ -17,7 +17,6 @@ htmlcov/
 .venv/
 venv/
 *.egg-info/
-*.egg
 build/
 dist/
 
@@ -30,7 +29,6 @@ coverage/
 # Local artifacts
 artifacts/
 logs/
-*.log
 .sessions/
 .tmp-tests/
 
