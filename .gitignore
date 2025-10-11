@@ -16,10 +16,6 @@ coverage.xml
 htmlcov/
 .venv/
 venv/
-*.egg-info/
-*.egg
-build/
-dist/
 
 # Node/TS
 node_modules/
@@ -30,7 +26,6 @@ coverage/
 # Local artifacts
 artifacts/
 logs/
-*.log
 .sessions/
 .tmp-tests/
 
