@@ -133,7 +133,6 @@ class WorkflowOrchestrator:
 
         # Integration with existing framework
         self.project_root = Path.cwd()
-        logger.info(f"WorkflowOrchestrator initialized with project_root: {self.project_root}")
         self.validate_project_structure()
 
     def validate_project_structure(self) -> None:
