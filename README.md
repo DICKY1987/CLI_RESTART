@@ -20,6 +20,7 @@ cli-orchestrator run .ai/workflows/PY_EDIT_TRIAGE.yaml --files "src/**/*.py"
 - [CLAUDE.md](CLAUDE.md) - Development guide and project overview
 - [Directory Detection](docs/directory_detection.md) - Understanding where the repo detects its location
 - [Configuration](docs/configuration.md) - Configuration and environment setup
+- Combined script utilities: see `scripts/Combined-PowerShell-Scripts.ps1` for discovery/setup helpers. Do not run destructive modules without review.
 
 ## Repository Location
 
