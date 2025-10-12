@@ -1,4 +1,4 @@
-﻿# Universal normalization (prevents line-ending conflicts)
+# Universal normalization (prevents line-ending conflicts)
 * text=auto eol=lf
 
 # Append-only files
