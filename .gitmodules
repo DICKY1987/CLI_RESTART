@@ -1,0 +1,3 @@
+[submodule "tools/atomic-workflow-system"]
+	path = tools/atomic-workflow-system
+	url = https://github.com/DICKY1987/atomic-workflow-system.git
