@@ -1,0 +1,272 @@
+openapi: 3.0.3
+info:
+  title: CLI Orchestrator API
+  version: 1.0.0
+  description: Schema-driven CLI orchestrator for deterministic workflows and AI integration
+  contact:
+    name: CLI Orchestrator
+    url: https://github.com/DICKY1987/CLI_RESTART
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+- url: http://localhost:8000
+  description: Development server
+- url: http://localhost:5055
+  description: Local stack server
+paths:
+  /api/v1/workflows:
+    get:
+      tags:
+      - workflows
+      summary: List workflows
+      description: Get list of available workflow definitions
+      operationId: listWorkflows
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkflowInfo'
+      security:
+      - ApiKeyAuth: []
+      - BearerAuth: []
+    post:
+      tags:
+      - workflows
+      summary: Execute workflow
+      description: Start a new workflow execution
+      operationId: executeWorkflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowRequest'
+      responses:
+        '202':
+          description: Workflow execution started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowExecution'
+        '400':
+          description: Invalid workflow definition
+        '401':
+          description: Unauthorized
+      security:
+      - ApiKeyAuth: []
+      - BearerAuth: []
+  /api/v1/workflows/{workflow_id}:
+    get:
+      tags:
+      - workflows
+      summary: Get workflow status
+      description: Get the current status of a workflow execution
+      operationId: getWorkflowStatus
+      parameters:
+      - name: workflow_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Workflow execution ID
+      responses:
+        '200':
+          description: Workflow status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowExecution'
+        '404':
+          description: Workflow not found
+      security:
+      - ApiKeyAuth: []
+      - BearerAuth: []
+    delete:
+      tags:
+      - workflows
+      summary: Cancel workflow
+      description: Cancel a running workflow execution
+      operationId: cancelWorkflow
+      parameters:
+      - name: workflow_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Workflow cancelled successfully
+        '404':
+          description: Workflow not found
+        '409':
+          description: Workflow already completed
+      security:
+      - ApiKeyAuth: []
+      - BearerAuth: []
+  /api/v1/adapters:
+    get:
+      tags:
+      - adapters
+      summary: List adapters
+      description: Get list of available adapters
+      operationId: listAdapters
+      responses:
+        '200':
+          description: List of adapters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdapterInfo'
+  /health:
+    get:
+      tags:
+      - health
+      summary: Health check
+      description: Check API health status
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+components:
+  schemas:
+    WorkflowInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+      required:
+      - name
+      - path
+    WorkflowRequest:
+      type: object
+      properties:
+        workflow_path:
+          type: string
+          description: Path to workflow YAML file
+        inputs:
+          type: object
+          description: Workflow input parameters
+        dry_run:
+          type: boolean
+          default: false
+          description: Run in dry-run mode
+      required:
+      - workflow_path
+    WorkflowExecution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflow_name:
+          type: string
+        status:
+          type: string
+          enum:
+          - pending
+          - running
+          - completed
+          - failed
+          - cancelled
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        current_step:
+          type: string
+        total_steps:
+          type: integer
+        artifacts:
+          type: array
+          items:
+            type: string
+        cost:
+          $ref: '#/components/schemas/CostSummary'
+      required:
+      - id
+      - workflow_name
+      - status
+    AdapterInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+    CostSummary:
+      type: object
+      properties:
+        total_tokens:
+          type: integer
+        total_cost:
+          type: number
+          format: float
+        currency:
+          type: string
+          default: USD
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - healthy
+          - degraded
+          - unhealthy
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT bearer token authentication
+tags:
+- name: workflows
+  description: Workflow execution and management
+- name: adapters
+  description: Adapter operations and queries
+- name: schemas
+  description: Schema validation and management
+- name: cost
+  description: Cost tracking and budget management
+- name: artifacts
+  description: Artifact storage and retrieval
+- name: health
+  description: Health checks and system status
