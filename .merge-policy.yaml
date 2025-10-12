@@ -1,0 +1,135 @@
+﻿# Policy version (for compatibility checking)
+policy_version: "2.0.0"
+minimum_tooling_version: "2.0.0"
+
+# Default Git merge strategy
+default_strategy: "recursive"
+
+# Conflict resolution weighting
+weighted_resolution:
+  timestamp: 3          # Newer changes win slightly
+  author_priority: 5    # Trusted authors win more
+  branch_priority: 4    # Main branch wins over features
+  line_age: 1          # Prefer recently-edited lines
+
+# Branch hierarchy (higher = more authority)
+branch_priority:
+  main: 100
+  "release/*": 90
+  dev: 80
+  "feature/*": 70
+  "workstream/*": 60
+
+# Path-specific strategies
+path_strategies:
+  # Generated/lock files â†’ always take incoming (theirs)
+  - pattern: "package-lock.json"
+    strategy: "theirs"
+    reason: "generated file - newest is correct"
+
+  - pattern: "poetry.lock"
+    strategy: "theirs"
+    reason: "generated file - newest is correct"
+
+  # Binary files â†’ no merge, mark conflict
+  - pattern: "**/*.{png,jpg,jpeg,gif,pdf}"
+    strategy: "binary"
+    reason: "cannot merge binary data"
+
+  # Append-only files â†’ union merge
+  - pattern: "CHANGELOG.md"
+    strategy: "union"
+    reason: "append-only log"
+
+  # Structured data â†’ semantic merge
+  - pattern: "**/*.json"
+    strategy: "json-struct"
+    reason: "structural merge preferred"
+
+  - pattern: "**/*.{yml,yaml}"
+    strategy: "yaml-struct"
+    reason: "structural merge preferred"
+
+  # Security-sensitive â†’ require human review
+  - pattern: "Dockerfile"
+    strategy: "manual"
+    security_check: true
+    quarantine_on_conflict: true
+    reason: "security critical"
+
+  - pattern: "{requirements.txt,Pipfile,go.mod,Cargo.toml}"
+    strategy: "manual"
+    security_check: true
+    quarantine_on_conflict: true
+    reason: "dependency changes need review"
+
+# Author priority (higher in list = higher priority)
+author_priority:
+  - "lead-architect@company.com"
+  - "security-team@company.com"
+  - "ci-bot@company.com"
+
+# Text normalization (reduces spurious conflicts)
+text_norm:
+  eol: "lf"
+  trim_trailing_whitespace: true
+  final_newline: true
+  normalize_before_merge: true
+
+# Verification gates (must pass after merge)
+verification:
+  # JSON schema validation
+  json_schemas:
+    - path: "config/**/*.json"
+      schema: "schemas/config.schema.json"
+      required: true
+
+  # Static analysis
+  static_analysis:
+    - command: "ruff check --select=F,E9"
+      required: true
+      baseline_check: true  # Run on base branch first
+    - command: "mypy --strict"
+      required: false
+      baseline_check: true
+
+  # Tests
+  integration_tests:
+    - command: "just test:integration"
+      required: true
+      timeout: 300  # seconds
+
+  # Security scans
+  security_checks:
+    - command: "npm audit --audit-level=high"
+      required: true
+      allow_baseline_failures: false
+
+# Workstream fences (isolation boundaries)
+workstream_fences:
+  "workstream/json-normalizer":
+    allowed_paths:
+      - "src/json/**"
+      - "tests/json/**"
+      - "docs/json/**"
+    cross_fence_conflicts: "quarantine"
+
+  "workstream/cli-refactor":
+    allowed_paths:
+      - "src/cli/**"
+      - "tests/cli/**"
+    cross_fence_conflicts: "quarantine"
+
+# Safety limits (prevent bad auto-merges)
+safety_limits:
+  max_conflict_size_lines: 1000    # Quarantine huge conflicts
+  max_conflicts_per_file: 10       # Quarantine heavily conflicted files
+  max_files_with_conflicts: 20     # Quarantine merge bombs
+  action_on_exceed: "quarantine"   # quarantine | fail | warn
+
+# Quarantine routing (ownership)
+quarantine_routing:
+  security_sensitive: "@security-team"
+  semantic_failure: "@qa-team"
+  fence_violation: "@architecture-team"
+  complexity_exceeded: "@merge-captain"

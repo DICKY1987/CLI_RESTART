@@ -141,7 +141,7 @@ def main() -> int:
             "MINOR",
             "L",
             "L",
-            "vscode-extension/package.json",
+            "tools/vscode-extension/package.json",
             "1-120",
             "VS Code commands added to run orchestrator stream and estimate AI cost",
             "Add status panel to surface gates and artifacts",

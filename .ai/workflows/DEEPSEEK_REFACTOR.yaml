@@ -1,0 +1,86 @@
+name: "DeepSeek Code Refactoring"
+description: "AI-assisted refactoring using DeepSeek Coder V2 Lite (local, free)"
+
+inputs:
+  files: ["src/legacy_module.py"]
+  lane: "lane/refactor/deepseek"
+
+policy:
+  max_tokens: 0  # Free local inference
+  prefer_deterministic: false  # Using AI for refactoring
+  timeout_minutes: 20
+
+steps:
+  - id: "1.001"
+    name: "Analyze Current Code"
+    actor: deepseek
+    with:
+      tool: aider
+      operation: analyze
+      read_only: true
+      prompt: |
+        Analyze the current code structure and identify:
+        1. Code smells and anti-patterns
+        2. Opportunities for simplification
+        3. Duplication that can be eliminated
+        4. Complex functions that should be broken down
+        5. Missing abstractions
+
+        Provide a refactoring plan with priorities.
+    emits: ["artifacts/refactor_plan.json"]
+
+  - id: "1.002"
+    name: "Create Backup"
+    actor: backup_manager
+    with:
+      source: "{{ inputs.files }}"
+      backup_dir: "backups/refactor"
+    emits: ["artifacts/backup_manifest.json"]
+
+  - id: "1.003"
+    name: "Apply Refactoring"
+    actor: deepseek
+    with:
+      tool: aider
+      operation: refactor
+      read_only: false
+      prompt: |
+        Refactor the code according to the analysis plan. Focus on:
+        1. Improving readability and maintainability
+        2. Reducing complexity
+        3. Applying SOLID principles
+        4. Enhancing testability
+        5. Modern Python best practices (type hints, dataclasses, etc.)
+
+        Make incremental, safe changes. Preserve existing functionality.
+    emits: ["artifacts/refactor_diff.json"]
+
+  - id: "1.004"
+    name: "Run Tests"
+    actor: pytest_runner
+    with:
+      path: "."
+      coverage: true
+      markers: ""
+    emits: ["artifacts/test_report.json"]
+
+  - id: "1.005"
+    name: "Verify Refactoring"
+    actor: verifier
+    with:
+      checks:
+        - type: "tests_pass"
+          from: "artifacts/test_report.json"
+        - type: "diff_limits"
+          max_files: 20
+          max_insertions: 2000
+    on_fail: "rollback"
+
+  - id: "1.006"
+    name: "Git Commit"
+    actor: git_ops
+    with:
+      branch: "{{ inputs.lane }}"
+      commit_message_template: "refactor: improve code structure with DeepSeek\n\n{summary}"
+      create_pr: true
+    emits: ["artifacts/pr_url.txt"]

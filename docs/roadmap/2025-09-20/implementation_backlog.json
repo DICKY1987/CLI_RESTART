@@ -62,7 +62,7 @@
         "Coverage on critical paths ≥ 90%"
       ],
       "assignee_profile": {"skills": ["PyTest", "Playwright", "VS Code APIs"], "level": "Senior"},
-      "related_findings": ["vscode-extension/**; CLI_PY_GUI/** present"],
+      "related_findings": ["tools/vscode-extension/**; CLI_PY_GUI/** present"],
       "validation_steps": ["CI integration suite passes; reports stored"]
     },
     {

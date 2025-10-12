@@ -1,0 +1,85 @@
+name: "DeepSeek Code Analysis"
+description: "Comprehensive code analysis using DeepSeek Coder V2 Lite (local, free)"
+
+inputs:
+  files: ["src/**/*.py"]
+
+policy:
+  max_tokens: 0  # Free local inference
+  prefer_deterministic: false  # Using AI for analysis
+  timeout_minutes: 10
+
+steps:
+  - id: "1.001"
+    name: "Static Analysis"
+    actor: vscode_diagnostics
+    with:
+      analyzers: ["python", "ruff", "mypy"]
+    emits: ["artifacts/diagnostics.json"]
+
+  - id: "1.002"
+    name: "Type Checking"
+    actor: type_checker
+    with:
+      tool: "mypy"
+      strict: true
+    emits: ["artifacts/type_report.json"]
+
+  - id: "1.003"
+    name: "Security Analysis"
+    actor: security_scanner
+    with:
+      tools: ["bandit", "safety"]
+    emits: ["artifacts/security_report.json"]
+
+  - id: "1.004"
+    name: "DeepSeek Quality Analysis"
+    actor: deepseek
+    with:
+      tool: ollama_direct
+      operation: analyze
+      prompt: |
+        Analyze the code for quality, maintainability, and architecture. Provide:
+
+        1. Code Quality Metrics:
+           - Complexity assessment
+           - Maintainability index
+           - Test coverage analysis
+
+        2. Architecture Review:
+           - Design pattern usage
+           - Separation of concerns
+           - Dependency management
+
+        3. Best Practices:
+           - Python idioms and conventions
+           - Error handling
+           - Documentation quality
+
+        4. Improvement Recommendations:
+           - Prioritized list of suggested changes
+           - Estimated effort for each improvement
+
+        Format as structured JSON for artifact storage.
+      max_tokens: 4000
+    emits: ["artifacts/deepseek_analysis.json"]
+
+  - id: "1.005"
+    name: "Generate Summary Report"
+    actor: deepseek
+    with:
+      tool: ollama_direct
+      operation: generate
+      prompt: |
+        Create an executive summary of the code analysis findings.
+        Combine insights from static analysis, type checking, security scan, and quality analysis.
+
+        Include:
+        - Overall health score (1-10)
+        - Top 5 recommendations
+        - Risk assessment
+        - Quick wins for immediate improvement
+
+        Format as markdown for easy reading.
+      max_tokens: 2000
+    emits: ["artifacts/analysis_summary.md"]

@@ -136,6 +136,9 @@ class Router:
         # Register AI-powered adapters
         self.registry.register(AIEditorAdapter())
         self.registry.register(AIAnalystAdapter())
+        from .adapters.deepseek_adapter import DeepSeekAdapter
+
+        self.registry.register(DeepSeekAdapter())
 
         # Register Codex pipeline adapters
         from .adapters.backup_manager import BackupManagerAdapter

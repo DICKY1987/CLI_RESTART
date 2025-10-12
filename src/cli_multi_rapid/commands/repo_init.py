@@ -123,7 +123,7 @@ def create_required_directories() -> List[str]:
     return created
 
 
-def install_python_dependencies(dev: bool = False) -> bool:
+# def install_python_dependencies(dev: bool = False) -> bool:
     """Install Python dependencies from pyproject.toml.
 
     Args:
@@ -192,7 +192,7 @@ def run_setup_script(platform_name: str) -> bool:
 
 @app.command()
 def init(
-    skip_deps: bool = typer.Option(False, "--skip-deps", help="Skip Python dependency installation"),
+    skip_deps: bool = typer.Option(True, "--skip-deps", help="Skip Python dependency installation"),
     skip_tools: bool = typer.Option(False, "--skip-tools", help="Skip tool validation"),
     skip_setup: bool = typer.Option(False, "--skip-setup", help="Skip setup script execution"),
     dev: bool = typer.Option(False, "--dev", help="Install development dependencies"),
@@ -263,7 +263,7 @@ def init(
         ) as progress:
             task = progress.add_task("Installing packages...", total=None)
 
-            deps_ok = install_python_dependencies(dev=dev)
+#             deps_ok = install_python_dependencies(dev=dev)
             progress.update(task, completed=True)
 
         if deps_ok:
@@ -345,3 +345,4 @@ def init_doctor():
         raise typer.Exit(1)
     else:
         console.print("\n[bold green]✓ All checks passed![/bold green]")
+

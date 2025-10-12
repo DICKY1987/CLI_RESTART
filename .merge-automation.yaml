@@ -1,0 +1,70 @@
+﻿# Automation version
+automation_version: "2.0.0"
+
+# Tool configuration
+tools:
+  json_merger:
+    primary: "jq"
+    command: 'jq -S -s "reduce .[] as $d ({}; . * $d)" %O %A %B > %A'
+    fallback: "theirs"
+    fallback_audit: true
+    required_version: "1.6"
+
+  yaml_merger:
+    primary: "yq"
+    command: 'yq -oy -s ".[0] * .[2]" %O %A %B > %A'
+    fallback: "theirs"
+    fallback_audit: true
+    required_version: "4.0"
+
+  formatter:
+    python: "ruff format"
+    json: "jq -S"
+    yaml: "yq -oy"
+
+  pre_commit:
+    enabled: true
+    command: "pre-commit run --all-files"
+    block_on_failure: false
+
+# Merge queue settings (prevent race conditions)
+merge_queue:
+  enabled: true
+  backend: "github"  # github | file_lock | redis
+  lock_timeout: 300  # seconds
+  retry_attempts: 3
+  retry_backoff: 30  # seconds
+
+# Audit configuration
+audit:
+  enabled: true
+  path: ".git/merge-audit.jsonl"
+  include_tool_versions: true
+  include_fallback_usage: true
+  include_timing: true
+  retention_days: 90
+
+# rerere configuration
+rerere:
+  enabled: true
+  autoupdate: true
+  cache_sharing: true  # Share cache in CI
+
+# Notification settings
+notifications:
+  quarantine:
+    enabled: true
+    channels:
+      - type: "slack"
+        webhook_env: "SLACK_MERGE_WEBHOOK"
+      - type: "github_pr_comment"
+        mention_codeowners: true
+
+  success:
+    enabled: false  # Don't spam on success
+
+  failure:
+    enabled: true
+    channels:
+      - type: "slack"
+        webhook_env: "SLACK_MERGE_WEBHOOK"

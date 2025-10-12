@@ -1,0 +1,103 @@
+# config/discovered_tools.yaml (auto-generated)
+# Generated: 2025-10-11T21:21:04
+tools:
+  - name: "Aider"
+    key: "aider"
+    preferred_path: ""
+    found_in_path: false
+    found_in_hints: false
+    found_in_roots: false
+    version: ""
+  - name: "Claude Code CLI"
+    key: "claude"
+    preferred_path: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\claude.ps1"
+    found_in_path: true
+    found_in_hints: true
+    found_in_roots: true
+    version: ""
+  - name: "Continue CLI"
+    key: "continue"
+    preferred_path: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\cn.ps1"
+    found_in_path: true
+    found_in_hints: true
+    found_in_roots: true
+    version: ""
+  - name: "Gemini CLI"
+    key: "gemini"
+    preferred_path: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\gemini.ps1"
+    found_in_path: true
+    found_in_hints: true
+    found_in_roots: true
+    version: ""
+  - name: "Git"
+    key: "git"
+    preferred_path: "C:\\Program Files\\Git\\cmd\\git.exe"
+    found_in_path: true
+    found_in_hints: true
+    found_in_roots: true
+    version: "git version 2.47.1.windows.2"
+  - name: "GitHub CLI"
+    key: "gh"
+    preferred_path: "C:\\Program Files\\GitHub CLI\\gh.exe"
+    found_in_path: true
+    found_in_hints: true
+    found_in_roots: true
+    version: "gh version 2.76.2 (2025-07-30)
+https://github.com/cli/cli/releases/tag/v2.76.2"
+  - name: "GitHub Copilot CLI"
+    key: "github-copilot"
+    preferred_path: "C:\\Program Files\\GitHub CLI\\gh.exe"
+    found_in_path: true
+    found_in_hints: false
+    found_in_roots: false
+    version: "gh version 2.76.2 (2025-07-30)
+https://github.com/cli/cli/releases/tag/v2.76.2"
+  - name: "Node.js"
+    key: "node"
+    preferred_path: "C:\\Program Files\\nodejs\\node.exe"
+    found_in_path: true
+    found_in_hints: false
+    found_in_roots: true
+    version: "v24.4.0"
+  - name: "npm"
+    key: "npm"
+    preferred_path: "C:\\Program Files\\nodejs\\npm.cmd"
+    found_in_path: true
+    found_in_hints: false
+    found_in_roots: false
+    version: "11.4.2"
+  - name: "Ollama"
+    key: "ollama"
+    preferred_path: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Ollama\\ollama.exe"
+    found_in_path: true
+    found_in_hints: false
+    found_in_roots: true
+    version: "Error: unknown command \"version\" for \"ollama\""
+  - name: "Open Codex CLI"
+    key: "opencodex"
+    preferred_path: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\codex.ps1"
+    found_in_path: true
+    found_in_hints: true
+    found_in_roots: true
+    version: ""
+  - name: "OpenCode CLI"
+    key: "opencode"
+    preferred_path: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\opencode.cmd"
+    found_in_path: true
+    found_in_hints: true
+    found_in_roots: true
+    version: "0.12.1"
+  - name: "pipx"
+    key: "pipx"
+    preferred_path: "c:\\users\\richard wilks\\appdata\\roaming\\python\\python312\\scripts\\pipx.exe"
+    found_in_path: true
+    found_in_hints: false
+    found_in_roots: false
+    version: "1.7.1"
+  - name: "Python"
+    key: "python"
+    preferred_path: "C:\\Program Files\\Python312\\python.exe"
+    found_in_path: true
+    found_in_hints: true
+    found_in_roots: true
+    version: "Python 3.12.10"

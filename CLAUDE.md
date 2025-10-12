@@ -25,28 +25,49 @@ The project is multi-faceted, combining:
 - **Gate System**: Verification and quality gates (`src/cli_multi_rapid/verifier.py:1`)
 
 ### Directory Structure
-- `src/cli_multi_rapid/`: Core orchestrator implementation
-  - `adapters/`: Adapter implementations (AI, code fixers, git ops, etc.)
-  - `contracts/`: Data models and contract definitions
-- `src/eafix/`: EA (Expert Advisor) trading system integration
-  - `apps/cli/`: CLI commands for trading operations
-  - `system/`: Health checking and system monitoring
-- `src/contracts/`: Trading contract models (signals, orders, execution)
+- `src/`: All source code
+  - `cli_multi_rapid/`: Core orchestrator implementation
+    - `adapters/`: Adapter implementations (AI, code fixers, git ops, etc.)
+    - `contracts/`: Data models and contract definitions
+  - `contracts/`: Trading contract models (signals, orders, execution)
+  - `services/`: Microservices (event bus, security gateway)
+  - `trading/mql4/`: MT4 trading system code
 - `.ai/`: AI and workflow configuration
   - `workflows/`: YAML workflow definitions (schema-validated)
   - `schemas/`: JSON Schema definitions for validation
   - `bundles/`: Atomic change bundles for code modifications
   - `scripts/`: AI-related scripts and automation
   - `prompts/`: Prompt templates for AI interactions
-- `artifacts/`: Workflow execution artifacts (patches, reports)
-- `logs/`: JSONL execution logs and telemetry
-- `cost/`: Token usage tracking and budget reports
+- `docs/`: All documentation (consolidated)
+  - `setup/`: Setup and installation guides
+  - `guides/`: User guides and how-tos
+  - `architecture/`: Architecture and design docs
+  - `integration/`: Integration documentation
+  - `specs/`: Specifications (API, CODEX)
+- `tests/`: Test suite
+  - `trading/`: Trading system tests
 - `workflows/`: Workflow templates and phase definitions
 - `CLI_PY_GUI/`: Python GUI components
   - `gui_terminal/`: Terminal GUI with PTY backend
-- `vscode-extension/`: VS Code extension for IDE integration
-- `scripts/`: Build, deployment, and automation scripts
-- `config/`: Configuration files (pipelines, tools, policies)
+- `tools/`: Development tools and utilities
+  - `vscode-extension/`: VS Code extension for IDE integration
+  - `atomic-workflow-system/`: Atomic workflow execution system
+  - `frontend/`: Frontend components
+- `scripts/`: All scripts (build, deployment, automation)
+  - `validation/`: Validation scripts (pytest, ruff, schema)
+  - `TradingOps/`: Trading operations scripts
+- `config/`: All configuration files
+  - `capabilities/`: Tool capabilities and bindings
+  - `catalog/`: Domain catalog and maturity models
+  - `policy/`: Compliance and policy rules
+- `monitoring/`: Monitoring and observability
+  - `dashboards/`: Grafana dashboards
+- `deploy/`: Deployment configurations (Kubernetes, Helm)
+- `examples/`: Example workflows and contracts
+- `artifacts/`: Workflow execution artifacts (runtime, in .gitignore)
+- `logs/`: JSONL execution logs (runtime, in .gitignore)
+- `cost/`: Token usage tracking (runtime, in .gitignore)
+- `archive/`: Historical/deprecated content
 
 ## Common Development Commands
 
@@ -65,7 +86,7 @@ pip install -e .[dev,ai,test]
 nox -s dev_setup
 
 # Install VS Code extension dependencies
-cd vscode-extension && npm ci
+cd tools/vscode-extension && npm ci
 ```
 
 ### CLI Usage
@@ -196,6 +217,7 @@ Core adapters available in `src/cli_multi_rapid/adapters/`:
 - **code_fixers**: Apply deterministic fixes (black, isort, ruff --fix)
 - **ai_editor**: AI-powered code editing (aider, claude, gemini)
 - **ai_analyst**: AI-powered code analysis and insights
+- **deepseek**: Local AI code assistance with DeepSeek Coder V2 Lite via Ollama
 - **pytest_runner**: Run tests with coverage reporting
 - **verifier**: Check gates and validate artifacts
 - **git_ops**: Enhanced git operations with GitHub API integration (repos, issues, PRs, releases)
@@ -284,7 +306,7 @@ git diff
 ### Extension Development
 ```bash
 # Navigate to extension directory
-cd vscode-extension
+cd tools/vscode-extension
 
 # Install dependencies
 npm ci
@@ -292,8 +314,11 @@ npm ci
 # Build extension
 npm run build
 
-# Package extension
+# Package extension (creates .vsix file)
 npm run package
+
+# Run tests
+npm test
 
 # Lint and format
 npm run lint
@@ -556,6 +581,255 @@ cli-orchestrator config github --validate --verbose
 # Test specific API endpoints
 cli-orchestrator github test-api --repo owner/repo
 ```
+
+## DeepSeek Local AI Integration
+
+The CLI Orchestrator integrates DeepSeek Coder V2 Lite via Ollama for free, local AI-powered code assistance with complete privacy and no API costs.
+
+### DeepSeek Setup
+
+#### Prerequisites
+1. **Ollama**: Install and run Ollama (https://ollama.ai)
+2. **DeepSeek Model**: Pull the DeepSeek Coder V2 Lite model
+3. **CLI Tools**: Aider and OpenCode (optional, for enhanced functionality)
+
+#### Installation
+```bash
+# Install Ollama (visit https://ollama.ai for OS-specific instructions)
+
+# Pull DeepSeek Coder V2 Lite model
+ollama pull deepseek-coder-v2:lite
+
+# Verify Ollama is running
+curl http://localhost:11434/api/tags
+
+# Verify DeepSeek model is available
+# Should show deepseek-coder-v2:lite in the model list
+```
+
+#### Configuration
+```bash
+# Aider configuration (already set up)
+# Location: ~/.aider.conf.yml
+# Model: ollama/deepseek-coder-v2:lite
+
+# Verify setup
+powershell -File scripts/verify-deepseek-setup.ps1
+
+# Or use batch script
+scripts\verify-deepseek-setup.cmd
+```
+
+### Using DeepSeek in Workflows
+
+#### Workflow Example - Code Analysis
+```yaml
+name: "DeepSeek Code Analysis"
+inputs:
+  files: ["src/**/*.py"]
+steps:
+  - id: "1.001"
+    name: "AI Code Review with DeepSeek"
+    actor: deepseek
+    with:
+      tool: ollama_direct
+      operation: review
+      prompt: "Analyze this code for potential bugs, security issues, and improvements"
+    emits: ["artifacts/deepseek_review.json"]
+```
+
+#### Workflow Example - Code Editing with Aider
+```yaml
+name: "DeepSeek Code Editing"
+inputs:
+  files: ["src/module.py"]
+steps:
+  - id: "1.001"
+    name: "Refactor with DeepSeek via Aider"
+    actor: deepseek
+    with:
+      tool: aider
+      operation: refactor
+      prompt: "Refactor this code to improve readability and maintainability"
+      read_only: false
+    emits: ["artifacts/deepseek_edit_diff.json"]
+```
+
+#### Workflow Example - Read-only Analysis
+```yaml
+name: "DeepSeek Read-Only Analysis"
+inputs:
+  files: ["src/**/*.py"]
+steps:
+  - id: "1.001"
+    name: "Code Quality Analysis"
+    actor: deepseek
+    with:
+      tool: aider
+      operation: analyze
+      prompt: "Analyze code quality and suggest improvements"
+      read_only: true
+```
+
+### DeepSeek Adapter Operations
+
+#### Supported Tools
+- **aider**: Uses Aider CLI with DeepSeek (auto-configured via `.aider.conf.yml`)
+- **opencode**: Uses OpenCode CLI with DeepSeek wrapper scripts
+- **ollama_direct**: Direct API calls to Ollama for custom operations
+
+#### Supported Operations
+- **edit**: Code editing and modifications
+- **analyze**: Code analysis and insights
+- **review**: Code review and quality assessment
+- **generate**: Code generation from requirements
+- **refactor**: Code refactoring and restructuring
+- **explain**: Code explanation and documentation
+- **fix**: Bug fixing and error correction
+- **optimize**: Performance optimization
+- **document**: Documentation generation
+- **test**: Test generation
+
+### CLI Commands
+
+#### Using DeepSeek Wrapper Scripts
+```bash
+# Interactive TUI mode with DeepSeek
+scripts\opencode-deepseek.cmd
+
+# Or from project root with file path
+scripts\opencode-deepseek.ps1 "C:\path\to\project"
+
+# Quick command mode
+scripts\opencode-deepseek-run.cmd "analyze this codebase"
+
+# PowerShell version
+scripts\opencode-deepseek-run.ps1 "review security issues"
+```
+
+#### Using Aider with DeepSeek
+```bash
+# Start aider (automatically uses DeepSeek from config)
+aider
+
+# With specific files
+aider src/main.py tests/test_main.py
+
+# Read-only analysis
+aider --read-only src/module.py
+```
+
+#### Direct Workflow Execution
+```bash
+# Run DeepSeek workflow
+cli-orchestrator run .ai/workflows/DEEPSEEK_ANALYSIS.yaml --files "src/**/*.py"
+
+# With dry-run
+cli-orchestrator run .ai/workflows/DEEPSEEK_REFACTOR.yaml --files "src/legacy.py" --dry-run
+```
+
+### DeepSeek Configuration
+
+#### Environment Variables
+```bash
+# Ollama endpoint (default: http://localhost:11434)
+export OLLAMA_API_BASE=http://localhost:11434
+
+# Or in .env file
+OLLAMA_API_BASE=http://localhost:11434
+```
+
+#### Aider Configuration
+Location: `~/.aider.conf.yml`
+
+```yaml
+model: ollama/deepseek-coder-v2:lite
+api-base: http://localhost:11434
+```
+
+### DeepSeek Workflows
+
+Available in `.ai/workflows/`:
+
+- **DEEPSEEK_CODE_REVIEW.yaml**: Comprehensive code review with DeepSeek
+- **DEEPSEEK_REFACTOR.yaml**: Code refactoring with AI assistance
+- **DEEPSEEK_ANALYSIS.yaml**: Code quality and security analysis
+- **DEEPSEEK_TEST_GEN.yaml**: Test generation with DeepSeek
+
+### Verification and Health Checks
+
+```bash
+# Verify DeepSeek setup
+powershell -File scripts/verify-deepseek-setup.ps1
+
+# Check Ollama status
+curl http://localhost:11434/api/tags
+
+# Test DeepSeek in workflow
+cli-orchestrator run .ai/workflows/DEEPSEEK_ANALYSIS.yaml --files "src/test.py" --dry-run
+
+# Check adapter health
+cli-orchestrator adapters health deepseek
+```
+
+### DeepSeek Benefits
+
+1. **Free Local Inference**: No API costs, runs entirely on your machine
+2. **Complete Privacy**: All code stays local, no data sent to external services
+3. **Offline Capable**: Works without internet connection once model is downloaded
+4. **High Performance**: DeepSeek Coder V2 Lite (15.7B parameters) optimized for code tasks
+5. **No Rate Limits**: Use as much as you need without throttling
+6. **Integration**: Works seamlessly with Aider, Continue, and OpenCode
+
+### Model Details
+
+**DeepSeek Coder V2 Lite**
+- Parameters: 15.7B
+- Quantization: Q4_0 (8.9 GB)
+- Specialization: Code generation, analysis, and assistance
+- Endpoint: `http://localhost:11434`
+- Provider: Ollama (local inference)
+
+### Troubleshooting
+
+#### Ollama Not Running
+```bash
+# Check if Ollama is running
+curl http://localhost:11434/api/tags
+
+# Start Ollama service/application if not running
+```
+
+#### Model Not Found
+```bash
+# List installed models
+curl http://localhost:11434/api/tags
+
+# Pull DeepSeek model if missing
+ollama pull deepseek-coder-v2:lite
+```
+
+#### Aider Not Using DeepSeek
+```bash
+# Check aider configuration
+cat ~/.aider.conf.yml
+
+# Verify model setting
+# Should show: model: ollama/deepseek-coder-v2:lite
+```
+
+#### PowerShell Script Execution
+```powershell
+# Allow script execution
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Documentation Files
+
+- **docs/setup/OPENCODE-DEEPSEEK-SETUP.md**: Detailed setup guide for OpenCode + DeepSeek
+- **docs/guides/AI-TOOLS-DEEPSEEK-REFERENCE.md**: Quick reference for all AI tools with DeepSeek
+- **docs/setup/SETUP-COMPLETE-SUMMARY.md**: Complete setup verification and examples
+- **docs/guides/USE-AI-TOOLS.md**: Quick start guide for AI tools
 
 ## Docker and Deployment
 

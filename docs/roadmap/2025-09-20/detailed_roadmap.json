@@ -105,7 +105,7 @@
           ],
           "estimate_h": 16,
           "artifacts": [
-            "vscode-extension/**",
+            "tools/vscode-extension/**",
             "githubSave.ts",
             "INTERFACE_GUIDE.md"
           ]

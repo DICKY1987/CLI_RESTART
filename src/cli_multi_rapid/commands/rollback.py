@@ -80,7 +80,7 @@ def restore(
             result = manager.restore_snapshot(snapshot_id)
             if result.success:
                 typer.secho(f"✓ Restored from snapshot: {snapshot_id}", fg=typer.colors.GREEN)
-                typer.secho(f"  Files restored: {result.data.get('restored_count', 0)}", fg=typer.colors.GREEN)
+                typer.secho(f"  Files restored: {result.metadata.get('restored_count', 0)}", fg=typer.colors.GREEN)
             else:
                 typer.secho(f"✗ Restore failed: {result.error}", fg=typer.colors.RED)
                 raise typer.Exit(1)

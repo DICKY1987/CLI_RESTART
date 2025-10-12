@@ -7,7 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCHEMAS_DIR="$ROOT_DIR/.ai/schemas"
-OUTPUT_DIR="$ROOT_DIR/vscode-extension/src/types/generated"
+OUTPUT_DIR="$ROOT_DIR/tools/vscode-extension/src/types/generated"
 INDEX_FILE="$OUTPUT_DIR/index.ts"
 
 echo "🔧 Generating TypeScript types from JSON schemas..."
@@ -20,7 +20,7 @@ mkdir -p "$OUTPUT_DIR"
 # Check if json-schema-to-typescript is available
 if ! command -v json2ts &> /dev/null; then
     echo "⚠️  json-schema-to-typescript not found, installing locally..."
-    cd "$ROOT_DIR/vscode-extension"
+    cd "$ROOT_DIR/tools/vscode-extension"
     npm install --save-dev json-schema-to-typescript
     cd "$ROOT_DIR"
 fi
@@ -88,10 +88,10 @@ fi
 echo "   Index:     $INDEX_FILE"
 
 # Format generated files if prettier is available
-if command -v prettier &> /dev/null || [ -f "$ROOT_DIR/vscode-extension/node_modules/.bin/prettier" ]; then
+if command -v prettier &> /dev/null || [ -f "$ROOT_DIR/tools/vscode-extension/node_modules/.bin/prettier" ]; then
     echo ""
     echo "🎨 Formatting generated files with prettier..."
-    cd "$ROOT_DIR/vscode-extension"
+    cd "$ROOT_DIR/tools/vscode-extension"
     if [ -f "node_modules/.bin/prettier" ]; then
         npx prettier --write "src/types/generated/*.ts" 2>/dev/null || true
     fi

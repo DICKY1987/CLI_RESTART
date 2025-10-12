@@ -14,8 +14,6 @@ __pycache__/
 .coverage
 coverage.xml
 htmlcov/
-.venv/
-venv/
 *.egg-info/
 build/
 dist/

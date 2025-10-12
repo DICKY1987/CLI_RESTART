@@ -13,6 +13,7 @@ from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 from .code_fixers import CodeFixersAdapter
 
 # from .cost_estimator import CostEstimatorAdapter  # Avoided due to circular import
+from .deepseek_adapter import DeepSeekAdapter
 from .git_ops import GitOpsAdapter
 from .pytest_runner import PytestRunnerAdapter
 from .vscode_diagnostics import VSCodeDiagnosticsAdapter
@@ -26,6 +27,7 @@ __all__ = [
     "AIEditorAdapter",
     "CodeFixersAdapter",
     # "CostEstimatorAdapter",  # Circular import issue
+    "DeepSeekAdapter",
     "GitOpsAdapter",
     "PytestRunnerAdapter",
     "VSCodeDiagnosticsAdapter",

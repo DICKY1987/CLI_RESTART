@@ -1,161 +1,69 @@
-# Tool Adapter Configuration for CLI Orchestrator
-# Defines tool selection, paths, and configuration for the adapter layer
+# config/tool_adapters.yaml (auto-generated or merged)
+# Generated: 2025-10-11T21:21:04
 
-# Primary tool selection
-vcs: git                    # git | gh
-containers: docker          # docker
-editor: vscode              # vscode
-js_runtime: node            # node
-ai_cli: claude              # claude | openai
-precommit: true             # enable pre-commit hooks
+vcs: git
+containers: docker
+editor: code
+js_runtime: node
+ai_cli: claude
+local_ai: deepseek
 
-# Python quality tools configuration
 python_quality:
-  ruff: true                # Linting and code formatting
-  mypy: true                # Type checking
-  bandit: true              # Security analysis
-  semgrep: true             # Static analysis
+  ruff: true
+  mypy: true
+  bandit: true
+  semgrep: true
 
-# Tool-specific paths (configured with discovered tool locations)
+precommit: true
+
 paths:
-  # VCS tools
-  git: "C:\\Program Files\\Git\\cmd\\git.exe"
-  gh: gh                    # GitHub CLI (fallback to PATH)
-
-  # Container tools
-  docker: "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe"
-
-  # Editor
-  code: "C:\\HUEY_P\\Microsoft VS Code\\bin\\code"
-
-  # JavaScript runtime
-  node: "C:\\Program Files\\nodejs\\node.exe"
-  npx: npx                  # NPX executable (fallback to PATH)
-
-  # AI CLIs
-  claude: claude            # Claude CLI (fallback to PATH)
-  openai: openai            # OpenAI CLI (fallback to PATH)
-  aider: "C:\\Users\\richard wilks\\.local\\bin\\aider.exe"
-
-  # GitHub CLI
+  claude: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\claude.ps1"
+  continue: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\cn.ps1"
+  gemini: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\gemini.ps1"
   gh: "C:\\Program Files\\GitHub CLI\\gh.exe"
-
-  # Package managers
+  git: "C:\\Program Files\\Git\\cmd\\git.exe"
+  github-copilot: "C:\\Program Files\\GitHub CLI\\gh.exe"
+  node: "C:\\Program Files\\nodejs\\node.exe"
   npm: "C:\\Program Files\\nodejs\\npm.cmd"
-  winget: "C:\\Users\\Richard Wilks\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe"
-
-  # Container orchestration
-  kubectl: "C:\\Program Files\\Docker\\Docker\\resources\\bin\\kubectl.exe"
-
-  # Python interpreter
+  ollama: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Ollama\\ollama.exe"
+  opencode: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\opencode.cmd"
+  opencodex: "C:\\Users\\Richard Wilks\\AppData\\Roaming\\npm\\codex.ps1"
+  pipx: "c:\\users\\richard wilks\\appdata\\roaming\\python\\python312\\scripts\\pipx.exe"
   python: "C:\\Program Files\\Python312\\python.exe"
 
-  # Python quality tools
-  pre_commit: pre-commit    # Pre-commit executable (fallback to PATH)
-  ruff: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\ruff.exe"
-  mypy: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\mypy.exe"
-  black: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\black.exe"
-  isort: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\isort.exe"
-  bandit: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\bandit.exe"
-  semgrep: semgrep          # Semgrep static analyzer (fallback to PATH)
-  pytest: "C:\\Users\\Richard Wilks\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\pytest.exe"
-
-# Tool-specific configuration
 tool_config:
-  # Git configuration
-  git:
+  aider:
+    timeout_ms: 60000
+    env:
+      AIDER_YES_ALWAYS: "1"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+
+  claude:
     timeout_ms: 30000
     env:
-      GIT_EDITOR: code
-
-  # Docker configuration
-  docker:
-    timeout_ms: 60000
-    compose_file: docker-compose.yml
-
-  # VS Code configuration
-  vscode:
-    timeout_ms: 10000
-    recommended_extensions:
-      - ms-python.python
-      - ms-python.black-formatter
-      - charliermarsh.ruff
-
-  # Node.js configuration
-  node:
-    timeout_ms: 120000
-    npm_registry: https://registry.npmjs.org/
-
-  # AI CLI configuration
-  claude:
-    timeout_ms: 60000
-    model: claude-3-5-sonnet-20241022
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
 
   openai:
-    timeout_ms: 60000
-    model: gpt-4
-
-  # Python quality tools
-  ruff:
     timeout_ms: 30000
-    args:
-      check: ["--select", "E,W,F,I,B,C4,UP"]
-      fix: ["--fix-only"]
+    env:
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
 
-  mypy:
-    timeout_ms: 60000
-    config_file: mypy.ini
+  deepseek:
+    timeout_ms: 300000  # 5 minutes for local AI inference
+    model: "deepseek-coder-v2:lite"
+    env:
+      OLLAMA_API_BASE: "${OLLAMA_API_BASE:-http://localhost:11434}"
+    tools:
+      - name: "aider"
+        command: "aider"
+        description: "Aider CLI with DeepSeek (auto-configured)"
+      - name: "opencode"
+        command: "scripts/opencode-deepseek.ps1"
+        description: "OpenCode TUI with DeepSeek wrapper"
+      - name: "opencode-run"
+        command: "scripts/opencode-deepseek-run.ps1"
+        description: "OpenCode command mode with DeepSeek"
+      - name: "ollama"
+        command: "ollama"
+        description: "Direct Ollama API access"
 
-  bandit:
-    timeout_ms: 30000
-    args:
-      scan: ["-q", "-r"]
-
-  semgrep:
-    timeout_ms: 60000
-    config: auto
-
-  pre_commit:
-    timeout_ms: 120000
-
-  # Additional discovered tools
-  aider:
-    timeout_ms: 180000
-    model: claude-3-5-sonnet-20241022
-
-  pytest:
-    timeout_ms: 120000
-    args:
-      run: ["--tb=short", "-v"]
-      coverage: ["--cov=.", "--cov-report=html"]
-
-  # Additional Python quality tools
-  black:
-    timeout_ms: 30000
-    args:
-      format: ["--check", "--diff"]
-      fix: []
-
-  isort:
-    timeout_ms: 30000
-    args:
-      check: ["--check-only", "--diff"]
-      fix: []
-
-  # GitHub CLI
-  gh:
-    timeout_ms: 60000
-    auth_token_env: GITHUB_TOKEN
-
-  # Package managers
-  npm:
-    timeout_ms: 120000
-    registry: https://registry.npmjs.org/
-
-  winget:
-    timeout_ms: 60000
-
-  # Kubernetes
-  kubectl:
-    timeout_ms: 60000
-    config_file: ~/.kube/config

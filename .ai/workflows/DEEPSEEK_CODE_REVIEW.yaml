@@ -1,0 +1,61 @@
+name: "DeepSeek Code Review"
+description: "AI-powered code review using DeepSeek Coder V2 Lite (local, free)"
+
+inputs:
+  files: ["src/**/*.py"]
+
+policy:
+  max_tokens: 0  # Free local inference
+  prefer_deterministic: false  # Using AI for review
+  timeout_minutes: 15
+
+steps:
+  - id: "1.001"
+    name: "VS Code Diagnostics"
+    actor: vscode_diagnostics
+    with:
+      analyzers: ["python", "ruff", "mypy"]
+    emits: ["artifacts/diagnostics.json"]
+
+  - id: "1.002"
+    name: "DeepSeek Code Review"
+    actor: deepseek
+    with:
+      tool: aider
+      operation: review
+      read_only: true
+      prompt: |
+        Perform a comprehensive code review of the provided files. Focus on:
+        1. Code quality and readability
+        2. Potential bugs and edge cases
+        3. Security vulnerabilities
+        4. Performance optimization opportunities
+        5. Best practices and design patterns
+        6. Test coverage gaps
+
+        Provide specific, actionable feedback with code examples where appropriate.
+    emits: ["artifacts/deepseek_review.json"]
+
+  - id: "1.003"
+    name: "Security Scan"
+    actor: security_scanner
+    with:
+      tools: ["bandit", "safety"]
+    emits: ["artifacts/security_report.json"]
+
+  - id: "1.004"
+    name: "Consolidate Report"
+    actor: deepseek
+    with:
+      tool: ollama_direct
+      operation: analyze
+      prompt: |
+        Consolidate the diagnostic results and code review findings into a prioritized action plan.
+        Include:
+        1. Critical issues requiring immediate attention
+        2. Important improvements to consider
+        3. Nice-to-have enhancements
+        4. Overall code health assessment
+
+        Format as a structured markdown report.
+    emits: ["artifacts/consolidated_report.md"]

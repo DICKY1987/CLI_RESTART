@@ -77,7 +77,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./vscode-extension
+        working-directory: ./tools/vscode-extension
 
     steps:
     - uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: vscode-extension/package-lock.json
+        cache-dependency-path: tools/vscode-extension/package-lock.json
 
     - name: Install dependencies
       run: npm ci
@@ -105,7 +105,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: vscode-extension
-        path: vscode-extension/*.vsix
+        path: tools/vscode-extension/*.vsix
 
   build-mql4:
     name: Build MQL4 Components

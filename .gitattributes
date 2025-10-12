@@ -1,14 +1,37 @@
-# Normalize line endings
+﻿# Universal normalization (prevents line-ending conflicts)
 * text=auto eol=lf
 
-# Preserve for specific types
-*.bat text eol=crlf
-*.ps1 text eol=crlf
-*.cmd text eol=crlf
-*.ts text eol=lf
-*.tsx text eol=lf
-*.json text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-*.md text eol=lf
-*.py text eol=lf
+# Append-only files
+CHANGELOG.md merge=union
+CONTRIBUTORS.md merge=union
+
+# Binary files (no merge)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.ico binary
+
+# Generated files (take theirs)
+package-lock.json merge=theirs
+poetry.lock merge=theirs
+Pipfile.lock merge=theirs
+yarn.lock merge=theirs
+pnpm-lock.yaml merge=theirs
+
+# Structured data (custom drivers)
+*.json merge=json-struct
+*.yml merge=yaml-struct
+*.yaml merge=yaml-struct
+
+# Security-sensitive (require manual review)
+Dockerfile merge=manual
+requirements.txt merge=manual
+Pipfile merge=manual
+go.mod merge=manual
+Cargo.toml merge=manual
+package.json merge=manual
+
+# Documentation (union when possible)
+docs/**/*.md merge=union

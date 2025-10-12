@@ -55,9 +55,9 @@ phases:
       - Webview shows Connected and prints received messages
     actions:
       - type: vscode
-        path: vscode-extension/src/extension.ts
+        path: tools/vscode-extension/src/extension.ts
       - type: vscode
-        path: vscode-extension/media/app.js
+        path: tools/vscode-extension/media/app.js
 
   - id: phase_validate_event_bus
     title: Validate event bus roundtrip

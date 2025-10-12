@@ -37,10 +37,10 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: tools/vscode-extension/package-lock.json
 
       - name: Install VS Code extension dependencies
-        working-directory: vscode-extension
+        working-directory: tools/vscode-extension
         run: |
           npm ci
           npm install --save-dev json-schema-to-typescript
@@ -53,7 +53,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          if [ -n "$(git status --porcelain vscode-extension/src/types/generated/)" ]; then
+          if [ -n "$(git status --porcelain tools/vscode-extension/src/types/generated/)" ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "Generated types have changes"
           else
@@ -68,7 +68,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add vscode-extension/src/types/generated/
+          git add tools/vscode-extension/src/types/generated/
           git commit -m "chore(types): auto-generate TypeScript interfaces from schemas
 
           Generated from schemas in .ai/schemas/ and contracts/schemas/
@@ -90,7 +90,7 @@ jobs:
             ### Action Required
             Please run locally:
             \`\`\`bash
-            cd vscode-extension
+            cd tools/vscode-extension
             npm run generate:types
             git add src/types/generated/
             git commit -m "chore(types): regenerate TypeScript interfaces"
@@ -108,7 +108,7 @@ jobs:
             <summary>View Generated Files</summary>
 
             \`\`\`
-            ${require('child_process').execSync('ls -lh vscode-extension/src/types/generated/').toString()}
+            ${require('child_process').execSync('ls -lh tools/vscode-extension/src/types/generated/').toString()}
             \`\`\`
             </details>
             `;
@@ -154,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: generated-typescript-types
-          path: vscode-extension/src/types/generated/
+          path: tools/vscode-extension/src/types/generated/
           retention-days: 30
 
   validate-types:
@@ -171,26 +171,26 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: tools/vscode-extension/package-lock.json
 
       - name: Install dependencies
-        working-directory: vscode-extension
+        working-directory: tools/vscode-extension
         run: npm ci
 
       - name: Download generated types
         uses: actions/download-artifact@v4
         with:
           name: generated-typescript-types
-          path: vscode-extension/src/types/generated/
+          path: tools/vscode-extension/src/types/generated/
         continue-on-error: true
 
       - name: Compile TypeScript
-        working-directory: vscode-extension
+        working-directory: tools/vscode-extension
         run: |
           npm run compile
 
       - name: Run type checks
-        working-directory: vscode-extension
+        working-directory: tools/vscode-extension
         run: |
           npx tsc --noEmit
 
@@ -203,5 +203,5 @@ jobs:
           ✅ TypeScript compilation passed
           ✅ Type checking passed
 
-          Generated types are available in `vscode-extension/src/types/generated/`
+          Generated types are available in `tools/vscode-extension/src/types/generated/`
           EOF
