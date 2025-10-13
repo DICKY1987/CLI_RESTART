@@ -2,3 +2,27 @@
 *.DELETED_RECORD
 .tools/
 .venv/
+
+# Python caches and build artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+*.egg-info/
+dist/
+build/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Tool logs
+tools/.dedup_logs/
+tools/atomic-workflow-system/.venv/
