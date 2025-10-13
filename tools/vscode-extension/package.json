@@ -159,7 +159,7 @@
   },
   "devDependencies": {
     "@types/vscode": "^1.105.0",
-    "@types/node": "16.x",
+    "@types/node": "24.x",
     "@types/ws": "^8.5.0",
     "@types/jest": "^29.5.0",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
