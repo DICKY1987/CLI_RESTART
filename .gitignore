@@ -2,3 +2,142 @@
 *.DELETED_RECORD
 .tools/
 .venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
++.nox/
++.tox/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# Node/TS
+node_modules/
+dist/
+out/
+coverage/
+
+# Local artifacts
+artifacts/
+logs/
+.sessions/
+.tmp-tests/
+
+# Docker
+*.local.yml
+
+# Windows system files and user directories
+NTUSER.DAT*
+ntuser.dat*
+ntuser.ini
+AppData/
+Documents/
+Desktop/
+Music/
+Pictures/
+Videos/
+Downloads/
+"3D Objects/"
+"Saved Games/"
+Searches/
+Links/
+Contacts/
+Favorites/
+OneDrive/
+"Start Menu/"
+Templates/
+Recent/
+SendTo/
+"My Documents/"
+"Application Data/"
+"Local Settings/"
+Cookies/
+NetHood/
+PrintHood/
+IntelGraphicsProfiles/
+MicrosoftEdgeBackups/
+Monitor/
+Include/
+
+# Cache and temporary directories
+.cache/
+.config/
+.docker/
+.dotnet/
+.matplotlib/
+.universal-git-automation/
+.wdm/
+.claude/
+.claude.json
+.claude.json.backup
+.codex/
+backups/
+temp_files/
+
+# Development tools and installers
+AWS_SAM_CLI_64_PY3.msi
+.python_history
+.lesshst
+.gitconfig
+
+# Nested repos or external projects (keep out)
+Autonomous-_content-_creation_-TFP-Enterprises/
+AutoContentPro/
+ClaudeZeroTouch/
+DevEnvironment/
+EEE/
+GIT_INTERGRATION_CLAUDE/
+HUEY_P_TradingSystem/
+MT4_EE/
+P-document-retry/
+PY_CLAUDE_GUI/
+TradingSystem/
+WINDOW_USB_SETUP/
+ZeroTouchKit/
+ai_projects/
+cli_requirements.txt
+codex/
+contracts/
+eafix-remote/
+eafix/
+git_100_setup/
+packages/
+pdoc_repo/
+planning/
+python_gpt_knowledge/
+src/eafix/
+yamlconvert/
+CODEX_WORKSPACE/
+
+# Embedded git repositories (to be cleaned up)
+cli_multi_rapid_DEV/
+cli_multi_rapid_DEV_branchupdate/
+cli_multi_rapid_DEV-clean/
+temp_repo_analysis/
+combined_repo_plan.composed.json
+
+# JWT keys
+config/*.pem
+!config/*.pem.template
+
+# Coordination state artifacts
+state/
+
+# Tool logs
+tools/.dedup_logs/
+tools/atomic-workflow-system/.venv/

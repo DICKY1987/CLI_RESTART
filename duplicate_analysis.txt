@@ -1,0 +1,270 @@
+================================================================================
+DUPLICATE FILES/DIRECTORIES ANALYSIS
+================================================================================
+
+[scripts]
+   Outside: C:\Users\Richard Wilks\scripts
+      Size: 40,960 bytes
+      Modified: 2025-10-11 19:50:45.787053
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\scripts
+      Size: 49,152 bytes
+      Modified: 2025-10-13 03:30:15.102751
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 113969 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[.venv]
+   Outside: C:\Users\Richard Wilks\.venv
+      Size: 4,096 bytes
+      Modified: 2025-10-11 16:37:02.442314
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\.venv
+      Size: 4,096 bytes
+      Modified: 2025-10-12 23:57:01.436791
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 112799 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[nul]
+   Outside: C:\Users\Richard Wilks\nul
+      Size: 0 bytes
+      Modified: 1969-12-31 18:00:00
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\nul
+      Size: 0 bytes
+      Modified: 1969-12-31 18:00:00
+      Hash: N/A (dir or large file)
+   == Both have same modification time
+
+[.gemini]
+   Outside: C:\Users\Richard Wilks\.gemini
+      Size: 4,096 bytes
+      Modified: 2025-10-06 11:46:00.788648
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\.gemini
+      Size: 4,096 bytes
+      Modified: 2025-10-11 12:50:25.259180
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 435864 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[workflows]
+   Outside: C:\Users\Richard Wilks\workflows
+      Size: 4,096 bytes
+      Modified: 2025-10-04 13:19:30.943196
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\workflows
+      Size: 4,096 bytes
+      Modified: 2025-10-11 15:01:15.956518
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 610905 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[tests]
+   Outside: C:\Users\Richard Wilks\tests
+      Size: 8,192 bytes
+      Modified: 2025-10-04 13:19:29.347785
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\tests
+      Size: 12,288 bytes
+      Modified: 2025-10-12 13:04:59.489434
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 690330 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[state]
+   Outside: C:\Users\Richard Wilks\state
+      Size: 4,096 bytes
+      Modified: 2025-10-04 13:19:28.273568
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\state
+      Size: 4,096 bytes
+      Modified: 2025-10-12 16:01:41.565345
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 700933 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[logs]
+   Outside: C:\Users\Richard Wilks\logs
+      Size: 4,096 bytes
+      Modified: 2025-10-04 13:19:22.514374
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\logs
+      Size: 0 bytes
+      Modified: 2025-10-11 12:50:25.820647
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 603063 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[config]
+   Outside: C:\Users\Richard Wilks\config
+      Size: 8,192 bytes
+      Modified: 2025-10-04 13:19:18.370069
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\config
+      Size: 8,192 bytes
+      Modified: 2025-10-12 10:08:04.346120
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 679726 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[alembic]
+   Outside: C:\Users\Richard Wilks\alembic
+      Size: 0 bytes
+      Modified: 2025-10-04 13:19:17.564495
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\alembic
+      Size: 0 bytes
+      Modified: 2025-10-12 06:18:16.839936
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 665939 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[artifacts]
+   Outside: C:\Users\Richard Wilks\artifacts
+      Size: 12,288 bytes
+      Modified: 2025-10-04 13:19:17.662130
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\artifacts
+      Size: 4,096 bytes
+      Modified: 2025-10-11 12:50:25.635261
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 603068 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[.vscode]
+   Outside: C:\Users\Richard Wilks\.vscode
+      Size: 4,096 bytes
+      Modified: 2025-10-04 13:19:14.840776
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\.vscode
+      Size: 4,096 bytes
+      Modified: 2025-10-13 03:30:15.098558
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 742260 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[CLI_PY_GUI]
+   Outside: C:\Users\Richard Wilks\CLI_PY_GUI
+      Size: 4,096 bytes
+      Modified: 2025-10-04 13:19:14.938347
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\CLI_PY_GUI
+      Size: 4,096 bytes
+      Modified: 2025-10-11 12:50:25.540219
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 603071 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[.github]
+   Outside: C:\Users\Richard Wilks\.github
+      Size: 4,096 bytes
+      Modified: 2025-10-04 13:19:13.996882
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\.github
+      Size: 4,096 bytes
+      Modified: 2025-10-12 10:08:04.242897
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 679730 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[.git-rewrite]
+   Outside: C:\Users\Richard Wilks\.git-rewrite
+      Size: 4,096 bytes
+      Modified: 2025-10-04 13:19:13.810023
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\.git-rewrite
+      Size: 4,096 bytes
+      Modified: 2025-10-13 03:30:15.094543
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 742261 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[ ]
+   Outside: C:\Users\Richard Wilks\ 
+      Size: 98,304 bytes
+      Modified: 2025-10-13 06:10:31.349291
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\ 
+      Size: 49,152 bytes
+      Modified: 2025-10-13 06:08:55.451573
+      Hash: N/A (dir or large file)
+   ** OUTSIDE is NEWER by 96 seconds
+   RECOMMENDATION: MOVE outside to inside (backup inside first)
+
+[src]
+   Outside: C:\Users\Richard Wilks\src
+      Size: 4,096 bytes
+      Modified: 2025-10-04 09:06:13.093517
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\src
+      Size: 4,096 bytes
+      Modified: 2025-10-13 03:30:15.092535
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 757442 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[.ruff_cache]
+   Outside: C:\Users\Richard Wilks\.ruff_cache
+      Size: 4,096 bytes
+      Modified: 2025-10-04 06:26:22.583515
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\.ruff_cache
+      Size: 0 bytes
+      Modified: 2025-10-12 16:00:42.046896
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 725659 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[.ai]
+   Outside: C:\Users\Richard Wilks\.ai
+      Size: 4,096 bytes
+      Modified: 2025-10-03 21:20:58.101063
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\.ai
+      Size: 4,096 bytes
+      Modified: 2025-10-11 12:50:25.237204
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 660567 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[deploy]
+   Outside: C:\Users\Richard Wilks\deploy
+      Size: 0 bytes
+      Modified: 2025-09-22 08:11:47.044529
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\deploy
+      Size: 0 bytes
+      Modified: 2025-10-11 12:50:25.673070
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 1658319 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[specs]
+   Outside: C:\Users\Richard Wilks\specs
+      Size: 0 bytes
+      Modified: 2025-09-22 08:11:47.326118
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\specs
+      Size: 0 bytes
+      Modified: 2025-10-12 11:22:03.962293
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 1739417 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+[.pytest_cache]
+   Outside: C:\Users\Richard Wilks\.pytest_cache
+      Size: 0 bytes
+      Modified: 2025-09-21 00:59:18.856707
+      Hash: N/A (dir or large file)
+   Inside:  C:\Users\Richard Wilks\CLI_RESTART\.pytest_cache
+      Size: 4,096 bytes
+      Modified: 2025-10-12 23:29:54.267890
+      Hash: N/A (dir or large file)
+   ++ INSIDE is NEWER by 1895435 seconds
+   RECOMMENDATION: DELETE outside (inside is current)
+
+================================================================================
+SUMMARY: 22 duplicates found
+================================================================================
