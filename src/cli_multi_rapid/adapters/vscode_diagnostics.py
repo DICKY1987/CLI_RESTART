@@ -15,9 +15,14 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
+from .base_adapter import (
+    AdapterPerformanceProfile,
+    AdapterResult,
+    AdapterType,
+    BaseAdapter,
+)
 
 
 class VSCodeDiagnosticsAdapter(BaseAdapter):
@@ -31,7 +36,7 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
         )
         self._available_analyzers = self._check_available_analyzers()
 
-    def _check_available_analyzers(self) -> Dict[str, bool]:
+    def _check_available_analyzers(self) -> dict[str, bool]:
         """Check which diagnostic tools are available."""
         analyzers = {}
         tools = ["ruff", "mypy", "pylint", "eslint", "tsc"]
@@ -65,7 +70,7 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
             requires_api_key=False
         )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         if not self.is_available():
             return False
@@ -79,14 +84,14 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
             for analyzer in requested_analyzers
         )
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic tools)."""
         return 0
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute diagnostic analysis on specified files."""
@@ -168,8 +173,8 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
         return result
 
     def _resolve_files_by_language(
-        self, pattern: str, analyzers: List[str]
-    ) -> Dict[str, List[Path]]:
+        self, pattern: str, analyzers: list[str]
+    ) -> dict[str, list[Path]]:
         """Resolve file patterns to files grouped by language."""
         files_by_lang = {"python": [], "javascript": [], "typescript": []}
 
@@ -207,8 +212,8 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
             return {"python": [], "javascript": [], "typescript": []}
 
     def _run_analyzer(
-        self, analyzer: str, target_files: Dict[str, List[Path]], params: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, analyzer: str, target_files: dict[str, list[Path]], params: dict[str, Any]
+    ) -> dict[str, Any]:
         """Run a specific diagnostic analyzer."""
         if analyzer == "python" or analyzer == "ruff":
             return self._run_ruff(target_files["python"])
@@ -222,7 +227,7 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
         else:
             return {"error": f"Unknown analyzer: {analyzer}"}
 
-    def _run_ruff(self, files: List[Path]) -> Dict[str, Any]:
+    def _run_ruff(self, files: list[Path]) -> dict[str, Any]:
         """Run ruff linter."""
         if not files:
             return {"issues": [], "exit_code": 0}
@@ -266,7 +271,7 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
         except Exception as e:
             return {"error": str(e)}
 
-    def _run_mypy(self, files: List[Path]) -> Dict[str, Any]:
+    def _run_mypy(self, files: list[Path]) -> dict[str, Any]:
         """Run mypy type checker."""
         if not files:
             return {"issues": [], "exit_code": 0}
@@ -331,7 +336,7 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
         except Exception as e:
             return {"error": str(e)}
 
-    def _run_pylint(self, files: List[Path]) -> Dict[str, Any]:
+    def _run_pylint(self, files: list[Path]) -> dict[str, Any]:
         """Run pylint analyzer."""
         if not files:
             return {"issues": [], "exit_code": 0}
@@ -377,7 +382,7 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
         except Exception as e:
             return {"error": str(e)}
 
-    def _run_eslint(self, files: List[Path]) -> Dict[str, Any]:
+    def _run_eslint(self, files: list[Path]) -> dict[str, Any]:
         """Run eslint analyzer."""
         if not files:
             return {"issues": [], "exit_code": 0}
@@ -425,7 +430,7 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
         except Exception as e:
             return {"error": str(e)}
 
-    def _filter_by_severity(self, issues: List[Dict], min_severity: str) -> List[Dict]:
+    def _filter_by_severity(self, issues: list[dict], min_severity: str) -> list[dict]:
         """Filter issues by minimum severity level."""
         severity_levels = {"info": 0, "warning": 1, "error": 2}
         min_level = severity_levels.get(min_severity.lower(), 0)
@@ -438,10 +443,10 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
 
     def _generate_artifacts(
         self,
-        emit_paths: List[str],
-        results: Dict[str, Any],
-        target_files: Dict[str, List[Path]],
-    ) -> List[str]:
+        emit_paths: list[str],
+        results: dict[str, Any],
+        target_files: dict[str, list[Path]],
+    ) -> list[str]:
         """Generate diagnostic artifacts."""
         artifacts = []
 
@@ -496,9 +501,9 @@ class VSCodeDiagnosticsAdapter(BaseAdapter):
 
     def _format_output(
         self,
-        results: Dict[str, Any],
+        results: dict[str, Any],
         total_issues: int,
-        target_files: Dict[str, List[Path]],
+        target_files: dict[str, list[Path]],
     ) -> str:
         """Format human-readable output summary."""
         total_files = sum(len(files) for files in target_files.values())

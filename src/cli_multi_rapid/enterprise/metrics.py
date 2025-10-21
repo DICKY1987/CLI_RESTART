@@ -13,7 +13,7 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class MetricSample:
 
     value: Union[int, float]
     timestamp: float = field(default_factory=time.time)
-    labels: Dict[str, str] = field(default_factory=dict)
+    labels: dict[str, str] = field(default_factory=dict)
 
 
 class MetricsCollector:
@@ -35,14 +35,14 @@ class MetricsCollector:
         self._lock = Lock()
 
         # Metric storage
-        self._counters: Dict[str, float] = defaultdict(float)
-        self._gauges: Dict[str, float] = {}
-        self._histograms: Dict[str, List[float]] = defaultdict(list)
-        self._summaries: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self._counters: dict[str, float] = defaultdict(float)
+        self._gauges: dict[str, float] = {}
+        self._histograms: dict[str, list[float]] = defaultdict(list)
+        self._summaries: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
 
         # Labels for metrics
-        self._counter_labels: Dict[str, Dict[str, str]] = {}
-        self._gauge_labels: Dict[str, Dict[str, str]] = {}
+        self._counter_labels: dict[str, dict[str, str]] = {}
+        self._gauge_labels: dict[str, dict[str, str]] = {}
 
         # Initialize default metrics
         self._init_default_metrics()
@@ -72,7 +72,7 @@ class MetricsCollector:
         self.histogram("step_duration_seconds", "Individual step duration in seconds")
 
     def counter(
-        self, name: str, description: str = "", labels: Optional[Dict[str, str]] = None
+        self, name: str, description: str = "", labels: Optional[dict[str, str]] = None
     ) -> None:
         """Create or increment a counter metric."""
         with self._lock:
@@ -82,7 +82,7 @@ class MetricsCollector:
                 self._counter_labels[metric_key] = labels or {}
 
     def inc_counter(
-        self, name: str, value: float = 1.0, labels: Optional[Dict[str, str]] = None
+        self, name: str, value: float = 1.0, labels: Optional[dict[str, str]] = None
     ) -> None:
         """Increment a counter by a specific value."""
         with self._lock:
@@ -95,7 +95,7 @@ class MetricsCollector:
         self,
         name: str,
         value: Optional[float] = None,
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
     ) -> float:
         """Set or get a gauge metric value."""
         metric_key = self._make_metric_key(name, labels)
@@ -113,7 +113,7 @@ class MetricsCollector:
         self,
         name: str,
         value: Optional[float] = None,
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
     ) -> None:
         """Record a value in a histogram."""
         if value is not None:
@@ -125,14 +125,14 @@ class MetricsCollector:
                     self._histograms[metric_key] = self._histograms[metric_key][-1000:]
 
     def summary(
-        self, name: str, value: float, labels: Optional[Dict[str, str]] = None
+        self, name: str, value: float, labels: Optional[dict[str, str]] = None
     ) -> None:
         """Record a value in a summary."""
         metric_key = self._make_metric_key(name, labels)
         with self._lock:
             self._summaries[metric_key].append(value)
 
-    def time_function(self, metric_name: str, labels: Optional[Dict[str, str]] = None):
+    def time_function(self, metric_name: str, labels: Optional[dict[str, str]] = None):
         """Decorator to time function execution."""
 
         def decorator(func):
@@ -215,7 +215,7 @@ class MetricsCollector:
                 "requests_failed", 1, {"endpoint": endpoint, "status": str(status_code)}
             )
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get a summary of all collected metrics."""
         with self._lock:
             summary = {
@@ -283,7 +283,7 @@ class MetricsCollector:
             for metric_key, values in self._histograms.items():
                 if values:
                     name, labels_str = self._parse_metric_key(metric_key)
-                    sorted_values = sorted(values)
+                    sorted(values)
                     lines.append(f"# TYPE {name} histogram")
 
                     # Histogram buckets (simplified)
@@ -315,7 +315,7 @@ class MetricsCollector:
         return "\n".join(lines)
 
     def _make_metric_key(
-        self, name: str, labels: Optional[Dict[str, str]] = None
+        self, name: str, labels: Optional[dict[str, str]] = None
     ) -> str:
         """Create a unique key for a metric with labels."""
         if not labels:
@@ -339,7 +339,7 @@ class MetricsCollector:
         return name, f"{{{labels_part}}}"
 
     @staticmethod
-    def _percentile(sorted_values: List[float], percentile: float) -> float:
+    def _percentile(sorted_values: list[float], percentile: float) -> float:
         """Calculate percentile from sorted values."""
         if not sorted_values:
             return 0.0

@@ -1,6 +1,6 @@
 import uuid
-from typing import Optional
 from contextvars import ContextVar
+from typing import Optional
 
 try:
     import structlog  # type: ignore

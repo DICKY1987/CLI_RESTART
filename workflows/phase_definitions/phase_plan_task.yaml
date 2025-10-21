@@ -257,7 +257,6 @@ phases:
   - Emergency recovery runbooks
   acceptance:
   - Violation triggers alert & CI failure
-  - Rollback tabletop passes
   actions:
   - type: service
     name: compliance-svc
@@ -295,7 +294,7 @@ phases:
 - id: phase6
   title: Release v0.1.0
   goals:
-  - First rollback-able, signed, SBOMed release
+  - First signed, SBOMed release
   acceptance:
   - GitHub Release with digests + SBOMs + signatures
   actions:

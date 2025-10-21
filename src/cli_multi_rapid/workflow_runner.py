@@ -8,13 +8,12 @@ and AI escalation patterns.
 
 import json
 import secrets
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import asyncio
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Optional
 
 import yaml
 from rich.console import Console
@@ -22,8 +21,8 @@ from rich.console import Console
 from .coordination import (
     CoordinationMode,
     CoordinationPlan,
+    FileScopeManager,
     WorkflowCoordinator,
-    FileScopeManager
 )
 
 console = Console()
@@ -35,12 +34,12 @@ class WorkflowResult:
 
     success: bool
     error: Optional[str] = None
-    artifacts: List[str] = None
+    artifacts: list[str] = None
     tokens_used: int = 0
     steps_completed: int = 0
     coordination_id: Optional[str] = None
     execution_time: Optional[float] = None
-    parallel_groups: Optional[List[List[str]]] = None
+    parallel_groups: Optional[list[list[str]]] = None
 
     def __post_init__(self):
         if self.artifacts is None:
@@ -55,10 +54,10 @@ class CoordinatedWorkflowResult:
 
     success: bool
     coordination_id: str
-    workflow_results: Dict[str, WorkflowResult]
+    workflow_results: dict[str, WorkflowResult]
     total_tokens_used: int = 0
     total_execution_time: float = 0.0
-    conflicts_detected: List[str] = None
+    conflicts_detected: list[str] = None
     parallel_efficiency: float = 0.0
 
     def __post_init__(self):
@@ -114,7 +113,7 @@ class WorkflowRunner:
         random_hex = secrets.token_hex(3)  # 6 hex chars
         return f"{timestamp}-{random_hex}"
 
-    def display_workflow_banner(self, workflow_name: str, run_id: str, config: Dict[str, Any]) -> None:
+    def display_workflow_banner(self, workflow_name: str, run_id: str, config: dict[str, Any]) -> None:
         """Display startup banner with workflow info."""
         cost_tracking = config.get("policy", {}).get("max_tokens") is not None
         gates_enabled = len(config.get("gates", [])) > 0
@@ -194,8 +193,8 @@ class WorkflowRunner:
         workflow_name: str,
         result: "WorkflowResult",
         start_time: datetime,
-        git_snapshot_start: Optional[Dict[str, Any]],
-        git_snapshot_end: Optional[Dict[str, Any]]
+        git_snapshot_start: Optional[dict[str, Any]],
+        git_snapshot_end: Optional[dict[str, Any]]
     ) -> None:
         """Save workflow manifest with Git snapshots and statistics."""
         manifest_dir = Path("artifacts") / run_id
@@ -251,7 +250,7 @@ class WorkflowRunner:
     def _cancel_file(self, coordination_id: str) -> Path:
         return self._state_dir() / f"{coordination_id}.cancel"
 
-    def _persist_coordination_state(self, coordination_id: str, state: Dict[str, Any]) -> None:
+    def _persist_coordination_state(self, coordination_id: str, state: dict[str, Any]) -> None:
         try:
             with self._state_file(coordination_id).open("w", encoding="utf-8") as f:
                 json.dump(state, f, indent=2)
@@ -259,7 +258,7 @@ class WorkflowRunner:
             # Non-fatal if persistence fails
             pass
 
-    def _load_coordination_state(self, coordination_id: str) -> Optional[Dict[str, Any]]:
+    def _load_coordination_state(self, coordination_id: str) -> Optional[dict[str, Any]]:
         path = self._state_file(coordination_id)
         if not path.exists():
             return None
@@ -276,7 +275,7 @@ class WorkflowRunner:
     def execute_400_atom_pipeline(
         self,
         atom_catalog_path: str,
-        classification_config: Dict[str, Any],
+        classification_config: dict[str, Any],
         execution_mode: str = "production",
     ) -> "CoordinatedWorkflowResult":
         """Execute the 400-atom pipeline with deterministic classification.
@@ -302,7 +301,7 @@ class WorkflowRunner:
 
         return result
 
-    def _load_atom_catalog(self, catalog_path: str) -> List[Dict[str, Any]]:
+    def _load_atom_catalog(self, catalog_path: str) -> list[dict[str, Any]]:
         """Load atom catalog from YAML; return list of atoms.
 
         Expected minimal structure: { atoms: [ { id, type, files?, deterministic? }, ... ] }
@@ -320,7 +319,9 @@ class WorkflowRunner:
         schema_path = Path(".ai/schemas/atom_catalog.schema.json")
         if schema_path.exists():
             try:
-                import json, jsonschema
+                import json
+
+                import jsonschema
 
                 schema = json.loads(schema_path.read_text(encoding="utf-8"))
                 jsonschema.validate(instance=data, schema=schema)
@@ -333,7 +334,7 @@ class WorkflowRunner:
 
         atoms = data.get("atoms") or []
         # Normalize to list[dict]
-        norm: List[Dict[str, Any]] = []
+        norm: list[dict[str, Any]] = []
         for a in atoms:
             if isinstance(a, dict):
                 norm.append(a)
@@ -386,14 +387,14 @@ class WorkflowRunner:
                 success=False, error=f"Workflow execution error: {str(e)}"
             )
 
-    def _load_workflow(self, workflow_file: Path) -> Optional[Dict[str, Any]]:
+    def _load_workflow(self, workflow_file: Path) -> Optional[dict[str, Any]]:
         """Load YAML workflow file."""
         try:
             if not workflow_file.exists():
                 console.print(f"[red]Workflow file not found: {workflow_file}[/red]")
                 return None
 
-            with open(workflow_file, "r", encoding="utf-8") as f:
+            with open(workflow_file, encoding="utf-8") as f:
                 workflow = yaml.safe_load(f)
 
             console.print(
@@ -405,7 +406,7 @@ class WorkflowRunner:
             console.print(f"[red]Error loading workflow: {e}[/red]")
             return None
 
-    def _validate_schema(self, workflow: Dict[str, Any]) -> bool:
+    def _validate_schema(self, workflow: dict[str, Any]) -> bool:
         """Validate workflow against JSON schema."""
         try:
             # Import jsonschema only when needed
@@ -418,7 +419,7 @@ class WorkflowRunner:
                 )
                 return True
 
-            with open(schema_path, "r", encoding="utf-8") as f:
+            with open(schema_path, encoding="utf-8") as f:
                 schema = json.load(f)
 
             jsonschema.validate(workflow, schema)
@@ -436,7 +437,7 @@ class WorkflowRunner:
 
     def _execute_workflow(
         self,
-        workflow: Dict[str, Any],
+        workflow: dict[str, Any],
         dry_run: bool = False,
         files: Optional[str] = None,
         lane: Optional[str] = None,
@@ -494,7 +495,7 @@ class WorkflowRunner:
                 continue
 
             # Execute step (adapter-backed)
-            start_step = time.time()
+            time.time()
             if per_phase_seconds:
                 # Soft timeout: if exceeded, mark failure gracefully
                 try:
@@ -563,8 +564,8 @@ class WorkflowRunner:
         return result
 
     def _execute_step(
-        self, step: Dict[str, Any], files: Optional[str] = None, timeout_seconds: Optional[int] = None
-    ) -> Dict[str, Any]:
+        self, step: dict[str, Any], files: Optional[str] = None, timeout_seconds: Optional[int] = None
+    ) -> dict[str, Any]:
         """Execute a single workflow step via adapter registry routing."""
         actor = step.get("actor", "unknown")
         console.print(f"[dim]Executing actor: {actor}[/dim]")
@@ -653,7 +654,7 @@ class WorkflowRunner:
         return {"success": True, "tokens_used": 0, "artifacts": [], "output": str(result_obj)}
 
     # Compatibility wrapper used by some integration tests
-    def execute_workflow(self, workflow: Dict[str, Any], files: Optional[str] = None, dry_run: bool = False) -> Dict[str, Any]:
+    def execute_workflow(self, workflow: dict[str, Any], files: Optional[str] = None, dry_run: bool = False) -> dict[str, Any]:
         """Execute workflow and return a legacy dict structure for compatibility."""
         result = self._execute_workflow(workflow, dry_run=dry_run, files=files)
         return {
@@ -714,7 +715,7 @@ class WorkflowRunner:
 
     def run_coordinated_workflows(
         self,
-        workflow_files: List[Path],
+        workflow_files: list[Path],
         coordination_mode: str = "parallel",
         max_parallel: int = 3,
         total_budget: Optional[float] = None,
@@ -758,7 +759,7 @@ class WorkflowRunner:
                 )
 
             # Initialize and persist coordination state
-            state: Dict[str, Any] = {
+            state: dict[str, Any] = {
                 "coordination_id": coordination_id,
                 "status": "running" if not dry_run else "dry_run",
                 "started_at": datetime.now().isoformat(),
@@ -836,7 +837,7 @@ class WorkflowRunner:
 
     def _execute_parallel_workflow(
         self,
-        workflow: Dict[str, Any],
+        workflow: dict[str, Any],
         dry_run: bool = False,
         files: Optional[str] = None,
         lane: Optional[str] = None,
@@ -887,7 +888,7 @@ class WorkflowRunner:
 
     def _execute_ipt_wt_workflow(
         self,
-        workflow: Dict[str, Any],
+        workflow: dict[str, Any],
         dry_run: bool = False,
         files: Optional[str] = None,
         lane: Optional[str] = None,
@@ -946,12 +947,12 @@ class WorkflowRunner:
 
     def _execute_parallel_groups(
         self,
-        workflows: List[Dict[str, Any]],
+        workflows: list[dict[str, Any]],
         coordination_plan: CoordinationPlan,
         max_parallel: int,
         dry_run: bool,
         coordination_id: Optional[str] = None,
-    ) -> Dict[str, WorkflowResult]:
+    ) -> dict[str, WorkflowResult]:
         """Execute workflows in parallel groups."""
 
         workflow_results = {}
@@ -998,11 +999,11 @@ class WorkflowRunner:
 
     def _execute_sequential_workflows(
         self,
-        workflows: List[Dict[str, Any]],
+        workflows: list[dict[str, Any]],
         coordination_plan: CoordinationPlan,
         dry_run: bool,
         coordination_id: Optional[str] = None,
-    ) -> Dict[str, WorkflowResult]:
+    ) -> dict[str, WorkflowResult]:
         """Execute workflows sequentially."""
 
         workflow_results = {}
@@ -1076,7 +1077,7 @@ class WorkflowRunner:
             # Execute remaining sequentially for simplicity
             results = self._execute_sequential_workflows(workflows, plan, dry_run=False, coordination_id=coordination_id)
             # Merge with previous results
-            merged: Dict[str, WorkflowResult] = {}
+            merged: dict[str, WorkflowResult] = {}
             for name, prev in (state.get("workflow_results") or {}).items():
                 merged[name] = WorkflowResult(
                     success=bool(prev.get("success")),
@@ -1130,11 +1131,11 @@ class WorkflowRunner:
 
     def _execute_parallel_phases(
         self,
-        phases: List[Dict[str, Any]],
+        phases: list[dict[str, Any]],
         dry_run: bool,
         files: Optional[str],
         max_tokens: Optional[int]
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Execute phases in parallel."""
 
         if dry_run:
@@ -1173,10 +1174,10 @@ class WorkflowRunner:
 
     def _execute_phase(
         self,
-        phase: Dict[str, Any],
+        phase: dict[str, Any],
         dry_run: bool,
         files: Optional[str]
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute a single workflow phase."""
 
         phase_id = phase.get('id', 'unknown')
@@ -1222,7 +1223,7 @@ class WorkflowRunner:
 
     def _calculate_parallel_efficiency(
         self,
-        workflow_results: Dict[str, WorkflowResult],
+        workflow_results: dict[str, WorkflowResult],
         total_time: float
     ) -> float:
         """Calculate parallelization efficiency."""

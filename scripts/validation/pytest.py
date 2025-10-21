@@ -8,7 +8,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class PyTestPlugin:
@@ -19,7 +19,7 @@ class PyTestPlugin:
         self.description = "Run Python tests with pytest"
         self.version = "1.0.0"
 
-    def discover(self) -> Dict[str, Any]:
+    def discover(self) -> dict[str, Any]:
         """Discover if pytest is available and find test files."""
 
         # Check if pytest is installed
@@ -51,8 +51,8 @@ class PyTestPlugin:
         }
 
     def run(
-        self, checkpoint_id: str, config: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, checkpoint_id: str, config: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """Run pytest verification."""
 
         config = config or {}
@@ -161,7 +161,7 @@ class PyTestPlugin:
                 "timestamp": start_timestamp,
             }
 
-    def report(self, results: Dict[str, Any]) -> str:
+    def report(self, results: dict[str, Any]) -> str:
         """Generate human-readable report from results."""
 
         status_emoji = {"PASS": "✅", "FAIL": "❌", "TIMEOUT": "⏰", "ERROR": "⚠️"}

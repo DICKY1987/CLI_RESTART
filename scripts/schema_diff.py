@@ -21,13 +21,13 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS_DIR = ROOT / "contracts" / "schemas"
 
 
-def run(cmd: List[str], cwd: Optional[Path] = None) -> str:
+def run(cmd: list[str], cwd: Path | None = None) -> str:
     res = subprocess.run(
         cmd, cwd=str(cwd) if cwd else None, capture_output=True, text=True
     )
@@ -36,23 +36,23 @@ def run(cmd: List[str], cwd: Optional[Path] = None) -> str:
     return res.stdout
 
 
-def parse_version(v: str) -> Tuple[int, int, int]:
+def parse_version(v: str) -> tuple[int, int, int]:
     m = re.match(r"^(\d+)\.(\d+)\.(\d+)$", v.strip())
     if not m:
         raise ValueError(f"Invalid semver: {v}")
     return tuple(int(x) for x in m.groups())  # type: ignore[return-value]
 
 
-def load_json_text(text: str) -> Dict[str, Any]:
+def load_json_text(text: str) -> dict[str, Any]:
     return json.loads(text)
 
 
-def load_json_file(path: Path) -> Dict[str, Any]:
+def load_json_file(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def get_changed_schema_paths(base_ref: str) -> List[Path]:
+def get_changed_schema_paths(base_ref: str) -> list[Path]:
     diff = run(["git", "diff", "--name-only", f"origin/{base_ref}...HEAD"]).splitlines()
     paths = [
         ROOT / p
@@ -62,7 +62,7 @@ def get_changed_schema_paths(base_ref: str) -> List[Path]:
     return paths
 
 
-def git_show(path: Path, ref: str) -> Optional[str]:
+def git_show(path: Path, ref: str) -> str | None:
     try:
         return run(["git", "show", f"origin/{ref}:{path.as_posix()}"], cwd=ROOT)
     except RuntimeError:
@@ -73,20 +73,20 @@ def git_show(path: Path, ref: str) -> Optional[str]:
 class ChangeReport:
     path: Path
     kind: str  # breaking|additive|patch|unknown
-    details: List[str]
-    old_version: Optional[str]
-    new_version: Optional[str]
+    details: list[str]
+    old_version: str | None
+    new_version: str | None
 
 
 IGNORED_KEYS = {"title", "description", "$schema", "$id", "default", "examples"}
 
 
 def collect_props(
-    schema: Dict[str, Any], base: str = ""
-) -> Tuple[Set[str], Set[str], Dict[str, Any]]:
-    props_paths: Set[str] = set()
-    required_paths: Set[str] = set()
-    types: Dict[str, Any] = {}
+    schema: dict[str, Any], base: str = ""
+) -> tuple[set[str], set[str], dict[str, Any]]:
+    props_paths: set[str] = set()
+    required_paths: set[str] = set()
+    types: dict[str, Any] = {}
 
     def walk(node: Any, path: str):
         if isinstance(node, dict):
@@ -118,8 +118,8 @@ def collect_props(
     return props_paths, required_paths, types
 
 
-def classify_change(old: Dict[str, Any], new: Dict[str, Any]) -> Tuple[str, List[str]]:
-    details: List[str] = []
+def classify_change(old: dict[str, Any], new: dict[str, Any]) -> tuple[str, list[str]]:
+    details: list[str] = []
     old_props, old_required, old_types = collect_props(old)
     new_props, new_required, new_types = collect_props(new)
 
@@ -145,7 +145,7 @@ def classify_change(old: Dict[str, Any], new: Dict[str, Any]) -> Tuple[str, List
             in old_required
         }
         if removed_required or removed_props:
-            details.append(f"removed properties: {sorted(list(removed_props))}")
+            details.append(f"removed properties: {sorted(removed_props)}")
             breaking = True
 
     # Type or pattern changes => breaking
@@ -171,19 +171,19 @@ def classify_change(old: Dict[str, Any], new: Dict[str, Any]) -> Tuple[str, List
             continue
         if old_set.issubset(new_set):
             details.append(
-                f"enum extended at {key}: +{sorted(list(new_set - old_set))}"
+                f"enum extended at {key}: +{sorted(new_set - old_set)}"
             )
             additive = True
         else:
             details.append(
-                f"enum narrowed at {key}: -{sorted(list(old_set - new_set))}"
+                f"enum narrowed at {key}: -{sorted(old_set - new_set)}"
             )
             breaking = True
 
     # New properties added (and not required) -> additive
     added_props = new_props - old_props
     if added_props:
-        details.append(f"added properties: {sorted(list(added_props))}")
+        details.append(f"added properties: {sorted(added_props)}")
         if not added_required:  # if also added required, we already marked breaking
             additive = True
 

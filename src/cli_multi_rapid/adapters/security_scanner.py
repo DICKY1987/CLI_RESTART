@@ -10,7 +10,7 @@ import ast
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
@@ -27,8 +27,8 @@ class SecurityScannerAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute security scanning."""
@@ -131,12 +131,12 @@ class SecurityScannerAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__}
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
         return "target_files" in with_params
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic operations)."""
         return 0
 
@@ -144,7 +144,7 @@ class SecurityScannerAdapter(BaseAdapter):
         """Check if security scanning tools are available."""
         return True  # Basic security patterns are always available
 
-    def _scan_file(self, file_path: str, scan_types: List[str], include_recommendations: bool) -> Dict[str, Any]:
+    def _scan_file(self, file_path: str, scan_types: list[str], include_recommendations: bool) -> dict[str, Any]:
         """Scan a single file for security issues."""
         file_result = {
             "file_path": file_path,
@@ -224,7 +224,7 @@ class SecurityScannerAdapter(BaseAdapter):
 
         return language_map.get(extension, "unknown")
 
-    def _static_analysis_scan(self, file_path: Path, result: Dict[str, Any], language: str) -> None:
+    def _static_analysis_scan(self, file_path: Path, result: dict[str, Any], language: str) -> None:
         """Perform static analysis security scanning."""
         if language == "python":
             self._scan_python_security(file_path, result)
@@ -235,7 +235,7 @@ class SecurityScannerAdapter(BaseAdapter):
         elif language == "sql":
             self._scan_sql_security(file_path, result)
 
-    def _scan_python_security(self, file_path: Path, result: Dict[str, Any]) -> None:
+    def _scan_python_security(self, file_path: Path, result: dict[str, Any]) -> None:
         """Scan Python code for security issues."""
         try:
             with open(file_path, encoding='utf-8') as f:
@@ -258,7 +258,7 @@ class SecurityScannerAdapter(BaseAdapter):
                 "message": f"Failed to scan Python file: {str(e)}"
             })
 
-    def _analyze_python_ast(self, tree: ast.AST, result: Dict[str, Any]) -> None:
+    def _analyze_python_ast(self, tree: ast.AST, result: dict[str, Any]) -> None:
         """Analyze Python AST for security issues."""
         dangerous_functions = {
             'eval': 'critical',
@@ -298,7 +298,7 @@ class SecurityScannerAdapter(BaseAdapter):
                                 "line": node.lineno
                             })
 
-    def _scan_python_patterns(self, content: str, result: Dict[str, Any]) -> None:
+    def _scan_python_patterns(self, content: str, result: dict[str, Any]) -> None:
         """Scan Python content for security patterns."""
         patterns = [
             {
@@ -335,7 +335,7 @@ class SecurityScannerAdapter(BaseAdapter):
 
         self._apply_regex_patterns(content, patterns, result)
 
-    def _scan_js_security(self, file_path: Path, result: Dict[str, Any]) -> None:
+    def _scan_js_security(self, file_path: Path, result: dict[str, Any]) -> None:
         """Scan JavaScript/TypeScript code for security issues."""
         try:
             with open(file_path, encoding='utf-8') as f:
@@ -383,7 +383,7 @@ class SecurityScannerAdapter(BaseAdapter):
                 "message": f"Failed to scan JS/TS file: {str(e)}"
             })
 
-    def _scan_shell_security(self, file_path: Path, result: Dict[str, Any]) -> None:
+    def _scan_shell_security(self, file_path: Path, result: dict[str, Any]) -> None:
         """Scan shell scripts for security issues."""
         try:
             with open(file_path, encoding='utf-8') as f:
@@ -425,7 +425,7 @@ class SecurityScannerAdapter(BaseAdapter):
                 "message": f"Failed to scan shell file: {str(e)}"
             })
 
-    def _scan_sql_security(self, file_path: Path, result: Dict[str, Any]) -> None:
+    def _scan_sql_security(self, file_path: Path, result: dict[str, Any]) -> None:
         """Scan SQL files for security issues."""
         try:
             with open(file_path, encoding='utf-8') as f:
@@ -461,7 +461,7 @@ class SecurityScannerAdapter(BaseAdapter):
                 "message": f"Failed to scan SQL file: {str(e)}"
             })
 
-    def _secrets_scan(self, file_path: Path, result: Dict[str, Any]) -> None:
+    def _secrets_scan(self, file_path: Path, result: dict[str, Any]) -> None:
         """Scan file for potential secrets and credentials."""
         try:
             with open(file_path, encoding='utf-8') as f:
@@ -509,7 +509,7 @@ class SecurityScannerAdapter(BaseAdapter):
                 "message": f"Failed to scan for secrets: {str(e)}"
             })
 
-    def _dependency_scan(self, file_path: Path, result: Dict[str, Any], language: str) -> None:
+    def _dependency_scan(self, file_path: Path, result: dict[str, Any], language: str) -> None:
         """Scan for known vulnerable dependencies."""
         try:
             if language == "python":
@@ -563,7 +563,7 @@ class SecurityScannerAdapter(BaseAdapter):
                 "message": f"Failed to scan dependencies: {str(e)}"
             })
 
-    def _code_pattern_scan(self, file_path: Path, result: Dict[str, Any], language: str) -> None:
+    def _code_pattern_scan(self, file_path: Path, result: dict[str, Any], language: str) -> None:
         """Scan for insecure coding patterns."""
         try:
             with open(file_path, encoding='utf-8') as f:
@@ -600,9 +600,9 @@ class SecurityScannerAdapter(BaseAdapter):
                 "message": f"Failed to scan code patterns: {str(e)}"
             })
 
-    def _apply_regex_patterns(self, content: str, patterns: List[Dict], result: Dict[str, Any]) -> None:
+    def _apply_regex_patterns(self, content: str, patterns: list[dict], result: dict[str, Any]) -> None:
         """Apply regex patterns to content and add issues."""
-        lines = content.split('\n')
+        content.split('\n')
 
         for pattern_info in patterns:
             pattern = pattern_info["pattern"]
@@ -622,11 +622,11 @@ class SecurityScannerAdapter(BaseAdapter):
 
                 result["issues"].append(issue)
 
-    def _generate_recommendations(self, result: Dict[str, Any], language: str) -> None:
+    def _generate_recommendations(self, result: dict[str, Any], language: str) -> None:
         """Generate security recommendations based on found issues."""
         recommendations = []
 
-        issue_types = set(issue["type"] for issue in result["issues"])
+        issue_types = {issue["type"] for issue in result["issues"]}
 
         if "HardcodedPassword" in issue_types or "HardcodedAPIKey" in issue_types:
             recommendations.append({
@@ -658,7 +658,7 @@ class SecurityScannerAdapter(BaseAdapter):
 
         result["recommendations"] = recommendations
 
-    def _evaluate_security_success(self, summary: Dict[str, Any], threshold: str) -> bool:
+    def _evaluate_security_success(self, summary: dict[str, Any], threshold: str) -> bool:
         """Evaluate if security scan passes based on threshold."""
         threshold_map = {
             "critical": ["critical"],

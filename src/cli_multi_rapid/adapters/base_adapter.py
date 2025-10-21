@@ -12,7 +12,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Import contract validator for schema validation
 try:
@@ -40,10 +40,10 @@ class AdapterPerformanceProfile:
     """Performance profile for adapter metadata."""
 
     complexity_threshold: float = 0.5  # Max complexity this adapter handles well
-    preferred_file_types: List[str] = field(default_factory=list)
+    preferred_file_types: list[str] = field(default_factory=list)
     max_files: int = 100  # Maximum files to process efficiently
     max_file_size: int = 1000000  # Maximum total file size (bytes)
-    operation_types: List[str] = field(default_factory=list)
+    operation_types: list[str] = field(default_factory=list)
     avg_execution_time: float = 1.0  # seconds
     success_rate: float = 1.0
     cost_efficiency: float = 1.0  # tokens per operation
@@ -58,12 +58,12 @@ class AdapterResult:
 
     success: bool
     tokens_used: int = 0
-    artifacts: List[str] = field(default_factory=list)
+    artifacts: list[str] = field(default_factory=list)
     output: Optional[str] = None
     error: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert result to dictionary format expected by workflow runner."""
         return {
             "success": self.success,
@@ -117,7 +117,7 @@ class BaseAdapter(ABC):
         """
         return None
 
-    def validate_input_schema(self, step: Dict[str, Any]) -> None:
+    def validate_input_schema(self, step: dict[str, Any]) -> None:
         """
         Validate step definition against input schema.
 
@@ -161,8 +161,8 @@ class BaseAdapter(ABC):
     @abstractmethod
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """
@@ -179,7 +179,7 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """
         Validate that this adapter can execute the given step.
 
@@ -192,7 +192,7 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """
         Estimate the token cost of executing this step.
 
@@ -244,7 +244,7 @@ class BaseAdapter(ABC):
         final_performance = base_performance - file_penalty - size_penalty
         return max(0.0, min(1.0, final_performance))
 
-    def get_metadata(self) -> Dict[str, Any]:
+    def get_metadata(self) -> dict[str, Any]:
         """Get adapter metadata for router registration."""
         profile = self.get_performance_profile()
         return {
@@ -291,18 +291,18 @@ class BaseAdapter(ABC):
         """Whether this adapter supports 'with' parameters."""
         return True
 
-    def _extract_with_params(self, step: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_with_params(self, step: dict[str, Any]) -> dict[str, Any]:
         """Extract 'with' parameters from step definition."""
         return step.get("with", {})
 
-    def _extract_emit_paths(self, step: Dict[str, Any]) -> List[str]:
+    def _extract_emit_paths(self, step: dict[str, Any]) -> list[str]:
         """Extract 'emits' artifact paths from step definition."""
         emits = step.get("emits", [])
         if isinstance(emits, str):
             return [emits]
         return emits if isinstance(emits, list) else []
 
-    def _log_execution_start(self, step: Dict[str, Any]) -> None:
+    def _log_execution_start(self, step: dict[str, Any]) -> None:
         """Log the start of step execution."""
         step_name = step.get("name", "Unnamed step")
         self.logger.info(f"Starting execution: {step_name}")

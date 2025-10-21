@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from string import Template
-from typing import Dict, Optional
 
 
 @dataclass
@@ -13,7 +12,7 @@ class RenderResult:
     template_name: str
 
 
-_TEMPLATES: Dict[str, str] = {
+_TEMPLATES: dict[str, str] = {
     # Phase 0/1 basics
     "taskfile_minimal": """
 version: '3'
@@ -429,7 +428,7 @@ def has_template(name: str) -> bool:
 
 
 def render_template(
-    name: str, context: Optional[Dict[str, str]] = None
+    name: str, context: dict[str, str] | None = None
 ) -> RenderResult:
     if name not in _TEMPLATES:
         raise KeyError(f"Unknown template: {name}")

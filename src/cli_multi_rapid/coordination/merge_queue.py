@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 class MergeStatus(Enum):
@@ -44,7 +44,7 @@ class MergeQueueItem:
     priority: int = 1
     status: MergeStatus = MergeStatus.QUEUED
     verification_level: VerificationLevel = VerificationLevel.STANDARD
-    quality_gates: List[str] = None
+    quality_gates: list[str] = None
     attempts: int = 0
     max_attempts: int = 3
     error: Optional[str] = None
@@ -66,7 +66,7 @@ class MergeQueueItem:
         if isinstance(self.verification_level, str):
             self.verification_level = VerificationLevel(self.verification_level)
 
-    def _default_quality_gates(self) -> List[str]:
+    def _default_quality_gates(self) -> list[str]:
         """Get default quality gates based on verification level."""
         gates_map = {
             VerificationLevel.MINIMAL: ["lint"],
@@ -92,7 +92,7 @@ class MergeQueueItem:
             and self.attempts < self.max_attempts
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         data = asdict(self)
         # Convert enums to strings for JSON serialization
@@ -101,7 +101,7 @@ class MergeQueueItem:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MergeQueueItem":
+    def from_dict(cls, data: dict[str, Any]) -> "MergeQueueItem":
         """Create from dictionary."""
         return cls(**data)
 
@@ -111,8 +111,8 @@ class MergeQueueManager:
 
     def __init__(self, queue_file: Optional[Path] = None):
         self.queue_file = queue_file or Path(".ai/coordination/merge_queue.json")
-        self.queue: List[MergeQueueItem] = []
-        self.processing_history: List[Dict[str, Any]] = []
+        self.queue: list[MergeQueueItem] = []
+        self.processing_history: list[dict[str, Any]] = []
         self._load_queue()
 
     def add_to_queue(
@@ -121,7 +121,7 @@ class MergeQueueManager:
         workflow_id: str,
         priority: int = 1,
         verification_level: str = "standard",
-        quality_gates: Optional[List[str]] = None,
+        quality_gates: Optional[list[str]] = None,
     ) -> bool:
         """Add branch to merge queue."""
 
@@ -185,7 +185,7 @@ class MergeQueueManager:
         self.queue = [item for item in self.queue if item.status != MergeStatus.MERGED]
         self._save_queue()
 
-    def get_queue_status(self) -> Dict[str, Any]:
+    def get_queue_status(self) -> dict[str, Any]:
         """Get current queue status summary."""
 
         status_counts = {}
@@ -214,7 +214,7 @@ class MergeQueueManager:
             "last_updated": datetime.now().isoformat(),
         }
 
-    def retry_failed_items(self) -> List[str]:
+    def retry_failed_items(self) -> list[str]:
         """Retry failed items that are eligible."""
 
         retried_branches = []
@@ -330,7 +330,7 @@ class MergeQueueProcessor:
         self.git_ops = git_ops_adapter
         self.manager = MergeQueueManager()
 
-    def process_queue(self, max_items: int = 5) -> List[Dict[str, Any]]:
+    def process_queue(self, max_items: int = 5) -> list[dict[str, Any]]:
         """Process items in the merge queue."""
 
         results = []
@@ -379,7 +379,7 @@ class MergeQueueProcessor:
 
         return results
 
-    def _process_merge_item(self, item: MergeQueueItem) -> Dict[str, Any]:
+    def _process_merge_item(self, item: MergeQueueItem) -> dict[str, Any]:
         """Process a single merge queue item."""
 
         if self.git_ops:

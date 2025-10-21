@@ -20,5 +20,5 @@ def load_fixers():
 
 def test_no_duplicate_fixers_order():
     fixers = load_fixers()
-    for reason, actions in fixers.items():
+    for _reason, actions in fixers.items():
         assert list(dict.fromkeys(actions)) == actions

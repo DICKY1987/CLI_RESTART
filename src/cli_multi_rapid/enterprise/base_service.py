@@ -16,7 +16,7 @@ import time
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Optional
 
 try:
     from fastapi import FastAPI, HTTPException, Request
@@ -42,7 +42,7 @@ class ServiceMetadata:
     name: str
     version: str
     description: str
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     health_check_interval: int = 30
     metrics_enabled: bool = True
     api_enabled: bool = True

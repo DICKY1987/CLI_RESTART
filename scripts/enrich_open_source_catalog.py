@@ -4,7 +4,6 @@ import argparse
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Set
 
 # Minimal, deterministic enrichment using awesome-selfhosted to set `self_hostable`.
 
@@ -18,14 +17,14 @@ def normalize(name: str) -> str:
     return s
 
 
-def fetch_awesome_selfhosted() -> Set[str]:
+def fetch_awesome_selfhosted() -> set[str]:
     import urllib.request
 
     url = "https://raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/master/README.md"
     with urllib.request.urlopen(url) as resp:
         content = resp.read().decode("utf-8", errors="ignore")
 
-    names: Set[str] = set()
+    names: set[str] = set()
     # Lines typically look like: "- [AppName](https://...) - description"
     link_re = re.compile(r"^\s*[-*]\s*\[([^\]]+)]\(([^)]+)\)")
     for line in content.splitlines():
@@ -51,7 +50,7 @@ def main() -> None:
     inp = Path(args.input)
     outp = Path(args.output) if args.output else inp
 
-    data: List[Dict] = json.loads(inp.read_text(encoding="utf-8"))
+    data: list[dict] = json.loads(inp.read_text(encoding="utf-8"))
 
     selfhosted_names = fetch_awesome_selfhosted()
 

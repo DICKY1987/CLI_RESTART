@@ -142,7 +142,7 @@ def main():
         "settings.json": (merge_settings if args.mode == "merge" else None),
     }
 
-    for filename, merge_fn in mapping.items():
+    for filename, _merge_fn in mapping.items():
         src_path = src_dir / filename
         if not src_path.exists():
             continue

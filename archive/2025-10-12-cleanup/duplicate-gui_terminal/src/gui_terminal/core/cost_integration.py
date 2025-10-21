@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 
 def _import_cost_tracker():
@@ -31,7 +30,7 @@ class CostEvent:
     task_id: str
     tool: str
     action: str
-    tokens: Optional[int]
+    tokens: int | None
     amount: float
 
 

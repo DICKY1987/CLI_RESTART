@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, Callable, DefaultDict, List
+from typing import Any, Callable
 
 Subscriber = Callable[[Any], None]
 
@@ -10,7 +10,7 @@ class EventBus:
     """Simple in-process pub/sub event bus (stub)."""
 
     def __init__(self) -> None:
-        self._subscribers: DefaultDict[str, List[Subscriber]] = defaultdict(list)
+        self._subscribers: defaultdict[str, list[Subscriber]] = defaultdict(list)
 
     def subscribe(self, topic: str, handler: Subscriber) -> None:
         self._subscribers[topic].append(handler)

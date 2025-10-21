@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from .process import CommandResult
 
@@ -13,10 +13,10 @@ class ToolProbe:
     """Information about a detected tool."""
 
     name: str
-    path: Optional[str]
-    version: Optional[str]
+    path: str | None
+    version: str | None
     ok: bool
-    details: Optional[str] = None
+    details: str | None = None
 
 
 @runtime_checkable
@@ -31,15 +31,15 @@ class VCS(Protocol):
         """Clone a repository."""
         ...
 
-    def status(self, cwd: Optional[str] = None) -> CommandResult:
+    def status(self, cwd: str | None = None) -> CommandResult:
         """Get repository status."""
         ...
 
-    def checkout(self, branch: str, cwd: Optional[str] = None) -> CommandResult:
+    def checkout(self, branch: str, cwd: str | None = None) -> CommandResult:
         """Checkout a branch."""
         ...
 
-    def fetch(self, cwd: Optional[str] = None) -> CommandResult:
+    def fetch(self, cwd: str | None = None) -> CommandResult:
         """Fetch from remote."""
         ...
 
@@ -67,7 +67,7 @@ class Containers(Protocol):
         ...
 
     def run(
-        self, image: str, command: Optional[List[str]] = None, **kwargs
+        self, image: str, command: list[str] | None = None, **kwargs
     ) -> CommandResult:
         """Run a container."""
         ...
@@ -102,16 +102,16 @@ class JSRuntime(Protocol):
         """Get version information for the JS runtime."""
         ...
 
-    def npm_install(self, cwd: Optional[str] = None) -> CommandResult:
+    def npm_install(self, cwd: str | None = None) -> CommandResult:
         """Run npm install."""
         ...
 
-    def npm_run(self, script: str, cwd: Optional[str] = None) -> CommandResult:
+    def npm_run(self, script: str, cwd: str | None = None) -> CommandResult:
         """Run an npm script."""
         ...
 
     def npx_run(
-        self, package: str, args: Optional[List[str]] = None, cwd: Optional[str] = None
+        self, package: str, args: list[str] | None = None, cwd: str | None = None
     ) -> CommandResult:
         """Run a package with npx."""
         ...
@@ -125,7 +125,7 @@ class AICLI(Protocol):
         """Get version information for the AI CLI."""
         ...
 
-    def run_command(self, args: List[str], cwd: Optional[str] = None) -> CommandResult:
+    def run_command(self, args: list[str], cwd: str | None = None) -> CommandResult:
         """Run an AI CLI command."""
         ...
 
@@ -139,12 +139,12 @@ class PythonQuality(Protocol):
         ...
 
     def ruff_check(
-        self, paths: Optional[List[str]] = None, fix: bool = False
+        self, paths: list[str] | None = None, fix: bool = False
     ) -> CommandResult:
         """Run ruff linting."""
         ...
 
-    def mypy_check(self, targets: Optional[List[str]] = None) -> CommandResult:
+    def mypy_check(self, targets: list[str] | None = None) -> CommandResult:
         """Run mypy type checking."""
         ...
 

@@ -265,18 +265,17 @@ class SecurityPolicyManager:
         full_command = f"{command} {' '.join(args)}".strip()
 
         # Command whitelist/blacklist validation
-        if self.command_mode == "whitelist":
-            if command not in self.allowed_commands:
-                violation = SecurityViolation(
-                    violation_type=ViolationType.COMMAND_BLOCKED,
-                    threat_level=ThreatLevel.MEDIUM,
-                    command=full_command,
-                    description=f"Command '{command}' not in allowed list",
-                    user_id=user_id,
-                    session_id=session_id,
-                )
-                self.violations_log.append(violation)
-                violations.append(violation.description)
+        if self.command_mode == "whitelist" and command not in self.allowed_commands:
+            violation = SecurityViolation(
+                violation_type=ViolationType.COMMAND_BLOCKED,
+                threat_level=ThreatLevel.MEDIUM,
+                command=full_command,
+                description=f"Command '{command}' not in allowed list",
+                user_id=user_id,
+                session_id=session_id,
+            )
+            self.violations_log.append(violation)
+            violations.append(violation.description)
 
         if command in self.blocked_commands:
             violation = SecurityViolation(
@@ -396,11 +395,7 @@ class SecurityPolicyManager:
                 "C:\\Windows\\SysWOW64",
             ]
 
-            for restricted in restricted_paths:
-                if abs_path.startswith(restricted):
-                    return False
-
-            return True
+            return all(not abs_path.startswith(restricted) for restricted in restricted_paths)
         except Exception:
             return False
 
@@ -465,9 +460,8 @@ class SecurityPolicyManager:
                 elif key == "blocked_commands":
                     self.blocked_commands = set(value)
 
-            elif section == "resource_limits":
-                if hasattr(self.process_limits, key):
-                    setattr(self.process_limits, key, value)
+            elif section == "resource_limits" and hasattr(self.process_limits, key):
+                setattr(self.process_limits, key, value)
 
             logger.info(f"Updated security policy: {section}.{key} = {value}")
 

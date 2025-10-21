@@ -30,14 +30,15 @@ steps:
 """)
 
     # Run validation script in this temp repo root
-    script = Path("scripts/validate_schemas.py").read_text()
+    Path("scripts/validate_schemas.py").read_text()
     # Execute script with cwd redirected
-    import runpy, os
+    import os
+    import runpy
 
     cwd = os.getcwd()
     try:
         os.chdir(tmp_path)
-        mod = runpy.run_module("scripts.validate_schemas", run_name="__main__")
+        runpy.run_module("scripts.validate_schemas", run_name="__main__")
     finally:
         os.chdir(cwd)
 

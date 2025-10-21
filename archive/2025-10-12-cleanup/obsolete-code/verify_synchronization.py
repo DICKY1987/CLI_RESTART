@@ -8,10 +8,9 @@ specification and that the automated interference has been resolved.
 
 import os
 import subprocess
-from typing import List, Tuple
 
 
-def check_file_exists(filepath: str, description: str) -> Tuple[bool, str]:
+def check_file_exists(filepath: str, description: str) -> tuple[bool, str]:
     """Check if a file exists and return status."""
     if os.path.exists(filepath):
         return True, f"[OK] {description}: Found"
@@ -20,7 +19,7 @@ def check_file_exists(filepath: str, description: str) -> Tuple[bool, str]:
 
 def check_file_content(
     filepath: str, expected_content: str, description: str
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     """Check if file contains expected content."""
     try:
         if os.path.exists(filepath):
@@ -36,7 +35,7 @@ def check_file_content(
         return False, f"[FAIL] {description}: Error reading file - {e}"
 
 
-def check_git_remote() -> Tuple[bool, str]:
+def check_git_remote() -> tuple[bool, str]:
     """Check if Git remote is configured correctly."""
     try:
         result = subprocess.run(["git", "remote", "-v"], capture_output=True, text=True)
@@ -48,7 +47,7 @@ def check_git_remote() -> Tuple[bool, str]:
         return False, f"[FAIL] Git Remote: Error checking - {e}"
 
 
-def check_directory_structure() -> List[Tuple[bool, str]]:
+def check_directory_structure() -> list[tuple[bool, str]]:
     """Check CLI orchestrator directory structure."""
     checks = []
 
@@ -69,7 +68,7 @@ def check_directory_structure() -> List[Tuple[bool, str]]:
     return checks
 
 
-def check_key_files() -> List[Tuple[bool, str]]:
+def check_key_files() -> list[tuple[bool, str]]:
     """Check key CLI orchestrator files."""
     checks = []
 
@@ -93,7 +92,7 @@ def check_key_files() -> List[Tuple[bool, str]]:
     return checks
 
 
-def check_configuration() -> List[Tuple[bool, str]]:
+def check_configuration() -> list[tuple[bool, str]]:
     """Check configuration files for CLI orchestrator content."""
     checks = []
 

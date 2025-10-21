@@ -331,7 +331,7 @@ class TestDataFactory:
     """Factory for generating test data."""
 
     @staticmethod
-    def create_workflow_data(**overrides) -> Dict[str, Any]:
+    def create_workflow_data(**overrides) -> dict[str, Any]:
         """Create test workflow data."""
         base_workflow = {
             "name": "Test Workflow",
@@ -382,7 +382,7 @@ class TestDataFactory:
         return WorkflowResult(**defaults)
 
     @staticmethod
-    def create_user_data(**overrides) -> Dict[str, Any]:
+    def create_user_data(**overrides) -> dict[str, Any]:
         """Create test user data."""
         defaults = {
             "username": "testuser",
@@ -490,7 +490,7 @@ class PerformanceMonitor:
         values = self.metrics.get(metric_name, [])
         return sum(values) / len(values) if values else 0.0
 
-    def assert_performance_targets(self, targets: Dict[str, float]):
+    def assert_performance_targets(self, targets: dict[str, float]):
         """Assert performance targets are met."""
         for metric, target in targets.items():
             actual = self.get_average(metric)
@@ -510,7 +510,7 @@ class ContractValidator:
     """Validate API and data contracts."""
 
     @staticmethod
-    def validate_workflow_schema(workflow_data: Dict, schema_file: Path):
+    def validate_workflow_schema(workflow_data: dict, schema_file: Path):
         """Validate workflow against schema."""
         try:
             import jsonschema

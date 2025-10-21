@@ -8,12 +8,11 @@ environment variables. No secrets are stored in YAML; secrets must come from
 environment variables.
 """
 
-from pathlib import Path
-from typing import Any, Dict, Optional
-
 import os
-import yaml
+from pathlib import Path
+from typing import Any
 
+import yaml
 
 CONFIG_DIR = Path("config")
 BASE_FILE = CONFIG_DIR / "base.yaml"
@@ -23,9 +22,9 @@ class UnknownEnvironmentError(ValueError):
     pass
 
 
-def _deep_merge(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:
+def _deep_merge(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
     """Recursively merge dict b into dict a and return a new dict."""
-    result: Dict[str, Any] = dict(a)
+    result: dict[str, Any] = dict(a)
     for k, v in b.items():
         if k in result and isinstance(result[k], dict) and isinstance(v, dict):
             result[k] = _deep_merge(result[k], v)
@@ -45,7 +44,7 @@ def _expand_env(value: Any) -> Any:
     return value
 
 
-def _load_yaml(path: Path) -> Dict[str, Any]:
+def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     with path.open("r", encoding="utf-8") as f:
@@ -53,7 +52,7 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
     return data
 
 
-def resolve_environment(explicit_env: Optional[str] = None) -> str:
+def resolve_environment(explicit_env: str | None = None) -> str:
     """Resolve environment from explicit arg or environment variables.
 
     Precedence: explicit > CLI_ENV > CLI_ORCHESTRATOR_ENV > ENVIRONMENT.
@@ -78,7 +77,7 @@ def resolve_environment(explicit_env: Optional[str] = None) -> str:
     raise UnknownEnvironmentError(f"Unknown environment: {env}")
 
 
-def load_config(explicit_env: Optional[str] = None) -> Dict[str, Any]:
+def load_config(explicit_env: str | None = None) -> dict[str, Any]:
     """Load merged configuration for the given environment.
 
     - Loads base.yaml

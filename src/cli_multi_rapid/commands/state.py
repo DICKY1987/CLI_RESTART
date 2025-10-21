@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -19,8 +17,8 @@ console = Console()
 @app.command("list")
 def list_state(
     pattern: str = typer.Option("*.json", "--pattern", "-p", help="File pattern to match"),
-    workflow_id: Optional[str] = typer.Option(None, "--workflow", "-w", help="Filter by workflow ID"),
-    session_id: Optional[str] = typer.Option(None, "--session", "-s", help="Filter by session ID"),
+    workflow_id: str | None = typer.Option(None, "--workflow", "-w", help="Filter by workflow ID"),
+    session_id: str | None = typer.Option(None, "--session", "-s", help="Filter by session ID"),
 ):
     """List all state files with metadata."""
     manager = StateManager()
@@ -83,20 +81,20 @@ def clean_state(
 
     result = manager.clean_old_state(older_than_days=older_than, dry_run=dry_run)
 
-    console.print(f"\n[cyan]Cleanup Summary:[/cyan]")
+    console.print("\n[cyan]Cleanup Summary:[/cyan]")
     console.print(f"  Files deleted: {result['deleted_count']}")
     console.print(f"  Files archived: {result['archived_count']}")
     console.print(f"  Space freed: {result['space_freed_mb']} MB")
 
     if result["deleted_files"]:
-        console.print(f"\n[dim]Deleted files:[/dim]")
+        console.print("\n[dim]Deleted files:[/dim]")
         for file in result["deleted_files"][:10]:  # Show first 10
             console.print(f"  - {file}")
         if len(result["deleted_files"]) > 10:
             console.print(f"  ... and {len(result['deleted_files']) - 10} more")
 
     if not dry_run and result["deleted_count"] > 0:
-        console.print(f"\n[green]✓ Cleanup completed[/green]")
+        console.print("\n[green]✓ Cleanup completed[/green]")
 
 
 @app.command("usage")
@@ -112,7 +110,7 @@ def show_usage():
 
     # Load policy to show limits
     policy = manager.policy
-    console.print(f"\n[cyan]Retention Policy:[/cyan]")
+    console.print("\n[cyan]Retention Policy:[/cyan]")
     console.print(f"  Max age: {policy.max_age_days} days")
     console.print(f"  Max size: {policy.max_size_mb} MB")
     console.print(f"  Archive before delete: {policy.archive_before_delete}")
@@ -140,20 +138,20 @@ def enforce_limit(
         console.print(f"[green]✓ Storage is under limit ({result['current_size_mb']} MB / {result['limit_size_mb']} MB)[/green]")
         return
 
-    console.print(f"\n[cyan]Enforcement Summary:[/cyan]")
+    console.print("\n[cyan]Enforcement Summary:[/cyan]")
     console.print(f"  Files deleted: {result['deleted_count']}")
     console.print(f"  Space freed: {result['space_freed_mb']} MB")
     console.print(f"  New size: {result['new_size_mb']} MB / {result['limit_size_mb']} MB")
 
     if result.get("deleted_files"):
-        console.print(f"\n[dim]Deleted files:[/dim]")
+        console.print("\n[dim]Deleted files:[/dim]")
         for file in result["deleted_files"][:10]:
             console.print(f"  - {file}")
         if len(result["deleted_files"]) > 10:
             console.print(f"  ... and {len(result['deleted_files']) - 10} more")
 
     if not dry_run:
-        console.print(f"\n[green]✓ Size limit enforced[/green]")
+        console.print("\n[green]✓ Size limit enforced[/green]")
 
 
 @app.command("delete")

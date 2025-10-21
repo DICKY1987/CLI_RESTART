@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -66,13 +66,13 @@ class User:
     id: str
     username: str
     email: str
-    roles: Set[Role] = field(default_factory=set)
-    permissions: Set[Permission] = field(default_factory=set)
+    roles: set[Role] = field(default_factory=set)
+    permissions: set[Permission] = field(default_factory=set)
     is_active: bool = True
     created_at: float = field(default_factory=time.time)
     last_login: Optional[float] = None
-    api_keys: Set[str] = field(default_factory=set)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    api_keys: set[str] = field(default_factory=set)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -86,10 +86,10 @@ class SecurityPolicy:
     lockout_duration_minutes: int = 15
     password_min_length: int = 8
     require_api_key_for_execution: bool = True
-    allowed_workflow_patterns: List[str] = field(
+    allowed_workflow_patterns: list[str] = field(
         default_factory=lambda: ["*.yaml", "*.yml"]
     )
-    blocked_adapters: List[str] = field(default_factory=list)
+    blocked_adapters: list[str] = field(default_factory=list)
     max_concurrent_workflows: int = 10
     rate_limit_per_minute: int = 60
 
@@ -124,10 +124,10 @@ class SecurityFramework:
         self.audit = AuditLogger(self.storage_dir / "audit.jsonl")
 
         # Security state
-        self._users: Dict[str, User] = {}
-        self._sessions: Dict[str, Dict] = {}
-        self._rate_limits: Dict[str, List[float]] = {}
-        self._active_workflows: Dict[str, Dict] = {}
+        self._users: dict[str, User] = {}
+        self._sessions: dict[str, dict] = {}
+        self._rate_limits: dict[str, list[float]] = {}
+        self._active_workflows: dict[str, dict] = {}
 
         # Load persisted data
         self._load_users()
@@ -183,7 +183,7 @@ class SecurityFramework:
         username: str,
         email: str,
         password: str,
-        roles: Optional[Set[Role]] = None,
+        roles: Optional[set[Role]] = None,
     ) -> User:
         """Create a new user with CLI Orchestrator access."""
 
@@ -423,7 +423,7 @@ class SecurityFramework:
         return True
 
     async def start_workflow_execution(
-        self, user_id: str, workflow_id: str, workflow_data: Dict
+        self, user_id: str, workflow_id: str, workflow_data: dict
     ) -> bool:
         """Register workflow execution start."""
         # Check concurrent workflow limit
@@ -549,7 +549,7 @@ class SecurityFramework:
         except Exception as e:
             logger.error(f"Failed to save users: {e}")
 
-    def get_security_summary(self) -> Dict[str, Any]:
+    def get_security_summary(self) -> dict[str, Any]:
         """Get security framework status summary."""
         return {
             "total_users": len(self._users),

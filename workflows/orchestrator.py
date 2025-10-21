@@ -17,7 +17,7 @@ from datetime import datetime
 from enum import Enum
 from glob import glob
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import yaml
 
@@ -100,7 +100,7 @@ class ActionResult:
 
     success: bool
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[dict[str, Any]] = None
     duration_seconds: float = 0.0
 
 
@@ -127,7 +127,7 @@ class WorkflowOrchestrator:
 
     def __init__(self, config_path: Optional[Path] = None):
         self.config_path = config_path or Path("workflows/phase_definitions")
-        self.results: List[PhaseResult] = []
+        self.results: list[PhaseResult] = []
         self.current_phase: Optional[str] = None
         self.streams_config_path: Path = self.config_path / "multi_stream.yaml"
 
@@ -147,7 +147,7 @@ class WorkflowOrchestrator:
             if not (self.project_root / file_path).exists():
                 logger.warning(f"Expected file not found: {file_path}")
 
-    def load_streams_map(self) -> Dict[str, Any]:
+    def load_streams_map(self) -> dict[str, Any]:
         """Load multi-stream configuration mapping.
 
         Returns a dict keyed by stream id with fields: name, phases, scope.
@@ -162,13 +162,13 @@ class WorkflowOrchestrator:
 
     async def execute_stream(
         self, stream_id: str, dry_run: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute all phases in the given stream sequentially.
 
         Returns a summary dict with counts of completed/failed phases.
         """
         data = self.load_streams_map()
-        streams: List[Dict[str, Any]] = data.get("streams", [])
+        streams: list[dict[str, Any]] = data.get("streams", [])
         stream = next((s for s in streams if s.get("id") == stream_id), None)
         if not stream:
             raise ValueError(f"Stream not found: {stream_id}")
@@ -180,7 +180,7 @@ class WorkflowOrchestrator:
         else:
             print(f"Starting Stream: {stream.get('label', stream_id)}")
 
-        phases: List[str] = list(stream.get("phases", []))
+        phases: list[str] = list(stream.get("phases", []))
         completed = 0
         failed = 0
         for pid in phases:
@@ -209,10 +209,10 @@ class WorkflowOrchestrator:
             )
         return summary
 
-    def list_streams(self) -> List[Dict[str, Any]]:
+    def list_streams(self) -> list[dict[str, Any]]:
         """Return a list of streams with id, name, and phases."""
         data = self.load_streams_map()
-        streams: List[Dict[str, Any]] = data.get("streams", [])
+        streams: list[dict[str, Any]] = data.get("streams", [])
         return [
             {
                 "id": s.get("id"),
@@ -225,7 +225,7 @@ class WorkflowOrchestrator:
             for s in streams
         ]
 
-    async def load_phase_definition(self, phase_file: str) -> Dict[str, Any]:
+    async def load_phase_definition(self, phase_file: str) -> dict[str, Any]:
         """Load phase definition from YAML file"""
         phase_path = self.config_path / phase_file
 
@@ -329,7 +329,7 @@ class WorkflowOrchestrator:
             return error_result
 
     async def execute_action(
-        self, action: Dict[str, Any], dry_run: bool
+        self, action: dict[str, Any], dry_run: bool
     ) -> ActionResult:
         """Execute a single workflow action"""
         action_type = ActionType(action.get("type", ""))
@@ -421,7 +421,7 @@ class WorkflowOrchestrator:
         except Exception as e:
             return ActionResult(success=False, message=f"Action execution failed: {e}")
 
-    async def execute_git_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_git_action(self, action: dict[str, Any]) -> ActionResult:
         """Execute git command action"""
         cmd = action.get("cmd", "")
 
@@ -449,7 +449,7 @@ class WorkflowOrchestrator:
         except subprocess.TimeoutExpired:
             return ActionResult(success=False, message="Git command timed out")
 
-    async def execute_files_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_files_action(self, action: dict[str, Any]) -> ActionResult:
         """Execute file creation action"""
         write_specs = action.get("write", [])
         created_files = []
@@ -482,7 +482,7 @@ class WorkflowOrchestrator:
             details={"created_files": created_files},
         )
 
-    async def execute_codegen_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_codegen_action(self, action: dict[str, Any]) -> ActionResult:
         """Execute simple codegen: JSON schemas -> stub Pydantic models."""
         pattern = action.get("from")
         to = action.get("to", "src/contracts/models/")
@@ -523,7 +523,7 @@ class WorkflowOrchestrator:
             details={"generated": generated},
         )
 
-    async def execute_mkdirs_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_mkdirs_action(self, action: dict[str, Any]) -> ActionResult:
         """Execute directory creation action"""
         paths = action.get("paths", [])
         created_dirs = []
@@ -544,7 +544,7 @@ class WorkflowOrchestrator:
             details={"created_dirs": created_dirs},
         )
 
-    async def execute_tests_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_tests_action(self, action: dict[str, Any]) -> ActionResult:
         """Execute test suite action"""
         suite = action.get("suite", "default")
         paths = action.get("paths", ["tests/"])
@@ -575,7 +575,7 @@ class WorkflowOrchestrator:
             return ActionResult(success=False, message="Test suite timed out")
 
     async def execute_actions_enable_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         """Enable security features via workflows where applicable."""
         features = action.get("features", []) or []
@@ -611,21 +611,21 @@ class WorkflowOrchestrator:
         )
 
     async def execute_branch_protection_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         return ActionResult(
             success=True, message="Branch protection acknowledged (no-op)"
         )
 
     async def execute_docker_hardening_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         return ActionResult(
             success=True, message="Docker hardening policy acknowledged (no-op)"
         )
 
     async def execute_compose_pin_digests_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         policy = action.get("policy", {})
         return ActionResult(
@@ -634,7 +634,7 @@ class WorkflowOrchestrator:
             details={"policy": policy},
         )
 
-    async def execute_libs_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_libs_action(self, action: dict[str, Any]) -> ActionResult:
         """Write observability libs from template registry."""
         to_write = action.get("write", []) or []
         created = []
@@ -663,7 +663,7 @@ class WorkflowOrchestrator:
             details={"created": created},
         )
 
-    async def execute_dashboards_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_dashboards_action(self, action: dict[str, Any]) -> ActionResult:
         """Create Grafana dashboard placeholders."""
         stack = action.get("stack", "grafana")
         panels = action.get("panels", []) or []
@@ -684,7 +684,7 @@ class WorkflowOrchestrator:
         )
 
     async def execute_helm_scaffold_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         paths = action.get("paths", ["deploy/k8s/helm/"])
         created = []
@@ -716,7 +716,7 @@ class WorkflowOrchestrator:
             success=True, message="Helm scaffold created", details={"created": created}
         )
 
-    async def execute_netpol_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_netpol_action(self, action: dict[str, Any]) -> ActionResult:
         policy = action.get("policy", "allowlist_between_services")
         dest = self.project_root / Path("deploy/k8s/networkpolicy.yaml")
         if policy == "allowlist_between_services":
@@ -735,7 +735,7 @@ class WorkflowOrchestrator:
             message=f"NetworkPolicy policy '{policy}' acknowledged (no-op)",
         )
 
-    async def execute_ext_secrets_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_ext_secrets_action(self, action: dict[str, Any]) -> ActionResult:
         provider = action.get("provider", "ESO")
         dest = self.project_root / Path("deploy/k8s/external-secret.yaml")
         write_file(
@@ -748,7 +748,7 @@ class WorkflowOrchestrator:
         )
 
     async def execute_bridge_contracts_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         align_with = action.get("align_with", "contracts/events")
         doc = self.project_root / Path("docs/bridge_contracts.md")
@@ -760,7 +760,7 @@ class WorkflowOrchestrator:
             details={"created": str(doc)},
         )
 
-    async def execute_ps_module_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_ps_module_action(self, action: dict[str, Any]) -> ActionResult:
         name = action.get("name", "Module")
         ops = action.get("ops", []) or []
         base = self.project_root / Path(f"ps/{name}")
@@ -785,7 +785,7 @@ class WorkflowOrchestrator:
         )
 
     async def execute_sql_standards_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         db = action.get("db", "PostgreSQL")
         path = self.project_root / Path("docs/sql_standards.md")
@@ -797,7 +797,7 @@ class WorkflowOrchestrator:
             details={"created": str(path)},
         )
 
-    async def execute_service_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_service_action(self, action: dict[str, Any]) -> ActionResult:
         name = action.get("name", "")
         created = []
         if name == "compliance-svc":
@@ -826,7 +826,7 @@ class WorkflowOrchestrator:
             details={"created": created},
         )
 
-    async def execute_ci_gate_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_ci_gate_action(self, action: dict[str, Any]) -> ActionResult:
         rules_in = action.get("rules_in", "policy/compliance_rules.json")
         wf = self.project_root / ".github/workflows/compliance-gate.yml"
         wf.parent.mkdir(parents=True, exist_ok=True)
@@ -853,7 +853,7 @@ class WorkflowOrchestrator:
             details={"workflow": str(wf)},
         )
 
-    async def execute_runbook_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_runbook_action(self, action: dict[str, Any]) -> ActionResult:
         path = action.get("path", "docs/runbooks/emergency_recovery.md")
         dest = self.project_root / Path(path)
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -864,7 +864,7 @@ class WorkflowOrchestrator:
         )
         return ActionResult(success=True, message=f"Runbook written to {path}")
 
-    async def execute_persistence_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_persistence_action(self, action: dict[str, Any]) -> ActionResult:
         keys = action.get("keys", []) or []
         doc = self.project_root / Path("docs/idempotency.md")
         lines = ["# Idempotency Keys", "", "Keys used for exactly-once semantics:"] + [
@@ -889,7 +889,7 @@ class WorkflowOrchestrator:
             details={"created": [str(doc), str(state)]},
         )
 
-    async def execute_consumers_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_consumers_action(self, action: dict[str, Any]) -> ActionResult:
         idem = action.get("idempotent", True)
         consumer = self.project_root / Path("src/idempotency/consumer.py")
         code = (
@@ -907,7 +907,7 @@ class WorkflowOrchestrator:
             details={"created": str(consumer)},
         )
 
-    async def execute_queues_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_queues_action(self, action: dict[str, Any]) -> ActionResult:
         bounded = action.get("bounded", True)
         cb = action.get("cb_backoff", True)
         qmod = self.project_root / Path("src/idempotency/queues.py")
@@ -924,7 +924,7 @@ class WorkflowOrchestrator:
             details={"bounded": bounded, "cb_backoff": cb},
         )
 
-    async def execute_runbooks_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_runbooks_action(self, action: dict[str, Any]) -> ActionResult:
         paths = action.get("paths", []) or []
         created = []
         for p in paths:
@@ -940,7 +940,7 @@ class WorkflowOrchestrator:
         )
 
     async def execute_issue_templates_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         paths = action.get("paths", []) or []
         created = []
@@ -958,7 +958,7 @@ class WorkflowOrchestrator:
             details={"created": created},
         )
 
-    async def execute_link_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_link_action(self, action: dict[str, Any]) -> ActionResult:
         src = self.project_root / Path(action.get("from", ""))
         to = action.get("to", "release_notes")
         dest = self.project_root / Path(f"docs/{to}.md")
@@ -969,7 +969,7 @@ class WorkflowOrchestrator:
         write_file(dest, content, overwrite=False)
         return ActionResult(success=True, message=f"Linked {src} to {dest}")
 
-    async def execute_devcontainer_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_devcontainer_action(self, action: dict[str, Any]) -> ActionResult:
         versions = action.get("python", ["3.11"]) or ["3.11"]
         poetry = bool(action.get("poetry", False))
         precommit = bool(action.get("precommit", True))
@@ -998,7 +998,7 @@ class WorkflowOrchestrator:
             details={"python": versions},
         )
 
-    async def execute_task_targets_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_task_targets_action(self, action: dict[str, Any]) -> ActionResult:
         extend = action.get("extend", []) or []
         taskfile = self.project_root / "Taskfile.yml"
         existing = (
@@ -1016,7 +1016,7 @@ class WorkflowOrchestrator:
         )
 
     async def execute_pr_automation_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         features = action.get("features", []) or []
         created = []
@@ -1041,7 +1041,7 @@ class WorkflowOrchestrator:
             details={"created": created},
         )
 
-    async def execute_docs_action(self, action: Dict[str, Any]) -> ActionResult:
+    async def execute_docs_action(self, action: dict[str, Any]) -> ActionResult:
         path = action.get("path", "docs/roadmap.md")
         dest = self.project_root / Path(path)
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -1050,7 +1050,7 @@ class WorkflowOrchestrator:
         return ActionResult(success=True, message=f"Doc written to {path}")
 
     async def execute_codeowners_set_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         require_reviewers = bool(action.get("require_reviewers", False))
         path = self.project_root / ".github/CODEOWNERS"
@@ -1067,7 +1067,7 @@ class WorkflowOrchestrator:
         )
 
     async def execute_project_board_action(
-        self, action: Dict[str, Any]
+        self, action: dict[str, Any]
     ) -> ActionResult:
         lanes = action.get("lanes", []) or []
         dest = self.project_root / "docs/project_board.md"
@@ -1077,7 +1077,7 @@ class WorkflowOrchestrator:
             success=True, message="Project board documented", details={"lanes": lanes}
         )
 
-    def get_status_report(self) -> Dict[str, Any]:
+    def get_status_report(self) -> dict[str, Any]:
         """Generate comprehensive status report"""
         total_phases = len(self.results)
         completed_phases = len(
@@ -1160,15 +1160,15 @@ async def main():
     run_parser.add_argument("--dry-run", action="store_true", help="Dry run mode")
 
     # Status command
-    status_parser = subparsers.add_parser("status", help="Show workflow status")
+    subparsers.add_parser("status", help="Show workflow status")
 
     # Health check command
-    health_parser = subparsers.add_parser(
+    subparsers.add_parser(
         "health-check", help="Validate project health"
     )
 
     # List streams
-    list_streams_parser = subparsers.add_parser(
+    subparsers.add_parser(
         "list-streams", help="List multi-stream definitions"
     )
 

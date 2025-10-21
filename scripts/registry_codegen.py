@@ -19,7 +19,6 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 try:
     import yaml  # type: ignore
@@ -36,7 +35,7 @@ PKG_DIR.mkdir(parents=True, exist_ok=True)
 GEN_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def load_yaml(path: Path) -> Dict:
+def load_yaml(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
@@ -50,7 +49,7 @@ def write_if_changed(path: Path, content: str) -> bool:
     return True
 
 
-def generate_enum_schema(def_name: str, values: List[str], id_uri: str) -> str:
+def generate_enum_schema(def_name: str, values: list[str], id_uri: str) -> str:
     doc = {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "$id": id_uri,
@@ -63,12 +62,12 @@ def generate_enum_schema(def_name: str, values: List[str], id_uri: str) -> str:
     return json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
 
 
-def generate_python_enums(actions: List[str], actors: List[str], naming: Dict) -> str:
+def generate_python_enums(actions: list[str], actors: list[str], naming: dict) -> str:
     # Keep simple snake_case to ENUM_NAME values mapping
     def to_member(name: str) -> str:
         return name.upper()
 
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append("from __future__ import annotations")
     lines.append("from enum import Enum")
     lines.append("")
@@ -94,8 +93,8 @@ def main() -> int:
     actors_yaml = load_yaml(REG_DIR / "actors.yaml")
     naming_yaml = load_yaml(REG_DIR / "naming.yaml")
 
-    actions: List[str] = list(dict.fromkeys(actions_yaml.get("actions", [])))
-    actors: List[str] = list(dict.fromkeys(actors_yaml.get("actors", [])))
+    actions: list[str] = list(dict.fromkeys(actions_yaml.get("actions", [])))
+    actors: list[str] = list(dict.fromkeys(actors_yaml.get("actors", [])))
     actions_ver: str = actions_yaml.get("version", "1.0.0")
     actors_ver: str = actors_yaml.get("version", "1.0.0")
 

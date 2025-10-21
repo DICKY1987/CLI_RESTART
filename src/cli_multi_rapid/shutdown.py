@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import signal
-from typing import Awaitable, Callable, List
+from collections.abc import Awaitable
+from typing import Callable
 
 
 class GracefulShutdown:
     def __init__(self, timeout_seconds: float = 15.0) -> None:
-        self._callbacks: List[Callable[[], Awaitable[None]]] = []
+        self._callbacks: list[Callable[[], Awaitable[None]]] = []
         self._timeout = timeout_seconds
         self._stop = asyncio.Event()
 

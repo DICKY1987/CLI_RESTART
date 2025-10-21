@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 def guard_requirements_windows(
     requirements_path: str = "requirements.txt",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Make dev deps Windows-friendly (skip semgrep on win32).
 
     - If a plain `semgrep` requirement exists, add an environment marker so it
@@ -46,7 +46,7 @@ def guard_requirements_windows(
     return {"changed": changed, "file": str(req_file)}
 
 
-def cli_smoke() -> Dict[str, Any]:
+def cli_smoke() -> dict[str, Any]:
     """Run lightweight CLI smoke checks via direct function calls."""
     # Ensure src/ is importable for local runs
     src = Path("src").resolve()
@@ -60,7 +60,7 @@ def cli_smoke() -> Dict[str, Any]:
     return {"greet": hello, "sum": s}
 
 
-def orchestrator_status_action() -> Dict[str, Any]:
+def orchestrator_status_action() -> dict[str, Any]:
     """Return orchestrator status snapshot (streams + status report)."""
     # Make project root importable for `workflows` package
     root = Path.cwd()

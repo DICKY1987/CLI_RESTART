@@ -6,7 +6,6 @@ source_doc: COMPLETE_IMPLEMENTATION_PLAN.md
 # Global execution policies
 global_policies:
   execution_mode: sequential_with_validation
-  rollback_on_failure: true
   max_parallel_phases: 3
   validation_gates: true
   coverage_minimum: 0.85
@@ -366,13 +365,11 @@ phases:
 execution:
   mode: sequential_with_gates
   validation_required: true
-  rollback_enabled: true
   monitoring_enabled: true
 
   # Phase execution settings
   phase_timeout_minutes: 480  # 8 hours max per phase
   validation_timeout_minutes: 60
-  rollback_timeout_minutes: 30
 
   # Notification settings
   notify_on:
@@ -380,7 +377,6 @@ execution:
     - phase_complete
     - phase_failure
     - validation_failure
-    - rollback_triggered
 
 # Success tracking
 tracking:

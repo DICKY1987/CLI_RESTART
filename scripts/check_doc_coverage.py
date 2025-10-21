@@ -1,6 +1,7 @@
 import ast
 import os
 
+
 def check_doc_coverage(directory="src"):
     """
     Analyzes Python files in a directory to check for docstring coverage.
@@ -14,7 +15,7 @@ def check_doc_coverage(directory="src"):
             if file.endswith(".py"):
                 total_nodes += 1  # Count module
                 file_path = os.path.join(root, file)
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     try:
                         tree = ast.parse(f.read(), filename=file)
                         if ast.get_docstring(tree):

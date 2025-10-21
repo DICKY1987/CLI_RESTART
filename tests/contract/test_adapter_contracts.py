@@ -178,7 +178,7 @@ class TestConcreteAdapterContract:
 
     def test_adapter_metadata_contract(self, mock_adapters):
         """Test adapter get_metadata method contract."""
-        for adapter_name, adapter in mock_adapters.items():
+        for _adapter_name, adapter in mock_adapters.items():
             metadata = adapter.get_metadata()
 
             # Must be dictionary with required fields
@@ -294,7 +294,7 @@ class TestAdapterExecutionContract:
         # - Tool failures (for deterministic adapters)
         # - Timeout handling
 
-        for adapter_name, adapter in mock_adapters.items():
+        for _adapter_name, adapter in mock_adapters.items():
             # Test with empty step
             result = adapter.execute({})
 
@@ -382,7 +382,7 @@ class TestContractBackwardCompatibility:
 
     def test_adapter_interface_compatibility(self, mock_adapters):
         """Test adapter interface remains backward compatible."""
-        for adapter_name, adapter in mock_adapters.items():
+        for _adapter_name, adapter in mock_adapters.items():
             # These method signatures must remain stable
             assert hasattr(adapter, "execute")
             assert hasattr(adapter, "validate_step")

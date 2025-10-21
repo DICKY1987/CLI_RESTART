@@ -89,6 +89,17 @@ Include/
 backups/
 temp_files/
 
+# VS Code extensions (should not be in project)
+extensionsgg/
+
+# Temporary and obsolete files
+deplicatremover.py
+files_out_OF_LOCl.txt
+
+# Cleanup logs
+cleanup-log-*.json
+cleanup-manifest-*.txt
+
 # Development tools and installers
 AWS_SAM_CLI_64_PY3.msi
 .python_history
@@ -141,3 +152,7 @@ state/
 # Tool logs
 tools/.dedup_logs/
 tools/atomic-workflow-system/.venv/
+.aider*
+.env
+.env
+.env

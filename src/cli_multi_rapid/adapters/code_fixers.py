@@ -14,9 +14,14 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
+from .base_adapter import (
+    AdapterPerformanceProfile,
+    AdapterResult,
+    AdapterType,
+    BaseAdapter,
+)
 
 
 class CodeFixersAdapter(BaseAdapter):
@@ -30,7 +35,7 @@ class CodeFixersAdapter(BaseAdapter):
         )
         self._available_tools = self._check_available_tools()
 
-    def _check_available_tools(self) -> Dict[str, bool]:
+    def _check_available_tools(self) -> dict[str, bool]:
         """Check which code fixing tools are available."""
         tools = {}
         for tool in ["ruff", "black", "isort"]:
@@ -61,7 +66,7 @@ class CodeFixersAdapter(BaseAdapter):
             requires_api_key=False
         )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         # Must have at least one tool available
         if not self.is_available():
@@ -73,14 +78,14 @@ class CodeFixersAdapter(BaseAdapter):
 
         return any(self._available_tools.get(tool, False) for tool in requested_tools)
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic tools)."""
         return 0
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute code fixing tools on the specified files."""
@@ -153,7 +158,7 @@ class CodeFixersAdapter(BaseAdapter):
         self._log_execution_complete(result)
         return result
 
-    def _resolve_file_pattern(self, pattern: str) -> List[Path]:
+    def _resolve_file_pattern(self, pattern: str) -> list[Path]:
         """Resolve file pattern to list of Python files."""
         try:
             # Use pathlib to resolve glob patterns
@@ -172,7 +177,7 @@ class CodeFixersAdapter(BaseAdapter):
             self.logger.error(f"Failed to resolve file pattern {pattern}: {e}")
             return []
 
-    def _run_tool(self, tool: str, files: List[Path], fix_mode: bool) -> Dict[str, Any]:
+    def _run_tool(self, tool: str, files: list[Path], fix_mode: bool) -> dict[str, Any]:
         """Run a specific code fixing tool."""
         file_paths = [str(f) for f in files]
 
@@ -185,7 +190,7 @@ class CodeFixersAdapter(BaseAdapter):
         else:
             return {"error": f"Unknown tool: {tool}"}
 
-    def _run_ruff(self, files: List[str], fix_mode: bool) -> Dict[str, Any]:
+    def _run_ruff(self, files: list[str], fix_mode: bool) -> dict[str, Any]:
         """Run ruff linter/formatter."""
         try:
             if fix_mode:
@@ -207,7 +212,7 @@ class CodeFixersAdapter(BaseAdapter):
         except Exception as e:
             return {"error": str(e)}
 
-    def _run_black(self, files: List[str], fix_mode: bool) -> Dict[str, Any]:
+    def _run_black(self, files: list[str], fix_mode: bool) -> dict[str, Any]:
         """Run black formatter."""
         try:
             if fix_mode:
@@ -235,7 +240,7 @@ class CodeFixersAdapter(BaseAdapter):
         except Exception as e:
             return {"error": str(e)}
 
-    def _run_isort(self, files: List[str], fix_mode: bool) -> Dict[str, Any]:
+    def _run_isort(self, files: list[str], fix_mode: bool) -> dict[str, Any]:
         """Run isort import sorter."""
         try:
             if fix_mode:
@@ -263,8 +268,8 @@ class CodeFixersAdapter(BaseAdapter):
             return {"error": str(e)}
 
     def _generate_artifacts(
-        self, emit_paths: List[str], results: Dict[str, Any], files: List[Path]
-    ) -> List[str]:
+        self, emit_paths: list[str], results: dict[str, Any], files: list[Path]
+    ) -> list[str]:
         """Generate artifact files with tool results."""
         artifacts = []
 
@@ -302,7 +307,7 @@ class CodeFixersAdapter(BaseAdapter):
         return artifacts
 
     def _format_output(
-        self, results: Dict[str, Any], total_fixes: int, file_count: int
+        self, results: dict[str, Any], total_fixes: int, file_count: int
     ) -> str:
         """Format human-readable output summary."""
         lines = [

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 
@@ -37,7 +37,7 @@ class CoordinationConfig:
     network_access: bool = False
 
 
-def _read_yaml(path: Path) -> Dict[str, Any]:
+def _read_yaml(path: Path) -> dict[str, Any]:
     try:
         if not path.exists():
             return {}
@@ -48,7 +48,7 @@ def _read_yaml(path: Path) -> Dict[str, Any]:
         return {}
 
 
-def load_coordination_config(cwd: Optional[Path] = None) -> CoordinationConfig:
+def load_coordination_config(cwd: Path | None = None) -> CoordinationConfig:
     base = Path.cwd() if cwd is None else cwd
     cfg_path = base / ".ai" / "config" / "coordination.yaml"
     data = _read_yaml(cfg_path).get("coordination", {})

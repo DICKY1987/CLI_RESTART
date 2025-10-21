@@ -2,9 +2,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from alembic import command
 from alembic.config import Config
 
+from alembic import command
 from src.cli_multi_rapid.coordination.dispatcher import dispatch
 from src.cli_multi_rapid.coordination.queue import PriorityQueue
 
@@ -20,9 +20,12 @@ def test_priority_order_and_status_updates() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         db = Path(tmp) / "q.db"
         os.environ["DATABASE_URL"] = f"sqlite:///{db.as_posix()}"
-        _migrate(os.environ["DATABASE_URL"]) 
+        _migrate(os.environ["DATABASE_URL"])
 
-        from src.cli_multi_rapid.coordination.registry import create_workstream, get_workstream
+        from src.cli_multi_rapid.coordination.registry import (
+            create_workstream,
+            get_workstream,
+        )
 
         q = PriorityQueue()
         ws_low = create_workstream("low")

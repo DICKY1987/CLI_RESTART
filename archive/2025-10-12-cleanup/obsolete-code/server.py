@@ -8,19 +8,18 @@ shutdown via signal handlers.
 
 import asyncio
 import signal
-from typing import Callable, List
+from typing import Callable
 
 from fastapi import FastAPI
 
 from cli_multi_rapid.config.validation import validate_and_build_settings
 from src.api.health import router as health_router
 
-
 app = FastAPI(title="CLI Multi-Rapid API")
 app.include_router(health_router)
 
 
-shutdown_callbacks: List[Callable[[], asyncio.Future]] = []
+shutdown_callbacks: list[Callable[[], asyncio.Future]] = []
 
 
 @app.on_event("startup")

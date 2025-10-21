@@ -1,8 +1,8 @@
 from src.observability.metrics import (
-    observe_workflow_start,
-    observe_workflow_end,
     observe_ai_tokens,
+    observe_workflow_end,
     observe_workflow_error,
+    observe_workflow_start,
 )
 
 

@@ -7,7 +7,6 @@ import json
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
 
 from langchain_core.tools import tool
 from langgraph.graph import MessagesState, StateGraph
@@ -19,8 +18,8 @@ class LaneConfig:
     name: str
     branch: str
     worktree_path: str
-    allowed_patterns: List[str]
-    tools: Dict[str, str]
+    allowed_patterns: list[str]
+    tools: dict[str, str]
     agent_type: str
 
 
@@ -31,14 +30,14 @@ class GitLaneManager:
         self.config = self.load_config(config_path)
         self.lanes = self.setup_lanes()
 
-    def load_config(self, config_path: str) -> Dict:
+    def load_config(self, config_path: str) -> dict:
         """Load your existing framework configuration"""
         config_file = Path(config_path)
         if config_file.exists():
             return json.loads(config_file.read_text())
         return self.get_default_config()
 
-    def get_default_config(self) -> Dict:
+    def get_default_config(self) -> dict:
         """Your exact lane configuration from the PowerShell script"""
         return {
             "lanes": {
@@ -69,7 +68,7 @@ class GitLaneManager:
             }
         }
 
-    def setup_lanes(self) -> Dict[str, LaneConfig]:
+    def setup_lanes(self) -> dict[str, LaneConfig]:
         """Initialize git worktrees (replaces PowerShell Initialize-Lanes)"""
         lanes = {}
 
@@ -139,7 +138,7 @@ class GitLaneManager:
             print(f"ERROR Failed to create worktree {lane.name}: {e}")
             return False
 
-    def get_lane_status(self) -> Dict[str, Dict[str, str]]:
+    def get_lane_status(self) -> dict[str, dict[str, str]]:
         """Get status of all lanes (replaces PowerShell lane status)"""
         status = {}
 
@@ -183,7 +182,7 @@ class GitLaneManager:
 
 # Git-aware tools for LangGraph agents
 @tool
-def check_file_patterns(file_path: str, allowed_patterns: List[str]) -> bool:
+def check_file_patterns(file_path: str, allowed_patterns: list[str]) -> bool:
     """Check if file matches lane's allowed patterns"""
     from fnmatch import fnmatch
 
@@ -196,7 +195,7 @@ def check_file_patterns(file_path: str, allowed_patterns: List[str]) -> bool:
 @tool
 def commit_changes(
     lane_name: str, message: str, git_manager: GitLaneManager
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Commit changes in a specific lane"""
     if lane_name not in git_manager.lanes:
         return {"error": f"Lane {lane_name} not found"}
@@ -259,7 +258,7 @@ def create_multi_lane_graph(git_manager: GitLaneManager) -> StateGraph:
 
     class LaneState(MessagesState):
         selected_lane: str = ""
-        target_files: List[str] = []
+        target_files: list[str] = []
 
     def select_lane(state: LaneState) -> LaneState:
         """Select appropriate lane based on task and file patterns"""
@@ -303,7 +302,7 @@ def add_git_commands(cli_group):
     @cli_group.command()
     def init_lanes():
         """Initialize all git worktree lanes"""
-        git_manager = GitLaneManager()
+        GitLaneManager()
         print("Lanes initialized successfully!")
 
     @cli_group.command()

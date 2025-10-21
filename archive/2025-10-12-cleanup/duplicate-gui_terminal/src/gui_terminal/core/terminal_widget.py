@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Callable, Optional
+from typing import Callable
 
 from gui_terminal.core.event_system import EventBus
 from gui_terminal.core.pty_backend import PtyBackend
@@ -15,13 +15,13 @@ class TerminalWidget:
     arrive. In a real GUI, this would integrate with the event loop.
     """
 
-    def __init__(self, backend: Optional[PtyBackend] = None) -> None:
+    def __init__(self, backend: PtyBackend | None = None) -> None:
         self.backend = backend or PtyBackend()
-        self._reader: Optional[threading.Thread] = None
-        self._watcher: Optional[threading.Thread] = None
+        self._reader: threading.Thread | None = None
+        self._watcher: threading.Thread | None = None
         self._stop = False
-        self.on_data: Optional[Callable[[bytes], None]] = None
-        self.on_exit: Optional[Callable[[], None]] = None
+        self.on_data: Callable[[bytes], None] | None = None
+        self.on_exit: Callable[[], None] | None = None
         self.bus = EventBus()
         self._started_ts: float = 0.0
 

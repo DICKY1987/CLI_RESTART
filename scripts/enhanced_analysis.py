@@ -5,13 +5,13 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ART_DIR = REPO_ROOT / "artifacts" / "analysis"
 
 
-def detect_stack(root: Path) -> List[str]:
+def detect_stack(root: Path) -> list[str]:
     exts = set()
     for dirpath, _, files in os.walk(root):
         if ".git" in dirpath or "node_modules" in dirpath or ".venv" in dirpath:
@@ -42,11 +42,11 @@ def finding(
     line_range: str,
     desc: str,
     rec: str,
-    stakeholders: List[str],
+    stakeholders: list[str],
     code_snippet: str = "",
     rpn: float = 30.0,
     confidence: float = 0.7,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return {
         "id": fid,
         "atomic_operation": atom,
@@ -85,7 +85,7 @@ def main() -> int:
     )
     snippet = "\n".join(readme_lines[:5]) if readme_lines else ""
 
-    findings: List[Dict[str, Any]] = []
+    findings: list[dict[str, Any]] = []
 
     # One per domain: structural, code, security, ops, docs
     findings.append(

@@ -159,7 +159,7 @@ class SecurityMonitor:
 
                         # Check resource usage
                         memory_mb = process.memory_info().rss / (1024 * 1024)
-                        cpu_percent = process.cpu_percent()
+                        process.cpu_percent()
 
                         # Update peak memory
                         proc_info = self.active_processes[pid]

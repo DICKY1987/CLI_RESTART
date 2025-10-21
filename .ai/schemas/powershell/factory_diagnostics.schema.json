@@ -1,0 +1,220 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cli-orchestrator.dev/schemas/powershell/factory_diagnostics.v1.schema.json",
+  "title": "PowerShell Factory Diagnostics",
+  "description": "Diagnostic output from Get-FactoryStatus and related health checks",
+  "type": "object",
+  "required": ["timestamp", "repo_root", "health_status"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when diagnostics were captured"
+    },
+    "repo_root": {
+      "type": "string",
+      "description": "Root path of PowerShell_deterministi_factory repository"
+    },
+    "health_status": {
+      "type": "string",
+      "enum": ["healthy", "degraded", "unhealthy", "unknown"],
+      "description": "Overall health status"
+    },
+    "git": {
+      "type": "object",
+      "description": "Git repository status",
+      "properties": {
+        "has_git": {
+          "type": "boolean",
+          "description": "Whether .git directory exists"
+        },
+        "current_branch": {
+          "type": "string",
+          "description": "Current Git branch"
+        },
+        "remote_url": {
+          "type": "string",
+          "description": "Git remote URL"
+        },
+        "uncommitted_changes": {
+          "type": "boolean",
+          "description": "Whether there are uncommitted changes"
+        },
+        "untracked_files": {
+          "type": "integer",
+          "description": "Number of untracked files"
+        },
+        "ahead_behind": {
+          "type": "object",
+          "properties": {
+            "ahead": {
+              "type": "integer",
+              "description": "Commits ahead of remote"
+            },
+            "behind": {
+              "type": "integer",
+              "description": "Commits behind remote"
+            }
+          }
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "description": "Configuration status",
+      "properties": {
+        "config_present": {
+          "type": "boolean",
+          "description": "Whether file_router.config.json exists"
+        },
+        "config_valid": {
+          "type": "boolean",
+          "description": "Whether config is valid JSON"
+        },
+        "router_version": {
+          "type": "string",
+          "description": "Router config version"
+        },
+        "projects_configured": {
+          "type": "integer",
+          "description": "Number of projects in config"
+        }
+      }
+    },
+    "modules": {
+      "type": "object",
+      "description": "PowerShell module status",
+      "properties": {
+        "core_module_available": {
+          "type": "boolean",
+          "description": "Whether Core module can be imported"
+        },
+        "core_module_version": {
+          "type": "string",
+          "description": "Core module version"
+        },
+        "exported_functions": {
+          "type": "array",
+          "description": "Functions exported by Core module",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "description": "Tool availability",
+      "properties": {
+        "git": {
+          "type": "boolean",
+          "description": "Git available"
+        },
+        "pwsh": {
+          "type": "boolean",
+          "description": "PowerShell 7+ available"
+        },
+        "wt": {
+          "type": "boolean",
+          "description": "Windows Terminal available"
+        }
+      }
+    },
+    "powershell": {
+      "type": "object",
+      "description": "PowerShell environment",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "PowerShell version string"
+        },
+        "edition": {
+          "type": "string",
+          "enum": ["Core", "Desktop"],
+          "description": "PowerShell edition"
+        },
+        "os": {
+          "type": "string",
+          "description": "Operating system"
+        }
+      }
+    },
+    "filesystem": {
+      "type": "object",
+      "description": "Filesystem health checks",
+      "properties": {
+        "required_directories": {
+          "type": "object",
+          "description": "Required directories present",
+          "properties": {
+            "config": {
+              "type": "boolean"
+            },
+            "docs": {
+              "type": "boolean"
+            },
+            "modules": {
+              "type": "boolean"
+            },
+            "scripts": {
+              "type": "boolean"
+            },
+            "tests": {
+              "type": "boolean"
+            }
+          }
+        },
+        "path_has_space": {
+          "type": "boolean",
+          "description": "Whether repo path contains spaces"
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "description": "Errors encountered during diagnostics",
+      "items": {
+        "type": "object",
+        "required": ["component", "error_message"],
+        "properties": {
+          "component": {
+            "type": "string",
+            "description": "Component that failed (git, config, module, etc.)"
+          },
+          "error_message": {
+            "type": "string",
+            "description": "Error message text"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["error", "warning", "info"],
+            "description": "Error severity"
+          }
+        }
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "description": "Recommended actions to improve health",
+      "items": {
+        "type": "object",
+        "required": ["action", "reason"],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Recommended action"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this action is recommended"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "Priority of recommendation"
+          }
+        }
+      }
+    }
+  }
+}

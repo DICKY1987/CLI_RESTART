@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from .process import CommandResult, ProcessRunner
 from .registry import get_selected_tool_path
 from .tools_base import VCS, ToolProbe
@@ -47,31 +45,31 @@ class GitAdapter:
         """Clone a repository."""
         return self.runner.run([self.binary, "clone", url, target_dir])
 
-    def status(self, cwd: Optional[str] = None) -> CommandResult:
+    def status(self, cwd: str | None = None) -> CommandResult:
         """Get repository status."""
         return self.runner.run([self.binary, "status", "--porcelain"], cwd=cwd)
 
-    def checkout(self, branch: str, cwd: Optional[str] = None) -> CommandResult:
+    def checkout(self, branch: str, cwd: str | None = None) -> CommandResult:
         """Checkout a branch."""
         return self.runner.run([self.binary, "checkout", branch], cwd=cwd)
 
-    def fetch(self, cwd: Optional[str] = None) -> CommandResult:
+    def fetch(self, cwd: str | None = None) -> CommandResult:
         """Fetch from remote."""
         return self.runner.run([self.binary, "fetch"], cwd=cwd)
 
-    def add(self, files: str = ".", cwd: Optional[str] = None) -> CommandResult:
+    def add(self, files: str = ".", cwd: str | None = None) -> CommandResult:
         """Add files to staging."""
         return self.runner.run([self.binary, "add", files], cwd=cwd)
 
-    def commit(self, message: str, cwd: Optional[str] = None) -> CommandResult:
+    def commit(self, message: str, cwd: str | None = None) -> CommandResult:
         """Create a commit."""
         return self.runner.run([self.binary, "commit", "-m", message], cwd=cwd)
 
-    def push(self, cwd: Optional[str] = None) -> CommandResult:
+    def push(self, cwd: str | None = None) -> CommandResult:
         """Push to remote."""
         return self.runner.run([self.binary, "push"], cwd=cwd)
 
-    def pull(self, cwd: Optional[str] = None) -> CommandResult:
+    def pull(self, cwd: str | None = None) -> CommandResult:
         """Pull from remote."""
         return self.runner.run([self.binary, "pull"], cwd=cwd)
 
@@ -116,30 +114,30 @@ class GhAdapter:
         """Clone a repository using GitHub CLI."""
         return self.runner.run([self.binary, "repo", "clone", url, target_dir])
 
-    def status(self, cwd: Optional[str] = None) -> CommandResult:
+    def status(self, cwd: str | None = None) -> CommandResult:
         """Get repository status (delegates to git)."""
         git_adapter = GitAdapter(self.runner)
         return git_adapter.status(cwd=cwd)
 
-    def checkout(self, branch: str, cwd: Optional[str] = None) -> CommandResult:
+    def checkout(self, branch: str, cwd: str | None = None) -> CommandResult:
         """Checkout a branch (delegates to git)."""
         git_adapter = GitAdapter(self.runner)
         return git_adapter.checkout(branch, cwd=cwd)
 
-    def fetch(self, cwd: Optional[str] = None) -> CommandResult:
+    def fetch(self, cwd: str | None = None) -> CommandResult:
         """Fetch from remote (delegates to git)."""
         git_adapter = GitAdapter(self.runner)
         return git_adapter.fetch(cwd=cwd)
 
     def pr_create(
-        self, title: str, body: str = "", cwd: Optional[str] = None
+        self, title: str, body: str = "", cwd: str | None = None
     ) -> CommandResult:
         """Create a pull request."""
         return self.runner.run(
             [self.binary, "pr", "create", "--title", title, "--body", body], cwd=cwd
         )
 
-    def pr_list(self, cwd: Optional[str] = None) -> CommandResult:
+    def pr_list(self, cwd: str | None = None) -> CommandResult:
         """List pull requests."""
         return self.runner.run([self.binary, "pr", "list"], cwd=cwd)
 

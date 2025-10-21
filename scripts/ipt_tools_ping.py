@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 try:
     import yaml  # type: ignore
@@ -14,7 +14,7 @@ except Exception:
     yaml = None
 
 
-def run_cmd(cmd: List[str], timeout: float = 5.0) -> Dict[str, Any]:
+def run_cmd(cmd: list[str], timeout: float = 5.0) -> dict[str, Any]:
     t0 = time.time()
     try:
         proc = subprocess.run(
@@ -47,7 +47,7 @@ def run_cmd(cmd: List[str], timeout: float = 5.0) -> Dict[str, Any]:
         }
 
 
-def load_tools_cfg(path: Path) -> Dict[str, Any]:
+def load_tools_cfg(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise SystemExit(f"tools config not found: {path}")
     if yaml is None:
@@ -66,7 +66,7 @@ def main() -> int:
 
     cfg = load_tools_cfg(cfg_path)
     tools = cfg.get("tools", [])
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     for t in tools:
         name = t.get("name")
         version_cmd = t.get("version_cmd") or []

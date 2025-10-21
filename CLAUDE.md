@@ -14,6 +14,13 @@ The project is multi-faceted, combining:
 5. **VS Code Extension**: IDE integration for orchestrator workflows
 6. **DevOps Infrastructure**: Docker, Kubernetes, monitoring, and CI/CD pipelines
 
+## Requirements
+
+- **Python**: 3.9+ (tested on 3.11-3.12)
+- **Platform**: Cross-platform (Linux, macOS, Windows)
+- **Node.js**: 16+ (for VS Code extension development)
+- **Git**: 2.30+ (for git operations and GitHub integration)
+
 ## Core Architecture
 
 ### Key Components
@@ -210,27 +217,74 @@ steps:
     emits: ["artifacts/diagnostics.json"]
 ```
 
-### Available Actors
-Core adapters available in `src/cli_multi_rapid/adapters/`:
+### Available Actors (Adapters)
 
-- **vscode_diagnostics**: Run diagnostic analysis (ruff, mypy, etc.)
-- **code_fixers**: Apply deterministic fixes (black, isort, ruff --fix)
-- **ai_editor**: AI-powered code editing (aider, claude, gemini)
-- **ai_analyst**: AI-powered code analysis and insights
-- **deepseek**: Local AI code assistance with DeepSeek Coder V2 Lite via Ollama
-- **pytest_runner**: Run tests with coverage reporting
-- **verifier**: Check gates and validate artifacts
-- **git_ops**: Enhanced git operations with GitHub API integration (repos, issues, PRs, releases)
-- **github_integration**: Specialized GitHub repository analysis, issue triage, and automation
-- **security_scanner**: Security vulnerability scanning
-- **syntax_validator**: Syntax validation for multiple languages
-- **type_checker**: Static type checking
-- **import_resolver**: Import path resolution and fixing
+The Router maintains a registry of 25+ adapters across four categories. All adapters implement the `BaseAdapter` interface and are registered in `Router._initialize_adapters()`.
+
+**Category 1: Deterministic Tools**
+- **code_fixers**: Code formatting (black, isort, ruff --fix)
+- **vscode_diagnostics**: Linting & analysis (ruff, mypy, pylint, eslint)
+- **pytest_runner**: Test execution with coverage reporting
+- **git_ops**: Git operations + GitHub API integration (repos, issues, PRs, releases)
+- **syntax_validator**: Multi-language syntax validation
+- **type_checker**: Static type checking (mypy, pyright)
+- **import_resolver**: Python import path resolution
+- **security_scanner**: Security vulnerability scanning (bandit, safety)
+- **verifier**: Artifact verification & quality gates
+
+**Category 2: AI-Powered Tools**
+- **ai_editor**: AI code editing via Aider (Claude, GPT-4, Gemini)
+- **ai_analyst**: AI code analysis and insights
+- **deepseek**: Local DeepSeek Coder V2 Lite via Ollama (free, private, offline)
+
+**Category 3: Codex Pipeline (Atomic Modifications)**
 - **contract_validator**: Validate contracts against schemas
-- **bundle_loader**: Load and apply code modification bundles
-- **cost_estimator**: Estimate token costs before execution
-- **backup_manager**: Create and restore backups
-- **state_capture**: Capture repository state for rollback
+- **bundle_loader**: Load code modification bundles
+- **enhanced_bundle_applier**: Apply bundles with verification
+
+**Category 4: Infrastructure**
+- **github_integration**: Advanced GitHub repository analysis and automation
+- **tool_adapter_bridge**: Generic tool integration bridge
+- **cost_estimator**: Token cost estimation before execution
+- **certificate_generator**: Generate certificates and attestations
+
+### Router & Adapter Selection
+
+The Router (`src/cli_multi_rapid/router.py`) uses **intelligent routing** based on:
+
+1. **Complexity Analysis** (0.0-1.0 score):
+   - File count and total size
+   - Operation type (read < format < lint < test < edit < refactor < generate < analyze)
+   - Parameter complexity
+   - Context dependencies
+
+2. **Adapter Performance Profiles**:
+   - Each adapter defines `complexity_threshold` (max complexity it handles well)
+   - `preferred_file_types`, `max_files`, `max_file_size` constraints
+   - `operation_types` supported (e.g., ["lint", "format"])
+   - Historical `success_rate` and `avg_execution_time`
+
+3. **Policy Enforcement**:
+   - `prefer_deterministic: true` - Route to scripts/tools when possible
+   - `max_tokens` - Budget constraints
+   - Adapter availability checks
+
+**Routing Example:**
+
+```yaml
+# Simple formatting (complexity ~0.2) → code_fixers (deterministic)
+- actor: code_fixers
+  with:
+    tools: ["black", "isort"]
+
+# Complex refactoring (complexity ~0.8) → ai_editor (AI)
+- actor: ai_editor
+  with:
+    operation: refactor
+    prompt: "Extract reusable utilities"
+```
+
+The Router can **auto-select** adapters or **validate** explicit actor choices against step complexity.
 
 ### Gate Types
 - **tests_pass**: Verify tests pass from test report
@@ -241,7 +295,7 @@ Core adapters available in `src/cli_multi_rapid/adapters/`:
 
 1. **Determinism First**: Prefer scripts and static analyzers over AI
 2. **Schema-Driven**: All workflows validated by JSON Schema
-3. **Idempotent & Safe**: Dry-run, patch previews, rollback support
+3. **Idempotent & Safe**: Dry-run and patch previews before execution
 4. **Auditable**: Every step emits structured artifacts and logs
 5. **Cost-Aware**: Track token spend, enforce budgets
 6. **Git Integration**: Lane-based development, signed commits
@@ -249,15 +303,109 @@ Core adapters available in `src/cli_multi_rapid/adapters/`:
 ## Extending the System
 
 ### Adding New Adapters
-1. Extend `BaseAdapter` in `src/cli_multi_rapid/adapters/base_adapter.py`
-2. Implement `execute()` method returning `AdapterResult`
-3. Register in `Router._initialize_adapters()`
-4. Add actor to workflow schema enum
+
+The adapter framework is the core extensibility mechanism. All workflow steps execute through adapters.
+
+**1. Create Adapter Class** (extend `BaseAdapter` in `src/cli_multi_rapid/adapters/base_adapter.py`):
+
+```python
+from .base_adapter import BaseAdapter, AdapterType, AdapterResult, AdapterPerformanceProfile
+
+class MyNewAdapter(BaseAdapter):
+    def __init__(self):
+        super().__init__(
+            name="my_adapter",
+            adapter_type=AdapterType.DETERMINISTIC,  # or AdapterType.AI
+            description="What this adapter does"
+        )
+
+    def get_performance_profile(self) -> AdapterPerformanceProfile:
+        """Define performance characteristics for router decisions."""
+        return AdapterPerformanceProfile(
+            complexity_threshold=0.5,  # 0.0-1.0, max complexity it handles well
+            preferred_file_types=[".py", ".ts"],
+            max_files=100,
+            operation_types=["lint", "format", "test"],
+            avg_execution_time=2.0,  # seconds
+            success_rate=0.95,  # 0.0-1.0
+            cost_efficiency=0,  # tokens per operation (0 for deterministic)
+            parallel_capable=True,
+            requires_network=False,
+            requires_api_key=False
+        )
+
+    def is_available(self) -> bool:
+        """Check if adapter dependencies are available."""
+        return shutil.which("my_tool") is not None
+
+    def validate_step(self, step: Dict[str, Any]) -> bool:
+        """Validate step definition compatibility."""
+        return self.is_available() and "required_param" in step.get("with", {})
+
+    def estimate_cost(self, step: Dict[str, Any]) -> int:
+        """Return estimated tokens (0 for deterministic)."""
+        return 0
+
+    def execute(self, step: Dict, context: Optional[Dict] = None, files: Optional[str] = None) -> AdapterResult:
+        """Execute the adapter logic."""
+        self._log_execution_start(step)
+
+        try:
+            params = self._extract_with_params(step)
+            emit_paths = self._extract_emit_paths(step)
+
+            # Do work here
+            output = self._do_work(params, files)
+
+            result = AdapterResult(
+                success=True,
+                tokens_used=0,
+                artifacts=emit_paths,
+                output=output,
+                metadata={"key": "value"}
+            )
+
+            self._log_execution_complete(result)
+            return result
+
+        except Exception as e:
+            return AdapterResult(success=False, error=str(e))
+```
+
+**2. Register Adapter** in `Router._initialize_adapters()`:
+
+```python
+self.registry.register(MyNewAdapter())
+```
+
+**3. Add to Workflow Schema** (`.ai/schemas/workflow.schema.json`):
+
+Add `"my_adapter"` to the `actor` enum in the step schema.
+
+**4. Use in Workflows**:
+
+```yaml
+steps:
+  - id: "1.001"
+    name: "Run My Tool"
+    actor: my_adapter
+    with:
+      required_param: "value"
+    emits: ["artifacts/my_output.json"]
+```
+
+**Key Adapter Conventions:**
+- Always return `AdapterResult` (never raise exceptions in `execute()`)
+- Use `_extract_with_params()` and `_extract_emit_paths()` helpers
+- Log execution start/complete for audit trail
+- Implement `is_available()` to check dependencies
+- Define accurate `get_performance_profile()` for optimal routing
+- Deterministic adapters should have `cost_efficiency=0`
 
 ### Adding New Gate Types
-1. Add gate logic to `Verifier._check_single_gate()`
-2. Update workflow schema with new gate type
-3. Create corresponding JSON schema for artifacts
+1. Add gate logic to `Verifier._check_single_gate()` in `src/cli_multi_rapid/verifier.py`
+2. Update workflow schema with new gate type in `.ai/schemas/workflow.schema.json`
+3. Create corresponding JSON schema for artifacts in `.ai/schemas/`
 
 ## Testing Strategy
 
@@ -899,5 +1047,67 @@ Key environment variables:
 - `GITHUB_TOKEN`: GitHub Personal Access Token
 - `ANTHROPIC_API_KEY`: Claude API key (optional)
 - `OPENAI_API_KEY`: OpenAI API key (optional)
-- Cost and budget limits
-- Service endpoints and ports
+- `GOOGLE_API_KEY`: Google AI API key (optional)
+- `OLLAMA_API_BASE`: Ollama endpoint (default: `http://localhost:11434`)
+- `MAX_TOKEN_BUDGET`: Maximum token budget for AI operations (default: 500000)
+- `CLI_ORCHESTRATOR_ENV`: Environment mode (development, production, testing)
+- `DEFAULT_WORKFLOW_TIMEOUT`: Workflow timeout in minutes (default: 30)
+- `DEBUG`: Enable debug logging (true/false)
+
+## Platform-Specific Notes
+
+### Windows
+- Use PowerShell for script execution
+- MQL4 compilation only supported on Windows
+- DeepSeek wrapper scripts available: `scripts\opencode-deepseek.cmd`, `scripts\opencode-deepseek.ps1`
+- Set execution policy if needed: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+### Linux/macOS
+- Use bash for script execution
+- Aider hooks: `bash scripts/install_hooks.sh`
+- All Python and Node.js tooling cross-platform compatible
+
+## Entry Points
+
+The CLI provides three main commands (defined in `pyproject.toml`):
+
+1. **cli-orchestrator** - Main orchestrator CLI
+   ```bash
+   cli-orchestrator run .ai/workflows/PY_EDIT_TRIAGE.yaml --files "src/**/*.py"
+   cli-orchestrator verify artifacts/diagnostics.json --schema .ai/schemas/diagnostics.schema.json
+   cli-orchestrator pr create --from artifacts/ --title "Auto fixes"
+   cli-orchestrator cost report --last-run
+   ```
+
+2. **simplified-run** - Quick workflow execution
+   ```bash
+   simplified-run --workflow .ai/workflows/SIMPLE_PY_FIX.yaml
+   ```
+
+3. **cost-check** - Budget and cost verification
+   ```bash
+   cost-check
+   ```
+
+## Common Issues & Troubleshooting
+
+### Installation Issues
+- **Import errors**: Ensure installed with `pip install -e .` from repository root
+- **Missing dependencies**: Install dev dependencies with `pip install -e .[dev,ai,test]`
+- **Pre-commit hooks failing**: Run `pre-commit install` after installation
+
+### Workflow Execution Issues
+- **Schema validation errors**: Ensure workflow YAML matches `.ai/schemas/workflow.schema.json`
+- **Adapter not available**: Check adapter dependencies (e.g., `ruff`, `pytest`, `gh` CLI)
+- **GitHub API 401**: Verify `GITHUB_TOKEN` is set and has required permissions
+- **DeepSeek not working**: Ensure Ollama is running and model is pulled (`ollama pull deepseek-coder-v2:lite`)
+
+### Testing Issues
+- **Coverage below threshold**: Minimum 85% required for CI (`pytest --cov-fail-under=85`)
+- **Integration tests expensive**: Mark with `@pytest.mark.expensive` and exclude with `-m "not expensive"`
+- **Async tests failing**: Ensure `pytest-asyncio` installed
+
+### Build Issues
+- **VS Code extension build fails**: Run `npm ci` in `tools/vscode-extension/` first
+- **Type checking errors**: Check Python 3.9+ compatibility (use `typing-extensions` for backports)
+- **Linting conflicts**: Run `black` before `ruff` (black formats, ruff checks)

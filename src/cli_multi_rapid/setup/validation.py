@@ -9,7 +9,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
 from rich.console import Console
 from rich.panel import Panel
@@ -23,11 +23,11 @@ class SystemValidator:
     def __init__(self, project_root: Optional[Path] = None):
         """Initialize system validator."""
         self.project_root = project_root or Path.cwd()
-        self.issues: List[str] = []
-        self.successes: List[str] = []
-        self.warnings: List[str] = []
+        self.issues: list[str] = []
+        self.successes: list[str] = []
+        self.warnings: list[str] = []
 
-    def run_comprehensive_validation(self) -> Dict[str, bool]:
+    def run_comprehensive_validation(self) -> dict[str, bool]:
         """Run complete system validation suite."""
         console.print(
             Panel.fit(
@@ -205,7 +205,7 @@ class SystemValidator:
             self.issues.append("❌ CLI command timed out")
             return False
 
-    def check_external_tools(self) -> Dict[str, bool]:
+    def check_external_tools(self) -> dict[str, bool]:
         """Check availability of external tools."""
         tools = {
             "git": ["git", "--version"],
@@ -219,7 +219,7 @@ class SystemValidator:
 
         for tool_name, command in tools.items():
             try:
-                result = subprocess.run(
+                subprocess.run(
                     command, capture_output=True, text=True, check=True, timeout=10
                 )
                 tool_status[tool_name] = True

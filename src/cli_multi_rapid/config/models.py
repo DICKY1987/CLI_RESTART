@@ -2,8 +2,6 @@
 
 """Pydantic settings models for application configuration."""
 
-from typing import Optional
-
 
 from pydantic_settings import BaseSettings
 
@@ -36,15 +34,15 @@ class ObservabilityConfig(BaseModel):
 class RedisSettings(BaseSettings):
     """Redis connection string. Secrets must be provided via env."""
 
-    url: Optional[str] = Field(None, env=["REDIS_URL"])  # optional; if provided we may ping
+    url: str | None = Field(None, env=["REDIS_URL"])  # optional; if provided we may ping
 
 
 class ApiKeys(BaseSettings):
     """External API keys (optional unless features used)."""
 
-    openai_api_key: Optional[str] = Field(None, env=["OPENAI_API_KEY"])  # noqa: S105
-    anthropic_api_key: Optional[str] = Field(None, env=["ANTHROPIC_API_KEY"])  # noqa: S105
-    google_api_key: Optional[str] = Field(None, env=["GOOGLE_API_KEY", "GEMINI_API_KEY"])  # noqa: S105
+    openai_api_key: str | None = Field(None, env=["OPENAI_API_KEY"])  # noqa: S105
+    anthropic_api_key: str | None = Field(None, env=["ANTHROPIC_API_KEY"])  # noqa: S105
+    google_api_key: str | None = Field(None, env=["GOOGLE_API_KEY", "GEMINI_API_KEY"])  # noqa: S105
 
 
 class Settings(BaseSettings):

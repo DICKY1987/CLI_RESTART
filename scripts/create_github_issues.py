@@ -22,7 +22,6 @@ import argparse
 import json
 import os
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import requests
 
@@ -44,15 +43,15 @@ class Task:
     title: str
     phase: str
     priority: str
-    acceptance_criteria: List[str]
-    dependencies: List[str]
-    validation_steps: List[str]
+    acceptance_criteria: list[str]
+    dependencies: list[str]
+    validation_steps: list[str]
 
 
-def load_roadmap() -> Dict[str, Milestone]:
+def load_roadmap() -> dict[str, Milestone]:
     with open(DETAILED_ROADMAP_FP, encoding="utf-8") as f:
         data = json.load(f)
-    milestones: Dict[str, Milestone] = {}
+    milestones: dict[str, Milestone] = {}
     for phase in data.get("phases", []):
         pid = str(phase.get("id"))
         title = f"Phase {pid} – {phase.get('name', '').strip()}"
@@ -68,10 +67,10 @@ def load_roadmap() -> Dict[str, Milestone]:
     return milestones
 
 
-def load_backlog() -> List[Task]:
+def load_backlog() -> list[Task]:
     with open(BACKLOG_FP, encoding="utf-8") as f:
         data = json.load(f)
-    tasks: List[Task] = []
+    tasks: list[Task] = []
     for t in data.get("tasks", []):
         tasks.append(
             Task(
@@ -87,12 +86,12 @@ def load_backlog() -> List[Task]:
     return tasks
 
 
-def gh_api(repo: str, token: Optional[str]) -> str:
+def gh_api(repo: str, token: str | None) -> str:
     base = f"https://api.github.com/repos/{repo}"
     return base
 
 
-def gh_headers(token: Optional[str]) -> Dict[str, str]:
+def gh_headers(token: str | None) -> dict[str, str]:
     h = {
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
@@ -103,7 +102,7 @@ def gh_headers(token: Optional[str]) -> Dict[str, str]:
     return h
 
 
-def get_existing_milestones(repo: str, token: Optional[str]) -> Dict[str, int]:
+def get_existing_milestones(repo: str, token: str | None) -> dict[str, int]:
     url = gh_api(repo, token) + "/milestones?state=all&per_page=100"
     r = requests.get(url, headers=gh_headers(token), timeout=30)
     r.raise_for_status()
@@ -114,8 +113,8 @@ def get_existing_milestones(repo: str, token: Optional[str]) -> Dict[str, int]:
 
 
 def ensure_milestone(
-    repo: str, token: Optional[str], title: str, description: str, dry_run: bool
-) -> Optional[int]:
+    repo: str, token: str | None, title: str, description: str, dry_run: bool
+) -> int | None:
     existing = get_existing_milestones(repo, token)
     if title in existing:
         return existing[title]
@@ -133,7 +132,7 @@ def ensure_milestone(
     return r.json()["number"]
 
 
-def search_issue_by_title(repo: str, token: Optional[str], title: str) -> Optional[int]:
+def search_issue_by_title(repo: str, token: str | None, title: str) -> int | None:
     # GitHub search API. Note: not guaranteed exact; we filter locally.
     q = f"repo:{repo} in:title {title}"
     url = f"https://api.github.com/search/issues?q={requests.utils.quote(q)}"
@@ -147,13 +146,13 @@ def search_issue_by_title(repo: str, token: Optional[str], title: str) -> Option
 
 def create_issue(
     repo: str,
-    token: Optional[str],
+    token: str | None,
     title: str,
     body: str,
-    labels: List[str],
-    milestone_number: Optional[int],
+    labels: list[str],
+    milestone_number: int | None,
     dry_run: bool,
-) -> Optional[int]:
+) -> int | None:
     if search_issue_by_title(repo, token, title):
         print(f"Exists: {title}")
         return None
@@ -163,7 +162,7 @@ def create_issue(
         )
         return None
     url = gh_api(repo, token) + "/issues"
-    payload: Dict[str, object] = {"title": title, "body": body, "labels": labels}
+    payload: dict[str, object] = {"title": title, "body": body, "labels": labels}
     if milestone_number:
         payload["milestone"] = milestone_number
     r = requests.post(url, headers=gh_headers(token), json=payload, timeout=30)
@@ -206,7 +205,7 @@ def main() -> int:
     tasks = load_backlog()
 
     # Create milestones
-    milestone_numbers: Dict[str, Optional[int]] = {}
+    milestone_numbers: dict[str, int | None] = {}
     for pid, m in milestones.items():
         num = ensure_milestone(
             args.repo, args.token, m.title, m.description, dry_run=args.dry_run

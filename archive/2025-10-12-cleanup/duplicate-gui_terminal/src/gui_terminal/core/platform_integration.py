@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 def _import_integration_manager():
@@ -31,16 +31,16 @@ def _import_integration_manager():
 class WorkflowContextData:
     workflow_id: str
     name: str
-    user_id: Optional[str] = None
-    jira_project: Optional[str] = None
-    slack_channel: Optional[str] = None
-    github_repo: Optional[str] = None
+    user_id: str | None = None
+    jira_project: str | None = None
+    slack_channel: str | None = None
+    github_repo: str | None = None
 
 
 class PlatformIntegrationsBridge:
     """Adapter to existing enterprise integrations (JIRA/Slack/GitHub/Teams)."""
 
-    def __init__(self, config_file: Optional[str] = None) -> None:
+    def __init__(self, config_file: str | None = None) -> None:
         IM = _import_integration_manager()
         self._mgr = IM(config_file) if IM else None
 
@@ -63,17 +63,17 @@ class PlatformIntegrationsBridge:
             },
         )
 
-    async def notify_progress(self, workflow_id: str, progress: Dict[str, Any]) -> None:
+    async def notify_progress(self, workflow_id: str, progress: dict[str, Any]) -> None:
         if not self._mgr:
             return
         await self._mgr.notify_workflow_progress(workflow_id, progress)
 
-    async def notify_completed(self, workflow_id: str, result: Dict[str, Any]) -> None:
+    async def notify_completed(self, workflow_id: str, result: dict[str, Any]) -> None:
         if not self._mgr:
             return
         await self._mgr.notify_workflow_completed(workflow_id, result)
 
-    async def notify_failed(self, workflow_id: str, error: Dict[str, Any]) -> None:
+    async def notify_failed(self, workflow_id: str, error: dict[str, Any]) -> None:
         if not self._mgr:
             return
         await self._mgr.notify_workflow_failed(workflow_id, error)

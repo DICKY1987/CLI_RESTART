@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from rich.console import Console
@@ -75,8 +75,8 @@ class Milestone:
     start_date: Optional[datetime] = None
     target_date: Optional[datetime] = None
     completion_date: Optional[datetime] = None
-    dependencies: List[str] = None
-    blockers: List[str] = None
+    dependencies: list[str] = None
+    blockers: list[str] = None
     progress_percent: int = 0
 
     def __post_init__(self):
@@ -99,8 +99,8 @@ class PhaseProgress:
     actual_end_date: Optional[datetime] = None
     duration_days: int = 7
     progress_percent: int = 0
-    milestones: List[Milestone] = None
-    dependencies: List[str] = None
+    milestones: list[Milestone] = None
+    dependencies: list[str] = None
     risk_level: str = "medium"
     priority: str = "medium"
 
@@ -118,7 +118,7 @@ class ImplementationRoadmap:
     name: str
     start_date: datetime
     target_end_date: datetime
-    phases: List[PhaseProgress]
+    phases: list[PhaseProgress]
     overall_progress: int = 0
     current_phase: Optional[str] = None
     completed_phases: int = 0
@@ -427,7 +427,7 @@ class RoadmapTracker:
         except Exception as e:
             logger.error(f"Failed to save roadmap: {e}")
 
-    def serialize_roadmap(self, roadmap: ImplementationRoadmap) -> Dict[str, Any]:
+    def serialize_roadmap(self, roadmap: ImplementationRoadmap) -> dict[str, Any]:
         """Convert roadmap to JSON-serializable format"""
 
         def serialize_datetime(dt):
@@ -461,7 +461,7 @@ class RoadmapTracker:
 
         return serialized
 
-    def deserialize_roadmap(self, data: Dict[str, Any]) -> ImplementationRoadmap:
+    def deserialize_roadmap(self, data: dict[str, Any]) -> ImplementationRoadmap:
         """Convert JSON data back to roadmap object"""
 
         def parse_datetime(dt_str):
@@ -517,7 +517,7 @@ class RoadmapTracker:
             None,
         )
 
-    def get_next_phases(self) -> List[PhaseProgress]:
+    def get_next_phases(self) -> list[PhaseProgress]:
         """Get phases ready to be started (dependencies met)"""
         if not self.roadmap:
             return []
@@ -711,7 +711,7 @@ async def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Status command
-    status_parser = subparsers.add_parser("status", help="Show roadmap status")
+    subparsers.add_parser("status", help="Show roadmap status")
 
     # Update command
     update_parser = subparsers.add_parser("update", help="Update phase progress")

@@ -9,7 +9,7 @@ Focuses on understanding code patterns, generating insights, and planning change
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
@@ -28,8 +28,8 @@ class AIAnalystAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute AI analysis workflow step."""
@@ -95,9 +95,9 @@ class AIAnalystAdapter(BaseAdapter):
     def _execute_code_review(
         self,
         files: Optional[str],
-        focus_areas: List[str],
+        focus_areas: list[str],
         detail_level: str,
-        emit_paths: List[str],
+        emit_paths: list[str],
         model: str,
     ) -> AdapterResult:
         """Execute AI-powered code review."""
@@ -149,7 +149,7 @@ class AIAnalystAdapter(BaseAdapter):
         self,
         files: Optional[str],
         detail_level: str,
-        emit_paths: List[str],
+        emit_paths: list[str],
         model: str,
     ) -> AdapterResult:
         """Execute architecture analysis."""
@@ -193,8 +193,8 @@ class AIAnalystAdapter(BaseAdapter):
     def _execute_refactor_planning(
         self,
         files: Optional[str],
-        focus_areas: List[str],
-        emit_paths: List[str],
+        focus_areas: list[str],
+        emit_paths: list[str],
         model: str,
     ) -> AdapterResult:
         """Execute refactoring planning."""
@@ -258,7 +258,7 @@ class AIAnalystAdapter(BaseAdapter):
         self,
         files: Optional[str],
         detail_level: str,
-        emit_paths: List[str],
+        emit_paths: list[str],
         model: str,
     ) -> AdapterResult:
         """Execute test planning analysis."""
@@ -315,9 +315,9 @@ class AIAnalystAdapter(BaseAdapter):
 
     def _generate_mock_code_review_findings(
         self,
-        files: List[str],
-        focus_areas: List[str],
-    ) -> List[Dict[str, Any]]:
+        files: list[str],
+        focus_areas: list[str],
+    ) -> list[dict[str, Any]]:
         """Generate mock code review findings."""
         findings = []
 
@@ -348,7 +348,7 @@ class AIAnalystAdapter(BaseAdapter):
 
         return findings
 
-    def _generate_mock_dependency_analysis(self, files: List[str]) -> Dict[str, Any]:
+    def _generate_mock_dependency_analysis(self, files: list[str]) -> dict[str, Any]:
         """Generate mock dependency analysis."""
         return {
             "modules": len(files),
@@ -357,7 +357,7 @@ class AIAnalystAdapter(BaseAdapter):
             "high_coupling_pairs": [],
         }
 
-    def _resolve_file_pattern(self, pattern: str) -> List[str]:
+    def _resolve_file_pattern(self, pattern: str) -> list[str]:
         """Resolve glob pattern to list of actual files."""
         try:
             from glob import glob
@@ -370,9 +370,9 @@ class AIAnalystAdapter(BaseAdapter):
 
     def _save_analysis_artifacts(
         self,
-        emit_paths: List[str],
-        analysis_data: Dict[str, Any],
-    ) -> List[str]:
+        emit_paths: list[str],
+        analysis_data: dict[str, Any],
+    ) -> list[str]:
         """Save analysis results to artifact files."""
         artifacts = []
 
@@ -390,7 +390,7 @@ class AIAnalystAdapter(BaseAdapter):
 
         return artifacts
 
-    def _estimate_tokens_for_analysis(self, files: List[str], detail_level: str) -> int:
+    def _estimate_tokens_for_analysis(self, files: list[str], detail_level: str) -> int:
         """Estimate tokens needed for analysis."""
         base_tokens = 1000  # Base analysis cost
 
@@ -411,7 +411,7 @@ class AIAnalystAdapter(BaseAdapter):
 
         return datetime.now().isoformat()
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
 
@@ -426,7 +426,7 @@ class AIAnalystAdapter(BaseAdapter):
 
         return analysis_type in supported_types
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost for AI analysis operation."""
         with_params = self._extract_with_params(step)
 
@@ -459,7 +459,7 @@ class AIAnalystAdapter(BaseAdapter):
         # In production, would check for AI API credentials
         return True
 
-    def get_supported_analysis_types(self) -> List[str]:
+    def get_supported_analysis_types(self) -> list[str]:
         """Get list of supported analysis types."""
         return [
             "code_review",
@@ -468,7 +468,7 @@ class AIAnalystAdapter(BaseAdapter):
             "test_planning",
         ]
 
-    def get_supported_focus_areas(self) -> List[str]:
+    def get_supported_focus_areas(self) -> list[str]:
         """Get list of supported focus areas for analysis."""
         return [
             "quality",

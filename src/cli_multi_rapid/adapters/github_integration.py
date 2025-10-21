@@ -14,7 +14,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -27,9 +27,9 @@ class GitHubAnalysisResult:
 
     success: bool
     analysis_type: str
-    data: Dict[str, Any]
-    recommendations: List[str] = None
-    issues_found: List[str] = None
+    data: dict[str, Any]
+    recommendations: list[str] = None
+    issues_found: list[str] = None
 
     def __post_init__(self):
         if self.recommendations is None:
@@ -52,9 +52,9 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
-        files: Optional[str] = None,
+        step: dict[str, Any],
+        context: dict[str, Any] | None = None,
+        files: str | None = None,
     ) -> AdapterResult:
         self._log_execution_start(step)
         try:
@@ -104,7 +104,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         except Exception as e:
             return AdapterResult(success=False, error=f"github_integration failed: {e}")
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         params = self._extract_with_params(step)
         analysis_type = params.get("analysis_type", "repository")
@@ -123,7 +123,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
         return analysis_type in valid_analysis_types
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate the token cost of executing this step."""
         return 0
 
@@ -133,7 +133,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
     # GitHub API Helper Methods
 
-    def _get_github_repo(self, params: Dict[str, Any]) -> str:
+    def _get_github_repo(self, params: dict[str, Any]) -> str:
         """Get GitHub repository from params or git remote."""
         repo = params.get("repo")
         if repo:
@@ -157,8 +157,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return "unknown/unknown"
 
     def _github_api_request(
-        self, endpoint: str, method: str = "GET", data: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+        self, endpoint: str, method: str = "GET", data: dict | None = None
+    ) -> dict[str, Any]:
         """Make authenticated GitHub API request."""
         if not self.github_token:
             return {"error": "GitHub token not found in environment"}
@@ -196,7 +196,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
     # Analysis Methods
 
     def _perform_repository_analysis(
-        self, params: Dict[str, Any]
+        self, params: dict[str, Any]
     ) -> GitHubAnalysisResult:
         """Comprehensive repository analysis."""
         repo = self._get_github_repo(params)
@@ -244,11 +244,11 @@ class GitHubIntegrationAdapter(BaseAdapter):
                 "last_commit": commit_dates[0] if commit_dates else None,
                 "commit_frequency": self._calculate_commit_frequency(commit_dates),
                 "contributors": len(
-                    set(
+                    {
                         c.get("author", {}).get("login")
                         for c in commits
                         if c.get("author")
-                    )
+                    }
                 ),
             }
 
@@ -283,7 +283,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         )
 
     def _perform_security_analysis(
-        self, params: Dict[str, Any]
+        self, params: dict[str, Any]
     ) -> GitHubAnalysisResult:
         """Security-focused repository analysis."""
         repo = self._get_github_repo(params)
@@ -328,7 +328,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         )
 
     def _perform_code_quality_analysis(
-        self, params: Dict[str, Any]
+        self, params: dict[str, Any]
     ) -> GitHubAnalysisResult:
         """Code quality analysis."""
         repo = self._get_github_repo(params)
@@ -374,7 +374,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         )
 
     def _perform_performance_analysis(
-        self, params: Dict[str, Any]
+        self, params: dict[str, Any]
     ) -> GitHubAnalysisResult:
         """Performance analysis of GitHub Actions and workflows."""
         repo = self._get_github_repo(params)
@@ -406,7 +406,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         )
 
     def _perform_dependency_analysis(
-        self, params: Dict[str, Any]
+        self, params: dict[str, Any]
     ) -> GitHubAnalysisResult:
         """Dependency analysis and vulnerability scanning."""
         repo = self._get_github_repo(params)
@@ -440,7 +440,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
             issues_found=issues_found,
         )
 
-    def _analyze_workflow_health(self, params: Dict[str, Any]) -> GitHubAnalysisResult:
+    def _analyze_workflow_health(self, params: dict[str, Any]) -> GitHubAnalysisResult:
         """Analyze GitHub Actions workflow health."""
         repo = self._get_github_repo(params)
 
@@ -468,7 +468,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
             recommendations=recommendations,
         )
 
-    def _perform_issue_triage(self, params: Dict[str, Any]) -> GitHubAnalysisResult:
+    def _perform_issue_triage(self, params: dict[str, Any]) -> GitHubAnalysisResult:
         """Automated issue triage and categorization."""
         repo = self._get_github_repo(params)
 
@@ -497,7 +497,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
             recommendations=recommendations,
         )
 
-    def _perform_pr_automation(self, params: Dict[str, Any]) -> GitHubAnalysisResult:
+    def _perform_pr_automation(self, params: dict[str, Any]) -> GitHubAnalysisResult:
         """Automated PR analysis and suggestions."""
         repo = self._get_github_repo(params)
 
@@ -526,7 +526,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         )
 
     def _perform_release_management(
-        self, params: Dict[str, Any]
+        self, params: dict[str, Any]
     ) -> GitHubAnalysisResult:
         """Release management analysis and automation."""
         repo = self._get_github_repo(params)
@@ -560,7 +560,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
     # Analysis Helper Methods
 
-    def _calculate_commit_frequency(self, commit_dates: List[str]) -> Dict[str, Any]:
+    def _calculate_commit_frequency(self, commit_dates: list[str]) -> dict[str, Any]:
         """Calculate commit frequency metrics."""
         if not commit_dates:
             return {"daily": 0, "weekly": 0, "monthly": 0}
@@ -586,7 +586,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
         return {"daily": daily, "weekly": weekly, "monthly": monthly}
 
-    def _count_recent_items(self, items: List[Dict], state: str, days: int) -> int:
+    def _count_recent_items(self, items: list[dict], state: str, days: int) -> int:
         """Count items in specified state within last N days."""
         if not items:
             return 0
@@ -610,7 +610,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
         return count
 
-    def _analyze_documentation(self, contents: List[Dict]) -> Dict[str, Any]:
+    def _analyze_documentation(self, contents: list[dict]) -> dict[str, Any]:
         """Analyze repository documentation."""
         doc_files = ["README.md", "CONTRIBUTING.md", "LICENSE", "CHANGELOG.md", "docs/"]
         found_docs = {}
@@ -628,7 +628,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
             "documentation_score": len(found_docs) / len(doc_files),
         }
 
-    def _analyze_file_structure(self, contents: List[Dict]) -> Dict[str, Any]:
+    def _analyze_file_structure(self, contents: list[dict]) -> dict[str, Any]:
         """Analyze repository file structure."""
         structure = {
             "total_files": len(contents),
@@ -651,8 +651,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return structure
 
     def _analyze_workflow_performance(
-        self, workflow_runs: List[Dict]
-    ) -> Dict[str, Any]:
+        self, workflow_runs: list[dict]
+    ) -> dict[str, Any]:
         """Analyze workflow performance metrics."""
         if not workflow_runs:
             return {}
@@ -686,7 +686,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
             "average_duration_minutes": avg_duration / 60,
         }
 
-    def _analyze_single_workflow(self, repo: str, workflow_id: int) -> Dict[str, Any]:
+    def _analyze_single_workflow(self, repo: str, workflow_id: int) -> dict[str, Any]:
         """Analyze a single workflow."""
         workflow = self._github_api_request(
             f"repos/{repo}/actions/workflows/{workflow_id}"
@@ -709,10 +709,10 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
         return analysis
 
-    def _analyze_issue(self, issue: Dict[str, Any]) -> Dict[str, Any]:
+    def _analyze_issue(self, issue: dict[str, Any]) -> dict[str, Any]:
         """Analyze a single issue for triage."""
         title = issue.get("title", "")
-        body = issue.get("body", "")
+        issue.get("body", "")
         labels = [label.get("name") for label in issue.get("labels", [])]
 
         # Simple categorization based on keywords
@@ -747,8 +747,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
     def _analyze_pr_for_automation(
-        self, repo: str, pr: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, repo: str, pr: dict[str, Any]
+    ) -> dict[str, Any]:
         """Analyze PR for automation opportunities."""
         pr_number = pr.get("number")
 
@@ -790,7 +790,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
         return analysis
 
-    def _analyze_release_cadence(self, releases: List[Dict]) -> Dict[str, Any]:
+    def _analyze_release_cadence(self, releases: list[dict]) -> dict[str, Any]:
         """Analyze release cadence and patterns."""
         if len(releases) < 2:
             return {"insufficient_data": True}
@@ -832,8 +832,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
     # Recommendation Generation Methods
 
     def _generate_repository_recommendations(
-        self, analysis_data: Dict[str, Any]
-    ) -> List[str]:
+        self, analysis_data: dict[str, Any]
+    ) -> list[str]:
         """Generate repository improvement recommendations."""
         recommendations = []
 
@@ -866,8 +866,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return recommendations
 
     def _generate_security_recommendations(
-        self, security_data: Dict[str, Any]
-    ) -> List[str]:
+        self, security_data: dict[str, Any]
+    ) -> list[str]:
         """Generate security improvement recommendations."""
         recommendations = []
 
@@ -887,8 +887,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return recommendations
 
     def _generate_quality_recommendations(
-        self, quality_data: Dict[str, Any]
-    ) -> List[str]:
+        self, quality_data: dict[str, Any]
+    ) -> list[str]:
         """Generate code quality recommendations."""
         recommendations = []
 
@@ -909,8 +909,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return recommendations
 
     def _generate_performance_recommendations(
-        self, performance_data: Dict[str, Any]
-    ) -> List[str]:
+        self, performance_data: dict[str, Any]
+    ) -> list[str]:
         """Generate performance improvement recommendations."""
         recommendations = []
 
@@ -931,8 +931,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return recommendations
 
     def _generate_dependency_recommendations(
-        self, dependency_data: Dict[str, Any]
-    ) -> List[str]:
+        self, dependency_data: dict[str, Any]
+    ) -> list[str]:
         """Generate dependency management recommendations."""
         recommendations = []
 
@@ -948,8 +948,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return recommendations
 
     def _generate_workflow_recommendations(
-        self, workflow_data: Dict[str, Any]
-    ) -> List[str]:
+        self, workflow_data: dict[str, Any]
+    ) -> list[str]:
         """Generate workflow improvement recommendations."""
         recommendations = []
 
@@ -969,8 +969,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return recommendations
 
     def _generate_triage_recommendations(
-        self, triage_data: Dict[str, Any]
-    ) -> List[str]:
+        self, triage_data: dict[str, Any]
+    ) -> list[str]:
         """Generate issue triage recommendations."""
         recommendations = []
 
@@ -990,7 +990,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
         return recommendations
 
-    def _generate_pr_recommendations(self, pr_data: Dict[str, Any]) -> List[str]:
+    def _generate_pr_recommendations(self, pr_data: dict[str, Any]) -> list[str]:
         """Generate PR automation recommendations."""
         recommendations = []
 
@@ -1007,8 +1007,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         return recommendations
 
     def _generate_release_recommendations(
-        self, release_data: Dict[str, Any]
-    ) -> List[str]:
+        self, release_data: dict[str, Any]
+    ) -> list[str]:
         """Generate release management recommendations."""
         recommendations = []
 
@@ -1028,7 +1028,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
     # Utility Methods
 
-    def _identify_security_issues(self, security_data: Dict[str, Any]) -> List[str]:
+    def _identify_security_issues(self, security_data: dict[str, Any]) -> list[str]:
         """Identify security issues from analysis."""
         issues = []
 
@@ -1041,7 +1041,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
         return issues
 
-    def _identify_dependency_issues(self, dependency_data: Dict[str, Any]) -> List[str]:
+    def _identify_dependency_issues(self, dependency_data: dict[str, Any]) -> list[str]:
         """Identify dependency issues from analysis."""
         issues = []
 
@@ -1073,7 +1073,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
     def _create_analysis_artifact(
         self, result: GitHubAnalysisResult, analysis_type: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create structured artifact from analysis result."""
         return {
             "timestamp": datetime.utcnow().isoformat(),
@@ -1085,9 +1085,9 @@ class GitHubIntegrationAdapter(BaseAdapter):
             "metadata": {"adapter": "github_integration", "version": "1.0"},
         }
 
-    def _write_artifacts(self, emit_paths: List[str], obj: Dict[str, Any]) -> List[str]:
+    def _write_artifacts(self, emit_paths: list[str], obj: dict[str, Any]) -> list[str]:
         """Write artifacts to specified paths."""
-        written: List[str] = []
+        written: list[str] = []
         for p in emit_paths:
             dest = Path(p)
             dest.parent.mkdir(parents=True, exist_ok=True)

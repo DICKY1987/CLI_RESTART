@@ -1,8 +1,8 @@
 """Workflow coordination classes."""
 
-from enum import Enum
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
+from enum import Enum
+from typing import Any, Optional
 
 
 class CoordinationMode(str, Enum):
@@ -16,8 +16,8 @@ class CoordinationMode(str, Enum):
 class CoordinationPlan:
     """Plan for coordinating workflow execution."""
     mode: CoordinationMode
-    parallel_groups: List[List[str]] = None
-    dependencies: Dict[str, List[str]] = None
+    parallel_groups: list[list[str]] = None
+    dependencies: dict[str, list[str]] = None
 
     def __post_init__(self):
         if self.parallel_groups is None:
@@ -30,7 +30,7 @@ class WorkflowCoordinator:
     """Coordinates workflow execution across steps."""
 
     def __init__(self):
-        self.active_workflows: Dict[str, Any] = {}
+        self.active_workflows: dict[str, Any] = {}
 
     def register_workflow(self, workflow_id: str, plan: CoordinationPlan) -> None:
         """Register a workflow for coordination."""
@@ -49,7 +49,7 @@ class FileScopeManager:
     """Manages file scope and locking for workflows."""
 
     def __init__(self):
-        self.file_locks: Dict[str, str] = {}  # file_path -> workflow_id
+        self.file_locks: dict[str, str] = {}  # file_path -> workflow_id
 
     def acquire_file(self, workflow_id: str, file_path: str) -> bool:
         """Acquire exclusive access to a file."""

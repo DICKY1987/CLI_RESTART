@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 from .process import CommandResult, ProcessRunner
 from .registry import get_selected_tool_path
 from .tools_base import AICLI, ToolProbe
@@ -50,13 +48,13 @@ class ClaudeAdapter:
                 details=str(e),
             )
 
-    def run_command(self, args: List[str], cwd: Optional[str] = None) -> CommandResult:
+    def run_command(self, args: list[str], cwd: str | None = None) -> CommandResult:
         """Run a Claude CLI command."""
         cmd_args = [self.binary] + args
         return self.runner.run(cmd_args, cwd=cwd)
 
     def chat(
-        self, message: str, model: Optional[str] = None, cwd: Optional[str] = None
+        self, message: str, model: str | None = None, cwd: str | None = None
     ) -> CommandResult:
         """Start a chat session with Claude."""
         args = ["chat"]
@@ -68,9 +66,9 @@ class ClaudeAdapter:
     def complete(
         self,
         prompt: str,
-        model: Optional[str] = None,
-        max_tokens: Optional[int] = None,
-        cwd: Optional[str] = None,
+        model: str | None = None,
+        max_tokens: int | None = None,
+        cwd: str | None = None,
     ) -> CommandResult:
         """Get a completion from Claude."""
         args = ["complete"]
@@ -82,7 +80,7 @@ class ClaudeAdapter:
         return self.run_command(args, cwd=cwd)
 
     def analyze_file(
-        self, file_path: str, instruction: str, cwd: Optional[str] = None
+        self, file_path: str, instruction: str, cwd: str | None = None
     ) -> CommandResult:
         """Analyze a file with Claude."""
         args = ["analyze", file_path, instruction]
@@ -137,7 +135,7 @@ class OpenAIAdapter:
                 details=str(e),
             )
 
-    def run_command(self, args: List[str], cwd: Optional[str] = None) -> CommandResult:
+    def run_command(self, args: list[str], cwd: str | None = None) -> CommandResult:
         """Run an OpenAI CLI command."""
         if self.use_npx:
             cmd_args = [self.npx_binary, "openai"] + args
@@ -149,8 +147,8 @@ class OpenAIAdapter:
         self,
         message: str,
         model: str = "gpt-3.5-turbo",
-        max_tokens: Optional[int] = None,
-        cwd: Optional[str] = None,
+        max_tokens: int | None = None,
+        cwd: str | None = None,
     ) -> CommandResult:
         """Create a chat completion."""
         args = ["api", "chat_completions.create", "-m", model, "--message", message]
@@ -162,8 +160,8 @@ class OpenAIAdapter:
         self,
         prompt: str,
         model: str = "text-davinci-003",
-        max_tokens: Optional[int] = None,
-        cwd: Optional[str] = None,
+        max_tokens: int | None = None,
+        cwd: str | None = None,
     ) -> CommandResult:
         """Create a text completion."""
         args = ["api", "completions.create", "-m", model, "-p", prompt]
@@ -171,7 +169,7 @@ class OpenAIAdapter:
             args.extend(["--max-tokens", str(max_tokens)])
         return self.run_command(args, cwd=cwd)
 
-    def list_models(self, cwd: Optional[str] = None) -> CommandResult:
+    def list_models(self, cwd: str | None = None) -> CommandResult:
         """List available models."""
         return self.run_command(["api", "models.list"], cwd=cwd)
 
@@ -179,7 +177,7 @@ class OpenAIAdapter:
         self,
         text: str,
         model: str = "text-embedding-ada-002",
-        cwd: Optional[str] = None,
+        cwd: str | None = None,
     ) -> CommandResult:
         """Create embeddings."""
         args = ["api", "embeddings.create", "-m", model, "-i", text]

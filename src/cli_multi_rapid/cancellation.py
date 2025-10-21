@@ -8,7 +8,6 @@ Provides a simple file-based cancellation token consumed by adapters.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 
 class CancellationToken:
@@ -17,7 +16,7 @@ class CancellationToken:
     If a file named `.cancel` exists in the project root, `is_cancelled()` returns True.
     """
 
-    def __init__(self, path: Optional[Path] = None) -> None:
+    def __init__(self, path: Path | None = None) -> None:
         self._path = path or Path(".cancel")
 
     def is_cancelled(self) -> bool:

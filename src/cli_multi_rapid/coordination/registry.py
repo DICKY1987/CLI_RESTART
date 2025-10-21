@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import select
 
@@ -9,7 +9,7 @@ from src.db.connection import get_session
 from src.db.models import Workstream
 
 
-def create_workstream(name: str, metadata: Optional[dict[str, Any]] = None, correlation_id: Optional[str] = None) -> Workstream:
+def create_workstream(name: str, metadata: dict[str, Any] | None = None, correlation_id: str | None = None) -> Workstream:
     with get_session() as session:
         # Map incoming 'metadata' to model attribute 'meta' (DB column 'metadata').
         ws = Workstream(name=name, status="pending", meta=metadata, correlation_id=correlation_id)
@@ -30,17 +30,17 @@ def update_status(workstream_id: int, status: str) -> Workstream:
         return ws
 
 
-def get_workstream(workstream_id: int) -> Optional[Workstream]:
+def get_workstream(workstream_id: int) -> Workstream | None:
     with get_session() as session:
         return session.get(Workstream, workstream_id)
 
 
 def list_workstreams(
     *,
-    status: Optional[str] = None,
-    start: Optional[dt.datetime] = None,
-    end: Optional[dt.datetime] = None,
-    correlation_id: Optional[str] = None,
+    status: str | None = None,
+    start: dt.datetime | None = None,
+    end: dt.datetime | None = None,
+    correlation_id: str | None = None,
 ) -> list[Workstream]:
     with get_session() as session:
         stmt = select(Workstream)

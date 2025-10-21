@@ -13,20 +13,20 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
-def load_json_file(file_path: Path) -> Dict[str, Any]:
+def load_json_file(file_path: Path) -> dict[str, Any]:
     """Load JSON file."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         print(f"ERROR: Failed to load {file_path}: {e}")
         sys.exit(1)
 
 
-def validate_schema(registry_data: Dict[str, Any], schema_path: Path) -> Tuple[bool, List[str]]:
+def validate_schema(registry_data: dict[str, Any], schema_path: Path) -> tuple[bool, list[str]]:
     """Validate registry against JSON schema.
 
     Args:
@@ -54,7 +54,7 @@ def validate_schema(registry_data: Dict[str, Any], schema_path: Path) -> Tuple[b
         return False, [f"Schema validation failed: {e}"]
 
 
-def validate_scripts(scripts: Dict[str, Dict[str, Any]]) -> Tuple[bool, List[str]]:
+def validate_scripts(scripts: dict[str, dict[str, Any]]) -> tuple[bool, list[str]]:
     """Validate individual scripts.
 
     Args:
@@ -123,7 +123,7 @@ def validate_scripts(scripts: Dict[str, Dict[str, Any]]) -> Tuple[bool, List[str
     return is_valid, errors
 
 
-def validate_version(version: str) -> Tuple[bool, List[str]]:
+def validate_version(version: str) -> tuple[bool, list[str]]:
     """Validate version string format.
 
     Args:
@@ -144,11 +144,11 @@ def validate_version(version: str) -> Tuple[bool, List[str]]:
 def generate_report(
     registry_path: Path,
     schema_valid: bool,
-    schema_errors: List[str],
+    schema_errors: list[str],
     scripts_valid: bool,
-    script_errors: List[str],
+    script_errors: list[str],
     version_valid: bool,
-    version_errors: List[str],
+    version_errors: list[str],
     script_count: int,
 ) -> str:
     """Generate validation report.

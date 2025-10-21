@@ -11,11 +11,10 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import List
 
 
-def find_files(patterns: List[str]) -> List[Path]:
-    files: List[Path] = []
+def find_files(patterns: list[str]) -> list[Path]:
+    files: list[Path] = []
     for pat in patterns:
         files.extend(Path(".").glob(pat))
     return [f for f in files if f.is_file()]
@@ -23,8 +22,8 @@ def find_files(patterns: List[str]) -> List[Path]:
 
 def validate_workflows() -> int:
     try:
-        import yaml  # type: ignore
         import jsonschema  # type: ignore
+        import yaml  # type: ignore
     except Exception:
         print("jsonschema and PyYAML are required for schema validation", file=sys.stderr)
         return 2

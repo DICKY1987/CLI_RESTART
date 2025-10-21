@@ -10,7 +10,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import lib.audit_logger as audit_logger
 import lib.cost_tracker as cost_tracker
@@ -86,7 +86,7 @@ class MergeConflict:
     conflict_type: str
     complexity: ConflictComplexity
     line_count: int
-    context_lines: List[str]
+    context_lines: list[str]
     base_content: str
     current_content: str
     incoming_content: str
@@ -99,7 +99,7 @@ class MergeToolConfig:
     name: str
     tool_type: MergeToolType
     cost_per_use: float
-    complexity_support: List[ConflictComplexity]
+    complexity_support: list[ConflictComplexity]
     max_file_size: int  # in lines
     timeout_seconds: int
     success_rate: float
@@ -133,7 +133,7 @@ class AutomatedMergeStrategy:
             for tool in self.merge_tools.values()
         }
 
-    def _load_merge_tools(self) -> Dict[str, MergeToolConfig]:
+    def _load_merge_tools(self) -> dict[str, MergeToolConfig]:
         """Load merge tool configurations"""
         return {
             "git_native": MergeToolConfig(
@@ -212,7 +212,7 @@ class AutomatedMergeStrategy:
             ),
         }
 
-    def _load_strategy_rules(self) -> Dict[str, Any]:
+    def _load_strategy_rules(self) -> dict[str, Any]:
         """Load merge strategy decision rules"""
         return {
             "cost_optimization": {
@@ -257,7 +257,7 @@ class AutomatedMergeStrategy:
 
     async def analyze_merge_conflicts(
         self, base_branch: str, feature_branch: str
-    ) -> List[MergeConflict]:
+    ) -> list[MergeConflict]:
         """Analyze merge conflicts between branches"""
         conflicts = []
 
@@ -299,7 +299,7 @@ class AutomatedMergeStrategy:
 
         return conflicts
 
-    async def _parse_merge_conflicts(self, merge_output: str) -> List[MergeConflict]:
+    async def _parse_merge_conflicts(self, merge_output: str) -> list[MergeConflict]:
         """Parse git merge-tree output to extract conflicts"""
         conflicts = []
 
@@ -376,8 +376,8 @@ class AutomatedMergeStrategy:
             return ConflictComplexity.SIMPLE
 
     async def select_optimal_merge_tool(
-        self, conflicts: List[MergeConflict]
-    ) -> Tuple[str, MergeStrategy]:
+        self, conflicts: list[MergeConflict]
+    ) -> tuple[str, MergeStrategy]:
         """Select the optimal merge tool based on conflicts and constraints"""
 
         if not conflicts:
@@ -498,10 +498,10 @@ class AutomatedMergeStrategy:
         self,
         tool_name: str,
         strategy: MergeStrategy,
-        conflicts: List[MergeConflict],
+        conflicts: list[MergeConflict],
         base_branch: str,
         feature_branch: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute the merge using the selected tool and strategy"""
 
         start_time = datetime.utcnow()
@@ -692,7 +692,7 @@ class AutomatedMergeStrategy:
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
 
-    def get_merge_statistics(self) -> Dict[str, Any]:
+    def get_merge_statistics(self) -> dict[str, Any]:
         """Get merge operation statistics"""
         # This would return actual statistics from the audit log
         return {

@@ -8,7 +8,6 @@ without impacting existing router behavior. Intended for use by the
 SimplifiedRouter and the simplified workflow execution path.
 """
 
-from typing import Dict, List
 
 
 class RoleManager:
@@ -16,7 +15,7 @@ class RoleManager:
 
     def __init__(self) -> None:
         # Configuration-driven map; kept local and minimal for now.
-        self._roles: Dict[str, Dict[str, object]] = {
+        self._roles: dict[str, dict[str, object]] = {
             "planning_ai": {
                 "primary_tool": "claude_code",
                 "fallback_tools": ["gemini_cli", "local_llm"],
@@ -70,7 +69,7 @@ class RoleManager:
         }
 
         # Minimal operation→role mapping for common operation kinds
-        self._operation_role_map: Dict[str, str] = {
+        self._operation_role_map: dict[str, str] = {
             "plan": "planning_ai",
             "analyze": "planning_ai",
             "design": "planning_ai",
@@ -94,9 +93,9 @@ class RoleManager:
         key = (operation_type or "").strip().lower()
         return self._operation_role_map.get(key, "work_cli_tools")
 
-    def get_tools_for_role(self, role_name: str) -> List[str]:
+    def get_tools_for_role(self, role_name: str) -> list[str]:
         cfg = self._roles.get(role_name, {})
-        tools: List[str] = []
+        tools: list[str] = []
         primary = cfg.get("primary_tool")
         if isinstance(primary, str):
             tools.append(primary)
@@ -105,7 +104,7 @@ class RoleManager:
             tools.extend(str(x) for x in fallbacks)
         return tools
 
-    def get_fallback_chain(self, role_name: str) -> List[str]:
+    def get_fallback_chain(self, role_name: str) -> list[str]:
         cfg = self._roles.get(role_name, {})
         chain = []
         primary = cfg.get("primary_tool")

@@ -284,7 +284,7 @@ class TestSystemValidator:
             patch("pathlib.Path.write_text") as mock_write,
         ):
 
-            result_path = self.validator.generate_quick_start_guide()
+            self.validator.generate_quick_start_guide()
 
             mock_write.assert_called_once()
             written_content = mock_write.call_args[0][0]

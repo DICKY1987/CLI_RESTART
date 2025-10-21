@@ -12,7 +12,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
@@ -29,8 +29,8 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute bundle application."""
@@ -129,12 +129,12 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__},
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
         return "bundle_path" in with_params
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic operations)."""
         return 0
 
@@ -148,7 +148,7 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
-    def _load_bundle(self, bundle_path: str) -> Optional[Dict[str, Any]]:
+    def _load_bundle(self, bundle_path: str) -> Optional[dict[str, Any]]:
         """Load bundle from file."""
         try:
             with open(bundle_path, encoding="utf-8") as f:
@@ -157,7 +157,7 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
             self.logger.error(f"Failed to load bundle {bundle_path}: {e}")
             return None
 
-    def _perform_dry_run(self, bundle_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _perform_dry_run(self, bundle_data: dict[str, Any]) -> dict[str, Any]:
         """Perform a dry run of the bundle application."""
         dry_run_result = {
             "success": True,
@@ -202,8 +202,8 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
         return dry_run_result
 
     def _analyze_patch_dry_run(
-        self, patch: Dict[str, Any], index: int
-    ) -> Dict[str, Any]:
+        self, patch: dict[str, Any], index: int
+    ) -> dict[str, Any]:
         """Analyze a single patch for dry run."""
         analysis = {"can_apply": True, "warnings": [], "patch_index": index}
 
@@ -256,8 +256,8 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
         return analysis
 
     def _apply_atomic_modifications(
-        self, bundle_data: Dict[str, Any], verification_mode: str
-    ) -> Dict[str, Any]:
+        self, bundle_data: dict[str, Any], verification_mode: str
+    ) -> dict[str, Any]:
         """Apply all modifications atomically using temporary files."""
         apply_result = {
             "success": True,
@@ -327,8 +327,8 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
         return apply_result
 
     def _apply_sequential_modifications(
-        self, bundle_data: Dict[str, Any], verification_mode: str
-    ) -> Dict[str, Any]:
+        self, bundle_data: dict[str, Any], verification_mode: str
+    ) -> dict[str, Any]:
         """Apply modifications sequentially (less safe but simpler)."""
         apply_result = {
             "success": True,
@@ -364,13 +364,12 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
         return apply_result
 
     def _apply_single_patch(
-        self, patch: Dict[str, Any], index: int, verification_mode: str
-    ) -> Dict[str, Any]:
+        self, patch: dict[str, Any], index: int, verification_mode: str
+    ) -> dict[str, Any]:
         """Apply a single patch to its target file."""
-        patch_result = {"success": True}
 
         try:
-            target_path = patch.get("target", {}).get("path")
+            patch.get("target", {}).get("path")
             patch_type = patch.get("type", "unified_diff")
 
             if patch_type == "unified_diff":
@@ -385,8 +384,8 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
             return {"success": False, "error": str(e)}
 
     def _apply_unified_diff_patch(
-        self, patch: Dict[str, Any], index: int
-    ) -> Dict[str, Any]:
+        self, patch: dict[str, Any], index: int
+    ) -> dict[str, Any]:
         """Apply a unified diff patch."""
         try:
             target_path = patch.get("target", {}).get("path")
@@ -414,7 +413,7 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
 
     def _apply_diff_content(
         self, diff_content: str, target_file: Path
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Apply diff content to a target file."""
         try:
             # Write diff to temporary file
@@ -463,8 +462,8 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
             return {"success": False, "error": str(e)}
 
     def _check_pre_conditions(
-        self, pre_conditions: Dict[str, Any], target_file: Path
-    ) -> Dict[str, Any]:
+        self, pre_conditions: dict[str, Any], target_file: Path
+    ) -> dict[str, Any]:
         """Check pre-conditions for a patch."""
         result = {"passed": True}
 
@@ -496,7 +495,7 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
 
-    def _rollback_from_backups(self, backup_map: Dict[str, str]) -> None:
+    def _rollback_from_backups(self, backup_map: dict[str, str]) -> None:
         """Rollback files from their temporary backups."""
         for original_path, backup_path in backup_map.items():
             try:

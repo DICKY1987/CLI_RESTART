@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import typer
-from typing import Optional
 
 app = typer.Typer(help="Git lifecycle operations")
 
@@ -29,7 +28,7 @@ def init(
 @app.command()
 def clone(
     url: str = typer.Argument(..., help="Repository URL"),
-    dest: Optional[str] = typer.Argument(None, help="Destination path"),
+    dest: str | None = typer.Argument(None, help="Destination path"),
     init_repo: bool = typer.Option(False, "--init", help="Run initialization after clone"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without executing"),
 ):
@@ -83,15 +82,16 @@ def clone(
 def branch(
     name: str = typer.Argument(..., help="Branch name"),
     create: bool = typer.Option(False, "--create", "-c", help="Create new branch"),
-    workflow: Optional[str] = typer.Option(None, "--workflow", help="Associate with workflow ID"),
-    template: Optional[str] = typer.Option(None, "--template", help="Use branch template"),
+    workflow: str | None = typer.Option(None, "--workflow", help="Associate with workflow ID"),
+    template: str | None = typer.Option(None, "--template", help="Use branch template"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without executing"),
 ):
     """Create or switch git branches with workflow integration support."""
-    from cli_multi_rapid.adapters.git_ops import GitOpsAdapter
     import json
     from datetime import datetime
     from pathlib import Path
+
+    from cli_multi_rapid.adapters.git_ops import GitOpsAdapter
 
     adapter = GitOpsAdapter()
     operation = "create_branch" if create else "switch_branch"
@@ -174,7 +174,7 @@ def commit(
 @app.command()
 def pr(
     title: str = typer.Option(..., "--title", "-t", help="PR title"),
-    body: Optional[str] = typer.Option(None, "--body", "-b", help="PR description"),
+    body: str | None = typer.Option(None, "--body", "-b", help="PR description"),
     draft: bool = typer.Option(False, "--draft", help="Create as draft PR"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without executing"),
 ):
@@ -202,7 +202,7 @@ def pr(
 
 @app.command()
 def merge(
-    branch: Optional[str] = typer.Argument(None, help="Branch to merge (defaults to current PR)"),
+    branch: str | None = typer.Argument(None, help="Branch to merge (defaults to current PR)"),
     squash: bool = typer.Option(False, "--squash", help="Squash commits"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without executing"),
 ):
@@ -215,7 +215,7 @@ def merge(
     )
 
     if result.success:
-        typer.secho(f"✓ Merged successfully", fg=typer.colors.GREEN)
+        typer.secho("✓ Merged successfully", fg=typer.colors.GREEN)
     else:
         typer.secho(f"✗ Failed: {result.error}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)

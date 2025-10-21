@@ -60,14 +60,16 @@ except ImportError:
             class ConnectionType:
                 QueuedConnection = None
 
-        pyqtSlot = lambda *args, **kwargs: lambda func: func
+        def pyqtSlot(*args, **kwargs):
+            return lambda func: func
 
         class QMetaObject:
             @staticmethod
             def invokeMethod(*args, **kwargs):
                 pass
 
-        Q_ARG = lambda *args: None
+        def Q_ARG(*args):
+            return None
 
     class QtGui:
         class QFont:

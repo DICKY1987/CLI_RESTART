@@ -6,7 +6,6 @@ for CLI Orchestrator operations.
 """
 
 from collections import defaultdict
-from typing import Dict, Set
 
 from .framework import Permission, Role
 
@@ -16,9 +15,9 @@ class RoleBasedAccessControl:
 
     def __init__(self):
         # Role -> Permissions mapping
-        self._role_permissions: Dict[Role, Set[Permission]] = defaultdict(set)
+        self._role_permissions: dict[Role, set[Permission]] = defaultdict(set)
         # User -> Additional permissions (beyond roles)
-        self._user_permissions: Dict[str, Set[Permission]] = defaultdict(set)
+        self._user_permissions: dict[str, set[Permission]] = defaultdict(set)
 
     def assign_permissions_to_role(
         self, role: Role, permissions: list[Permission]
@@ -40,14 +39,14 @@ class RoleBasedAccessControl:
         """Revoke permission directly from a user."""
         self._user_permissions[user_id].discard(permission)
 
-    def get_permissions_for_roles(self, roles: Set[Role]) -> Set[Permission]:
+    def get_permissions_for_roles(self, roles: set[Role]) -> set[Permission]:
         """Get all permissions for a set of roles."""
         permissions = set()
         for role in roles:
             permissions.update(self._role_permissions.get(role, set()))
         return permissions
 
-    def get_user_permissions(self, user) -> Set[Permission]:
+    def get_user_permissions(self, user) -> set[Permission]:
         """Get all permissions for a user (from roles + direct assignments)."""
         # Permissions from roles
         role_permissions = self.get_permissions_for_roles(user.roles)
@@ -72,11 +71,11 @@ class RoleBasedAccessControl:
         user_permissions = self.get_user_permissions(user)
         return all(perm in user_permissions for perm in permissions)
 
-    def get_role_permissions(self, role: Role) -> Set[Permission]:
+    def get_role_permissions(self, role: Role) -> set[Permission]:
         """Get permissions for a specific role."""
         return self._role_permissions.get(role, set()).copy()
 
-    def list_all_role_permissions(self) -> Dict[str, list[str]]:
+    def list_all_role_permissions(self) -> dict[str, list[str]]:
         """List all role-permission mappings."""
         return {
             role.value: [perm.value for perm in permissions]
@@ -91,7 +90,7 @@ class RoleBasedAccessControl:
         """Check if user has any of the specified roles."""
         return any(role in user.roles for role in roles)
 
-    def get_effective_permissions_summary(self, user) -> Dict[str, any]:
+    def get_effective_permissions_summary(self, user) -> dict[str, any]:
         """Get detailed summary of user's effective permissions."""
         role_permissions = {}
         for role in user.roles:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     import yaml  # type: ignore
@@ -14,18 +14,18 @@ except Exception:  # pragma: no cover
 @dataclass
 class ToolInfo:
     name: str
-    capabilities: List[str]
+    capabilities: list[str]
     cost_hint: float = 0.0
     status: str = "unknown"
 
 
-def _load_tools_cfg(path: Path) -> Dict[str, ToolInfo]:
+def _load_tools_cfg(path: Path) -> dict[str, ToolInfo]:
     if not path.exists():
         return {}
     if yaml is None:  # pragma: no cover
         return {}
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    tools: Dict[str, ToolInfo] = {}
+    tools: dict[str, ToolInfo] = {}
     for t in data.get("tools", []):
         tools[t.get("name")] = ToolInfo(
             name=t.get("name"),
@@ -35,21 +35,21 @@ def _load_tools_cfg(path: Path) -> Dict[str, ToolInfo]:
     return tools
 
 
-def _load_health(path: Path) -> Dict[str, str]:
+def _load_health(path: Path) -> dict[str, str]:
     if not path.exists():
         return {}
     data = json.loads(path.read_text(encoding="utf-8"))
-    statuses: Dict[str, str] = {}
+    statuses: dict[str, str] = {}
     for rec in data.get("tools", []):
         statuses[rec.get("name")] = rec.get("status", "unknown")
     return statuses
 
 
-def _load_failovers(path: Path) -> Dict[str, List[str]]:
+def _load_failovers(path: Path) -> dict[str, list[str]]:
     if not path.exists() or yaml is None:
         return {}
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    result: Dict[str, List[str]] = {}
+    result: dict[str, list[str]] = {}
     for cap, spec in (data.get("capability_failover_maps") or {}).items():
         chain = spec.get("fallback_chain") or []
         result[cap] = [item.get("tool") for item in chain if item.get("tool")]
@@ -61,7 +61,7 @@ def select_tool_for_capability(
     tools_cfg: Path = Path("config/tools.yaml"),
     health_json: Path = Path("state/tool_health.json"),
     failover_maps: Path = Path("config/failover_maps.yaml"),
-) -> Optional[str]:
+) -> str | None:
     """Select the cheapest healthy tool providing the capability, falling back per failover maps.
 
     Returns a tool name or None if no suitable tool is found.
@@ -96,7 +96,7 @@ def select_tool_for_capability(
 
 
 def estimate_plan_cost(
-    plan_steps: List[Dict[str, Any]],
+    plan_steps: list[dict[str, Any]],
     capability_field: str = "capability",
     tools_cfg: Path = Path("config/tools.yaml"),
     health_json: Path = Path("state/tool_health.json"),

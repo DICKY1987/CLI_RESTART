@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ class CircuitBreaker:
                     f"Circuit breaker for {self.tool_name} reopened (half-open test failed)"
                 )
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get current circuit breaker state."""
         with self._lock:
             return {
@@ -156,10 +156,10 @@ class HealthScoringSystem:
         self.history_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Circuit breakers for each tool
-        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        self.circuit_breakers: dict[str, CircuitBreaker] = {}
 
         # Recent metrics for scoring (in-memory cache)
-        self.recent_metrics: Dict[str, List[HealthMetrics]] = {}
+        self.recent_metrics: dict[str, list[HealthMetrics]] = {}
         self.max_metrics_per_tool = 100
 
         # Scoring weights
@@ -335,8 +335,8 @@ class HealthScoringSystem:
         )
 
     def get_all_health_scores(
-        self, cost_hints: Optional[Dict[str, float]] = None
-    ) -> Dict[str, HealthScore]:
+        self, cost_hints: Optional[dict[str, float]] = None
+    ) -> dict[str, HealthScore]:
         """Get health scores for all tools."""
 
         cost_hints = cost_hints or {}
@@ -360,7 +360,7 @@ class HealthScoringSystem:
         circuit_breaker = self.get_or_create_circuit_breaker(tool_name)
         return circuit_breaker.can_execute()
 
-    def get_healthy_tools(self, threshold: float = 0.7) -> List[str]:
+    def get_healthy_tools(self, threshold: float = 0.7) -> list[str]:
         """Get list of tools above health threshold."""
         scores = self.get_all_health_scores()
         return [
@@ -369,7 +369,7 @@ class HealthScoringSystem:
             if score.score >= threshold and self.can_execute_tool(tool_name)
         ]
 
-    def get_system_health_summary(self) -> Dict[str, Any]:
+    def get_system_health_summary(self) -> dict[str, Any]:
         """Get overall system health summary."""
 
         scores = self.get_all_health_scores()

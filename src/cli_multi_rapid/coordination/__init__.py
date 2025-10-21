@@ -5,8 +5,8 @@ from enum import Enum
 from .coordinator import (
     CoordinationMode,
     CoordinationPlan,
-    WorkflowCoordinator,
     FileScopeManager,
+    WorkflowCoordinator,
 )
 
 

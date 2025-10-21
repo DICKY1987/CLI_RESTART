@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 from .process import CommandResult, ProcessRunner
 from .registry import get_selected_tool_path
 from .tools_base import JSRuntime, ToolProbe
@@ -42,7 +40,7 @@ class NodeAdapter:
                 details=str(e),
             )
 
-    def npm_install(self, cwd: Optional[str] = None) -> CommandResult:
+    def npm_install(self, cwd: str | None = None) -> CommandResult:
         """Run npm install."""
         return self.runner.run(
             [
@@ -53,7 +51,7 @@ class NodeAdapter:
             cwd=cwd,
         )
 
-    def npm_run(self, script: str, cwd: Optional[str] = None) -> CommandResult:
+    def npm_run(self, script: str, cwd: str | None = None) -> CommandResult:
         """Run an npm script."""
         return self.runner.run(
             [
@@ -65,7 +63,7 @@ class NodeAdapter:
         )
 
     def npx_run(
-        self, package: str, args: Optional[List[str]] = None, cwd: Optional[str] = None
+        self, package: str, args: list[str] | None = None, cwd: str | None = None
     ) -> CommandResult:
         """Run a package with npx."""
         cmd_args = [self.npx_binary, package]
@@ -73,7 +71,7 @@ class NodeAdapter:
             cmd_args.extend(args)
         return self.runner.run(cmd_args, cwd=cwd)
 
-    def npm_init(self, cwd: Optional[str] = None, yes: bool = False) -> CommandResult:
+    def npm_init(self, cwd: str | None = None, yes: bool = False) -> CommandResult:
         """Initialize a new npm project."""
         cmd = "npm init"
         if yes:
@@ -92,7 +90,7 @@ class NodeAdapter:
         package: str,
         dev: bool = False,
         global_install: bool = False,
-        cwd: Optional[str] = None,
+        cwd: str | None = None,
     ) -> CommandResult:
         """Install a specific npm package."""
         cmd = f"npm install {package}"
@@ -110,7 +108,7 @@ class NodeAdapter:
         )
 
     def npm_uninstall_package(
-        self, package: str, cwd: Optional[str] = None
+        self, package: str, cwd: str | None = None
     ) -> CommandResult:
         """Uninstall an npm package."""
         cmd = f"npm uninstall {package}"
@@ -124,7 +122,7 @@ class NodeAdapter:
         )
 
     def npm_list(
-        self, global_list: bool = False, cwd: Optional[str] = None
+        self, global_list: bool = False, cwd: str | None = None
     ) -> CommandResult:
         """List installed npm packages."""
         cmd = "npm list"
@@ -139,7 +137,7 @@ class NodeAdapter:
             cwd=cwd,
         )
 
-    def npm_audit(self, fix: bool = False, cwd: Optional[str] = None) -> CommandResult:
+    def npm_audit(self, fix: bool = False, cwd: str | None = None) -> CommandResult:
         """Run npm audit."""
         cmd = "npm audit"
         if fix:
@@ -153,29 +151,29 @@ class NodeAdapter:
             cwd=cwd,
         )
 
-    def npm_test(self, cwd: Optional[str] = None) -> CommandResult:
+    def npm_test(self, cwd: str | None = None) -> CommandResult:
         """Run npm test."""
         return self.npm_run("test", cwd=cwd)
 
-    def npm_build(self, cwd: Optional[str] = None) -> CommandResult:
+    def npm_build(self, cwd: str | None = None) -> CommandResult:
         """Run npm build."""
         return self.npm_run("build", cwd=cwd)
 
-    def npm_start(self, cwd: Optional[str] = None) -> CommandResult:
+    def npm_start(self, cwd: str | None = None) -> CommandResult:
         """Run npm start."""
         return self.npm_run("start", cwd=cwd)
 
-    def execute_js(self, code: str, cwd: Optional[str] = None) -> CommandResult:
+    def execute_js(self, code: str, cwd: str | None = None) -> CommandResult:
         """Execute JavaScript code directly."""
         return self.runner.run([self.node_binary, "-e", code], cwd=cwd)
 
     def execute_js_file(
-        self, file_path: str, cwd: Optional[str] = None
+        self, file_path: str, cwd: str | None = None
     ) -> CommandResult:
         """Execute a JavaScript file."""
         return self.runner.run([self.node_binary, file_path], cwd=cwd)
 
-    def check_package_json(self, cwd: Optional[str] = None) -> CommandResult:
+    def check_package_json(self, cwd: str | None = None) -> CommandResult:
         """Check if package.json exists and is valid."""
         code = """
         const fs = require('fs');

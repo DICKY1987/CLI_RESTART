@@ -11,7 +11,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 import networkx as nx
 
@@ -37,8 +37,8 @@ class Phase:
     phase_id: str
     name: str
     description: str = ""
-    dependencies: List[str] = None
-    tools: List[str] = None
+    dependencies: list[str] = None
+    tools: list[str] = None
     timeout_seconds: int = 300
     retry_count: int = 3
     critical: bool = False
@@ -61,7 +61,7 @@ class PhaseExecution:
     duration_seconds: float = 0.0
     attempts: int = 0
     error_message: Optional[str] = None
-    result_data: Dict[str, Any] = None
+    result_data: dict[str, Any] = None
 
     def __post_init__(self):
         if self.result_data is None:
@@ -72,11 +72,11 @@ class DependencyAwareScheduler:
     """Schedules and executes phases based on dependency graph."""
 
     def __init__(self, event_bus_callback: Optional[Callable] = None):
-        self.phases: Dict[str, Phase] = {}
-        self.executions: Dict[str, PhaseExecution] = {}
+        self.phases: dict[str, Phase] = {}
+        self.executions: dict[str, PhaseExecution] = {}
         self.dependency_graph = nx.DiGraph()
         self.event_bus_callback = event_bus_callback
-        self.execution_tasks: Dict[str, asyncio.Task] = {}
+        self.execution_tasks: dict[str, asyncio.Task] = {}
 
         # Deadlock detection
         self.max_deadlock_wait_seconds = 300  # 5 minutes
@@ -93,12 +93,12 @@ class DependencyAwareScheduler:
 
         logger.info(f"Added phase: {phase.phase_id} (deps: {phase.dependencies})")
 
-    def add_phases(self, phases: List[Phase]) -> None:
+    def add_phases(self, phases: list[Phase]) -> None:
         """Add multiple phases at once."""
         for phase in phases:
             self.add_phase(phase)
 
-    def validate_dependencies(self) -> Dict[str, Any]:
+    def validate_dependencies(self) -> dict[str, Any]:
         """Validate the dependency graph for cycles and missing dependencies."""
 
         validation_result = {"valid": True, "errors": [], "warnings": []}
@@ -151,7 +151,7 @@ class DependencyAwareScheduler:
 
         return validation_result
 
-    def get_ready_phases(self) -> List[str]:
+    def get_ready_phases(self) -> list[str]:
         """Get phases that are ready to execute (dependencies satisfied)."""
 
         ready_phases = []
@@ -172,7 +172,7 @@ class DependencyAwareScheduler:
 
         return ready_phases
 
-    def _emit_event(self, event_type: str, data: Dict[str, Any]) -> None:
+    def _emit_event(self, event_type: str, data: dict[str, Any]) -> None:
         """Emit event to event bus if callback is provided."""
         if self.event_bus_callback:
             try:
@@ -187,7 +187,7 @@ class DependencyAwareScheduler:
 
     async def _execute_phase(
         self, phase_id: str, executor_func: Callable
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute a single phase."""
 
         execution = self.executions[phase_id]
@@ -304,7 +304,7 @@ class DependencyAwareScheduler:
 
     async def execute_workflow(
         self, executor_func: Callable, max_parallel_phases: int = 5
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute all phases in dependency order with parallelization."""
 
         # Validate dependencies first
@@ -519,7 +519,7 @@ class DependencyAwareScheduler:
             },
         }
 
-    def get_execution_status(self) -> Dict[str, Any]:
+    def get_execution_status(self) -> dict[str, Any]:
         """Get current execution status of all phases."""
 
         status_counts = defaultdict(int)

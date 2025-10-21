@@ -7,7 +7,7 @@ Validates JSON/YAML files against schemas.
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import yaml
 from jsonschema import ValidationError, validate
@@ -21,7 +21,7 @@ class SchemaValidationPlugin:
         self.description = "Validate JSON/YAML files against schemas"
         self.version = "1.0.0"
 
-    def discover(self) -> Dict[str, Any]:
+    def discover(self) -> dict[str, Any]:
         """Discover schema files and validation targets."""
 
         current_dir = Path.cwd()
@@ -62,8 +62,8 @@ class SchemaValidationPlugin:
         }
 
     def run(
-        self, checkpoint_id: str, config: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, checkpoint_id: str, config: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """Run schema validation."""
 
         config = config or {}
@@ -115,7 +115,7 @@ class SchemaValidationPlugin:
 
         return results
 
-    def _get_default_validation_rules(self) -> List[Dict[str, Any]]:
+    def _get_default_validation_rules(self) -> list[dict[str, Any]]:
         """Get default validation rules for common files."""
 
         rules = []
@@ -164,7 +164,7 @@ class SchemaValidationPlugin:
 
         return rules
 
-    def _validate_rule(self, rule: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_rule(self, rule: dict[str, Any]) -> dict[str, Any]:
         """Validate a single rule."""
 
         rule_name = rule.get("name", "unnamed_rule")
@@ -228,7 +228,7 @@ class SchemaValidationPlugin:
 
     def _validate_against_schema_file(
         self, rule_name: str, target_data: Any, schema_file: str, target_file: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Validate target data against a schema file."""
 
         schema_path = Path(schema_file)
@@ -266,7 +266,7 @@ class SchemaValidationPlugin:
 
     def _validate_openapi(
         self, rule_name: str, target_data: Any, target_file: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Validate OpenAPI specification."""
 
         # Basic OpenAPI structure validation
@@ -304,7 +304,7 @@ class SchemaValidationPlugin:
 
     def _validate_basic_syntax(
         self, rule_name: str, target_data: Any, target_file: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Basic syntax validation for JSON/YAML."""
 
         # If we got here, the file was successfully parsed
@@ -316,7 +316,7 @@ class SchemaValidationPlugin:
             "data_type": type(target_data).__name__,
         }
 
-    def report(self, results: Dict[str, Any]) -> str:
+    def report(self, results: dict[str, Any]) -> str:
         """Generate human-readable report."""
 
         status_emoji = {"PASS": "✅", "FAIL": "❌", "SKIP": "⏭️", "ERROR": "⚠️"}

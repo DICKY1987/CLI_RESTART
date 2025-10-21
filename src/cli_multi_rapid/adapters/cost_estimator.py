@@ -9,7 +9,7 @@ cost model and emits a structured artifact.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..router import Router
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
@@ -27,9 +27,9 @@ class CostEstimatorAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
-        files: Optional[str] = None,
+        step: dict[str, Any],
+        context: dict[str, Any] | None = None,
+        files: str | None = None,
     ) -> AdapterResult:
         self._log_execution_start(step)
         try:

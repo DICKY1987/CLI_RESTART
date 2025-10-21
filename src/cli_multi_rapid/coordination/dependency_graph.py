@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Set
 
-
-def has_cycle(graph: Dict[str, Set[str]]) -> bool:
-    visited: Set[str] = set()
-    stack: Set[str] = set()
+def has_cycle(graph: dict[str, set[str]]) -> bool:
+    visited: set[str] = set()
+    stack: set[str] = set()
 
     def dfs(node: str) -> bool:
         if node in stack:

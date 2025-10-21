@@ -10,7 +10,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ class VerificationFramework:
             except Exception as e:
                 logger.error(f"Failed to load plugin {plugin_file}: {e}")
 
-    def discover_plugins(self) -> Dict[str, Any]:
+    def discover_plugins(self) -> dict[str, Any]:
         """Discover all available plugins and their capabilities."""
 
         plugin_info = {}
@@ -103,9 +103,9 @@ class VerificationFramework:
     def run_checkpoint(
         self,
         checkpoint_id: str,
-        plugins: Optional[List[str]] = None,
-        config: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        plugins: Optional[list[str]] = None,
+        config: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         """Run verification checkpoint with specified plugins."""
 
         config = config or {}
@@ -192,7 +192,7 @@ class VerificationFramework:
         return checkpoint_result
 
     def generate_report(
-        self, checkpoint_result: Dict[str, Any], format: str = "text"
+        self, checkpoint_result: dict[str, Any], format: str = "text"
     ) -> str:
         """Generate human-readable report from checkpoint results."""
 
@@ -237,7 +237,7 @@ class VerificationFramework:
 
         return report
 
-    def get_available_checkpoints(self) -> List[str]:
+    def get_available_checkpoints(self) -> list[str]:
         """Get list of supported checkpoint types from all plugins."""
 
         checkpoints = set()
@@ -251,7 +251,7 @@ class VerificationFramework:
             except Exception as e:
                 logger.warning(f"Could not get checkpoints from plugin: {e}")
 
-        return sorted(list(checkpoints))
+        return sorted(checkpoints)
 
 
 def main():

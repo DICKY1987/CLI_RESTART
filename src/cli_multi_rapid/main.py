@@ -8,7 +8,7 @@ CLI orchestrator that routes between deterministic tools and AI agents.
 
 import sys
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any, Optional
 
 import typer
 from rich.console import Console
@@ -223,7 +223,7 @@ def _json_default(o: Any):
 
 @coordination_app.command("run")
 def coordination_run(
-    workflows: List[Path] = typer.Argument(
+    workflows: list[Path] = typer.Argument(
         ..., help="Workflow YAML files to coordinate"
     ),
     mode: str = typer.Option("parallel", "--mode", help="Coordination mode"),
@@ -313,7 +313,7 @@ def coordination_run(
 
 @coordination_app.command("plan")
 def coordination_plan(
-    workflows: List[Path] = typer.Argument(..., help="Workflow files to analyze"),
+    workflows: list[Path] = typer.Argument(..., help="Workflow files to analyze"),
     output: Path = typer.Option(
         Path("coordination_plan.json"), "--output", help="Output file"
     ),
@@ -321,12 +321,14 @@ def coordination_plan(
     """Create coordination plan with conflict detection."""
     try:
         import json
-        import yaml
         from dataclasses import asdict
+
+        import yaml
+
         from .coordination import WorkflowCoordinator
 
         # Load workflows
-        loaded: List[Dict[str, Any]] = []
+        loaded: list[dict[str, Any]] = []
         for wf in workflows:
             with wf.open("r", encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
@@ -426,6 +428,7 @@ def coordination_dashboard(
     try:
         import json
         import time
+
         from rich.live import Live
 
         state_dir = _ensure_state_dir()
@@ -494,8 +497,8 @@ def coordination_report(
 ):
     """Generate a simple coordination report."""
     try:
-        import json
         import csv
+        import json
 
         state_file = _ensure_state_dir() / f"{coordination_id}.json"
         if not state_file.exists():
@@ -682,7 +685,7 @@ def pipeline_run_400(
 
         from .workflow_runner import WorkflowRunner
 
-        cfg: Dict[str, Any] = {}
+        cfg: dict[str, Any] = {}
         if classifier_config and classifier_config.exists():
             try:
                 cfg = json.loads(classifier_config.read_text(encoding="utf-8"))
@@ -963,18 +966,22 @@ app.add_typer(repo_app, name="repo")
 
 # Git command group (WS-06 - enhanced git operations)
 from .commands import git_commands
+
 app.add_typer(git_commands.app, name="git")
 
 # Init command group (WS-06 - repository initialization)
 from .commands import repo_init
+
 app.add_typer(repo_init.app, name="init")
 
 # State command group (WS-06 - state management)
 from .commands import state
+
 app.add_typer(state.app, name="state")
 
 # Scripts command group (WS-06 - script registry)
 from .commands import scripts
+
 app.add_typer(scripts.app, name="scripts")
 
 

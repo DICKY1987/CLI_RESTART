@@ -3,10 +3,9 @@ from __future__ import annotations
 import heapq
 import itertools
 from dataclasses import dataclass, field
-from typing import Any, Callable, List, Tuple
+from typing import Any
 
 from src.cli_multi_rapid.coordination.registry import update_status
-
 
 PRIORITY = {"high": 0, "medium": 1, "low": 2}
 
@@ -16,7 +15,7 @@ _counter = itertools.count()
 
 @dataclass(order=True)
 class _QItem:
-    sort_index: Tuple[int, int] = field(init=False)
+    sort_index: tuple[int, int] = field(init=False)
     priority: str
     workstream_id: int
     task_name: str
@@ -28,7 +27,7 @@ class _QItem:
 
 class PriorityQueue:
     def __init__(self) -> None:
-        self._heap: List[_QItem] = []
+        self._heap: list[_QItem] = []
 
     def put(self, workstream_id: int, task_name: str, payload: dict[str, Any] | None = None, priority: str = "medium") -> None:
         if priority not in PRIORITY:

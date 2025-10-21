@@ -6,7 +6,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -16,7 +16,7 @@ app = typer.Typer(help="Script registry and execution commands")
 console = Console()
 
 
-def load_registry(registry_path: str = "scripts/registry.json") -> Dict[str, Any]:
+def load_registry(registry_path: str = "scripts/registry.json") -> dict[str, Any]:
     """Load script registry from JSON file."""
     path = Path(registry_path)
     if not path.exists():
@@ -25,14 +25,14 @@ def load_registry(registry_path: str = "scripts/registry.json") -> Dict[str, Any
         raise typer.Exit(1)
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         console.print(f"[red]Failed to load registry: {e}[/red]")
         raise typer.Exit(1)
 
 
-def validate_registry_schema(registry_data: Dict[str, Any]) -> bool:
+def validate_registry_schema(registry_data: dict[str, Any]) -> bool:
     """Validate registry against schema."""
     schema_path = Path("scripts/registry_schema.json")
     if not schema_path.exists():
@@ -42,7 +42,7 @@ def validate_registry_schema(registry_data: Dict[str, Any]) -> bool:
     try:
         import jsonschema
 
-        with open(schema_path, "r", encoding="utf-8") as f:
+        with open(schema_path, encoding="utf-8") as f:
             schema = json.load(f)
 
         jsonschema.validate(registry_data, schema)
@@ -57,8 +57,8 @@ def validate_registry_schema(registry_data: Dict[str, Any]) -> bool:
 
 @app.command("list")
 def list_scripts(
-    category: Optional[str] = typer.Option(None, "--category", "-c", help="Filter by category"),
-    tags: Optional[str] = typer.Option(None, "--tags", "-t", help="Filter by tags (comma-separated)"),
+    category: str | None = typer.Option(None, "--category", "-c", help="Filter by category"),
+    tags: str | None = typer.Option(None, "--tags", "-t", help="Filter by tags (comma-separated)"),
 ):
     """List all registered scripts with metadata."""
     registry = load_registry()
@@ -131,12 +131,12 @@ def script_info(
         console.print(f"\n[bold]Description:[/bold]\n{meta['description']}")
 
     if meta.get("dependencies"):
-        console.print(f"\n[bold]Dependencies:[/bold]")
+        console.print("\n[bold]Dependencies:[/bold]")
         for dep in meta["dependencies"]:
             console.print(f"  - {dep}")
 
     if meta.get("parameters"):
-        console.print(f"\n[bold]Parameters:[/bold]")
+        console.print("\n[bold]Parameters:[/bold]")
         for param in meta["parameters"]:
             required = " [red](required)[/red]" if param.get("required") else ""
             default = f" (default: {param.get('default')})" if param.get("default") else ""
@@ -146,7 +146,7 @@ def script_info(
         console.print(f"\n[bold]Tags:[/bold] {', '.join(meta['tags'])}")
 
     if meta.get("examples"):
-        console.print(f"\n[bold]Examples:[/bold]")
+        console.print("\n[bold]Examples:[/bold]")
         for example in meta["examples"]:
             console.print(f"  {example}")
 
@@ -154,7 +154,7 @@ def script_info(
 @app.command("run")
 def run_script(
     name: str = typer.Argument(..., help="Script name to execute"),
-    args: Optional[List[str]] = typer.Argument(None, help="Script arguments"),
+    args: list[str] | None = typer.Argument(None, help="Script arguments"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show command without executing"),
 ):
     """Execute a registered script."""
@@ -215,7 +215,7 @@ def run_script(
             console.print(f"[red]{result.stderr}[/red]", file=sys.stderr)
 
         if result.returncode == 0:
-            console.print(f"\n[green]✓ Script completed successfully[/green]")
+            console.print("\n[green]✓ Script completed successfully[/green]")
         else:
             console.print(f"\n[red]✗ Script failed with exit code {result.returncode}[/red]")
             raise typer.Exit(result.returncode)
@@ -300,8 +300,8 @@ def add_script(
     name: str = typer.Argument(..., help="Script name"),
     path: str = typer.Argument(..., help="Script file path"),
     purpose: str = typer.Option(..., "--purpose", help="Script purpose"),
-    category: Optional[str] = typer.Option(None, "--category", help="Script category"),
-    tags: Optional[str] = typer.Option(None, "--tags", help="Tags (comma-separated)"),
+    category: str | None = typer.Option(None, "--category", help="Script category"),
+    tags: str | None = typer.Option(None, "--tags", help="Tags (comma-separated)"),
 ):
     """Add a script to the registry."""
     registry_path = Path("scripts/registry.json")

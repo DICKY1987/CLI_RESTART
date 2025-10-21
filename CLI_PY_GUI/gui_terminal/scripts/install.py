@@ -25,9 +25,6 @@ class Installer:
         print("Checking system requirements...")
 
         # Check Python version
-        if sys.version_info < (3, 8):
-            print("❌ Python 3.8 or higher is required")
-            return False
 
         # Check PyQt6 availability
         try:
@@ -248,10 +245,9 @@ WantedBy=default.target
             self.install_systemd_service()
             self.setup_shell_integration()
 
-            if not skip_checks:
-                if not self.run_post_install_checks():
-                    print("\n⚠️  Installation completed with warnings")
-                    return False
+            if not skip_checks and not self.run_post_install_checks():
+                print("\n⚠️  Installation completed with warnings")
+                return False
 
             print("\n✅ Installation completed successfully!")
             print(f"📁 Installation directory: {self.install_root}")

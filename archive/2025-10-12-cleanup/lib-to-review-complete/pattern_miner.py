@@ -3,20 +3,19 @@ from __future__ import annotations
 import json
 from collections import Counter
 from pathlib import Path
-from typing import List, Tuple
 
 
 def mine_sequences(
     jsonl_path: Path, top_n: int = 5
-) -> List[Tuple[Tuple[str, ...], int]]:
+) -> list[tuple[tuple[str, ...], int]]:
     """Mine simple sequences of actions from a JSONL audit log.
 
     This is a minimal placeholder that expects lines with a field 'action'.
     """
-    sequences: List[Tuple[str, ...]] = []
+    sequences: list[tuple[str, ...]] = []
     if not jsonl_path.exists():
         return []
-    window: List[str] = []
+    window: list[str] = []
     with jsonl_path.open("r", encoding="utf-8") as f:
         for line in f:
             try:

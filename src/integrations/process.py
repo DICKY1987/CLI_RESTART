@@ -7,7 +7,6 @@ import shlex
 import subprocess
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 
 @dataclass
@@ -18,9 +17,9 @@ class CommandResult:
     stdout: str
     stderr: str
     duration_s: float
-    argv: List[str]
-    cwd: Optional[str] = None
-    env: Optional[Dict[str, str]] = None
+    argv: list[str]
+    cwd: str | None = None
+    env: dict[str, str] | None = None
 
 
 class ToolError(RuntimeError):
@@ -38,9 +37,9 @@ class ProcessRunner:
 
     def run(
         self,
-        argv: List[str],
-        cwd: Optional[str] = None,
-        env: Optional[Dict[str, str]] = None,
+        argv: list[str],
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
         check: bool = False,
         text: bool = True,
     ) -> CommandResult:

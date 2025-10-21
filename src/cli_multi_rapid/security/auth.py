@@ -9,7 +9,7 @@ import json
 import secrets
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     import jwt
@@ -44,7 +44,7 @@ class JWTManager:
 
         return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
 
-    def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
+    def verify_token(self, token: str) -> Optional[dict[str, Any]]:
         """Verify JWT token and return payload."""
         try:
             payload = jwt.decode(
@@ -59,7 +59,7 @@ class JWTManager:
         except jwt.InvalidTokenError:
             return None
 
-    def decode_token_without_verification(self, token: str) -> Optional[Dict[str, Any]]:
+    def decode_token_without_verification(self, token: str) -> Optional[dict[str, Any]]:
         """Decode token without verification (for debugging)."""
         try:
             return jwt.decode(
@@ -74,7 +74,7 @@ class APIKeyManager:
 
     def __init__(self, storage_file: Path):
         self.storage_file = storage_file
-        self._keys: Dict[str, Dict[str, Any]] = {}
+        self._keys: dict[str, dict[str, Any]] = {}
         self._load_keys()
 
     def create_key(
@@ -97,7 +97,7 @@ class APIKeyManager:
 
         return api_key
 
-    def verify_key(self, api_key: str) -> Optional[Dict[str, Any]]:
+    def verify_key(self, api_key: str) -> Optional[dict[str, Any]]:
         """Verify API key and return key information."""
         key_data = self._keys.get(api_key)
         if not key_data:
@@ -126,7 +126,7 @@ class APIKeyManager:
             return True
         return False
 
-    def list_keys_for_user(self, user_id: str) -> List[Dict[str, Any]]:
+    def list_keys_for_user(self, user_id: str) -> list[dict[str, Any]]:
         """List API keys for user."""
         user_keys = []
         for api_key, key_data in self._keys.items():
@@ -180,7 +180,7 @@ class APIKeyManager:
 
             logging.error(f"Failed to save API keys: {e}")
 
-    def get_key_stats(self) -> Dict[str, Any]:
+    def get_key_stats(self) -> dict[str, Any]:
         """Get API key statistics."""
         total_keys = len(self._keys)
         active_keys = len([k for k in self._keys.values() if k.get("is_active", False)])

@@ -4,7 +4,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +114,7 @@ class ActivityLogger:
             **kwargs
         )
 
-    def git_snapshot(self, snapshot: Dict[str, Any], event_type: str = "snapshot") -> None:
+    def git_snapshot(self, snapshot: dict[str, Any], event_type: str = "snapshot") -> None:
         """Log Git snapshot event."""
         self.info(
             f"Git {event_type}: {snapshot.get('branch', 'unknown')} @ {snapshot.get('commit_hash', 'unknown')}",

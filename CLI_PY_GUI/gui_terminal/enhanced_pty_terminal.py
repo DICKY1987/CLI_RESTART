@@ -477,9 +477,8 @@ class EnhancedPTYWorker(QThread):
                     # Fallback: terminate process
                     if hasattr(self.process, 'terminate'):
                         self.process.terminate()
-        elif sig == signal.SIGTERM:
-            if self.process and hasattr(self.process, 'terminate'):
-                self.process.terminate()
+        elif sig == signal.SIGTERM and self.process and hasattr(self.process, 'terminate'):
+            self.process.terminate()
 
     def resize_pty(self, cols: int, rows: int):
         """Resize the PTY"""

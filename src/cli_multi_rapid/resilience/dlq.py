@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import builtins
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, List
 
 
 @dataclass
@@ -27,15 +27,15 @@ class FileDLQ:
         )
         self._write(items)
 
-    def list(self) -> List[DLQEntry]:
+    def list(self) -> builtins.list[DLQEntry]:
         return self._read()
 
-    def _read(self) -> List[DLQEntry]:
+    def _read(self) -> builtins.list[DLQEntry]:
         if not self.path.exists():
             return []
         raw = json.loads(self.path.read_text("utf-8"))
         return [DLQEntry(**x) for x in raw]
 
-    def _write(self, items: List[DLQEntry]) -> None:
+    def _write(self, items: builtins.list[DLQEntry]) -> None:
         self.path.write_text(json.dumps([asdict(x) for x in items], indent=2), encoding="utf-8")
 

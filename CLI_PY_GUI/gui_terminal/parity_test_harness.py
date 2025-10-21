@@ -11,7 +11,7 @@ import tempfile
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -528,35 +528,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())_code"):
-            differences.append("Exit codes differ")
-
-        return ParityTestResult(
-            test_name="Interactive Prompts",
-            gui_result=gui_result,
-            cli_result=cli_result,
-            passed=len(differences) == 0,
-            differences=differences,
-            notes="Both should handle prompts without hanging"
-        )
-
-    def test_ctrl_c_handling(self) -> ParityTestResult:
-        """Test Ctrl+C signal handling (simulated)"""
-        test_script = '''
-import signal
-import sys
-
-def signal_handler(signum, frame):
-    print("Received signal:", signum)
-    sys.exit(130)  # Standard Ctrl+C exit code
-
-signal.signal(signal.SIGINT, signal_handler)
-print("Signal handler registered")
-print("Exit code will be 0 (no actual Ctrl+C in test)")
-'''
-
-        gui_result = self._run_in_gui(test_script)
-        cli_result = self._run_in_cli(test_script)
-
-        differences = []
-        if gui_result.get("exit_code") != cli_result.get("exit
+    sys.exit(main())

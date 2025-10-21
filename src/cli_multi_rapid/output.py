@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
 from rich.syntax import Syntax
+from rich.table import Table
 
 
 class OutputFormatter:
@@ -24,7 +24,7 @@ class OutputFormatter:
         self.json_mode = json_mode
         self.console = Console() if not json_mode else None
 
-    def print(self, message: str, style: Optional[str] = None):
+    def print(self, message: str, style: str | None = None):
         """Print a message.
 
         Args:
@@ -43,9 +43,9 @@ class OutputFormatter:
         else:
             self.console.print(f"✓ {message}", style="bold green")
 
-    def print_error(self, message: str, error: Optional[Exception] = None):
+    def print_error(self, message: str, error: Exception | None = None):
         """Print an error message."""
-        data: Dict[str, Any] = {"type": "error", "message": message}
+        data: dict[str, Any] = {"type": "error", "message": message}
         if error:
             data["error_type"] = type(error).__name__
             data["error_details"] = str(error)
@@ -71,7 +71,7 @@ class OutputFormatter:
         else:
             self.console.print(f"ℹ {message}", style="bold blue")
 
-    def print_result(self, result: Dict[str, Any]):
+    def print_result(self, result: dict[str, Any]):
         """Print a structured result."""
         if self.json_mode:
             self._json_output({"type": "result", "data": result})
@@ -106,7 +106,7 @@ class OutputFormatter:
                 table.add_row(*[str(cell) for cell in row])
             self.console.print(table)
 
-    def print_code(self, code: str, language: str = "python", title: Optional[str] = None):
+    def print_code(self, code: str, language: str = "python", title: str | None = None):
         """Print syntax-highlighted code.
 
         Args:
@@ -129,7 +129,7 @@ class OutputFormatter:
             else:
                 self.console.print(syntax)
 
-    def print_list(self, items: list[str], title: Optional[str] = None):
+    def print_list(self, items: list[str], title: str | None = None):
         """Print a list of items.
 
         Args:
@@ -144,7 +144,7 @@ class OutputFormatter:
             for item in items:
                 self.console.print(f"  • {item}")
 
-    def _json_output(self, data: Dict[str, Any]):
+    def _json_output(self, data: dict[str, Any]):
         """Output JSON to stdout."""
         json.dump(data, sys.stdout)
         sys.stdout.write("\n")
@@ -152,7 +152,7 @@ class OutputFormatter:
 
 
 # Global formatter instance
-_formatter: Optional[OutputFormatter] = None
+_formatter: OutputFormatter | None = None
 
 
 def init_formatter(json_mode: bool = False):

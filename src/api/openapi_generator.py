@@ -8,9 +8,8 @@ Supports both FastAPI-based and manual route definitions.
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from pydantic import BaseModel
@@ -23,7 +22,7 @@ class OpenAPIGenerator:
     """Generate OpenAPI specification for CLI Orchestrator API."""
 
     def __init__(self, title: str = "CLI Orchestrator API", version: str = "1.0.0"):
-        self.spec: Dict[str, Any] = {
+        self.spec: dict[str, Any] = {
             "openapi": "3.0.3",
             "info": {
                 "title": title,
@@ -304,7 +303,7 @@ class OpenAPIGenerator:
             }
         )
 
-    def generate(self) -> Dict[str, Any]:
+    def generate(self) -> dict[str, Any]:
         """Generate the complete OpenAPI specification."""
         self.add_workflow_endpoints()
         self.add_adapter_endpoints()

@@ -13,7 +13,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class HealthCheckResult:
     message: str = ""
     duration_ms: float = 0.0
     timestamp: float = field(default_factory=time.time)
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 class HealthCheck:
@@ -109,8 +109,8 @@ class HealthCheckManager:
 
     def __init__(self, service_name: str):
         self.service_name = service_name
-        self.checks: Dict[str, HealthCheck] = {}
-        self.last_results: Dict[str, HealthCheckResult] = {}
+        self.checks: dict[str, HealthCheck] = {}
+        self.last_results: dict[str, HealthCheckResult] = {}
         self.is_running = False
         self._health_check_task: Optional[asyncio.Task] = None
         self.check_interval = 30  # seconds
@@ -194,7 +194,7 @@ class HealthCheckManager:
         except Exception:
             return False
 
-    async def run_all_checks(self) -> Dict[str, HealthCheckResult]:
+    async def run_all_checks(self) -> dict[str, HealthCheckResult]:
         """Run all registered health checks."""
         if not self.checks:
             self.add_default_checks()

@@ -11,10 +11,10 @@ from __future__ import annotations
 import json
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
+from ..verifier import GateResult, Verifier
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
-from ..verifier import Verifier, GateResult
 
 
 class VerifierAdapter(BaseAdapter):
@@ -30,9 +30,9 @@ class VerifierAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
-        files: Optional[str] = None,
+        step: dict[str, Any],
+        context: dict[str, Any] | None = None,
+        files: str | None = None,
     ) -> AdapterResult:
         self._log_execution_start(step)
 
@@ -52,7 +52,7 @@ class VerifierAdapter(BaseAdapter):
                 ok = self._verifier.verify_artifact(artifact_path, schema_path)
 
                 # Optionally emit a simple verification report
-                artifacts: List[str] = []
+                artifacts: list[str] = []
                 if emit_paths:
                     report = {
                         "operation": "verify_artifact",
@@ -83,7 +83,7 @@ class VerifierAdapter(BaseAdapter):
                 if not isinstance(gates, list):
                     return AdapterResult(success=False, error="'gates' must be a list")
 
-                results: List[GateResult] = self._verifier.check_gates(gates, artifacts_dir)
+                results: list[GateResult] = self._verifier.check_gates(gates, artifacts_dir)
                 passed = all(r.passed for r in results)
 
                 # Build summary and optionally emit
@@ -92,7 +92,7 @@ class VerifierAdapter(BaseAdapter):
                     "passed": passed,
                     "results": [asdict(r) for r in results],
                 }
-                artifacts: List[str] = []
+                artifacts: list[str] = []
                 if emit_paths:
                     for p in emit_paths:
                         out = Path(p)
@@ -125,7 +125,7 @@ class VerifierAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__},
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         params = self._extract_with_params(step)
         op = params.get("operation") or params.get("op")
         if op == "verify_artifact":
@@ -134,7 +134,7 @@ class VerifierAdapter(BaseAdapter):
             return True
         return False
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         # Deterministic operations only
         return 0
 

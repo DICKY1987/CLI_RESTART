@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Tuple
 
 try:
     import yaml  # type: ignore
@@ -29,7 +29,7 @@ class PolicyManager:
         except FileNotFoundError:
             return {}
 
-    def command_allowed(self, command_line: str) -> Tuple[bool, str]:
+    def command_allowed(self, command_line: str) -> tuple[bool, str]:
         cfg = self._config.get("command_filtering", {})
         mode = (cfg.get("mode") or "disabled").lower()
         allowed: Iterable[str] = cfg.get("allowed_commands", []) or []
@@ -60,7 +60,7 @@ class PolicyManager:
     def resource_limits(self) -> dict:
         return self._config.get("resource_limits", {}) or {}
 
-    def has_resource_capacity(self) -> Tuple[bool, str]:
+    def has_resource_capacity(self) -> tuple[bool, str]:
         limits = self.resource_limits()
         enforce = bool(limits.get("enforce", False))
         if not enforce:

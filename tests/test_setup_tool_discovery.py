@@ -169,7 +169,7 @@ class TestCLIToolDiscovery:
             patch("pathlib.Path.mkdir"),
         ):
 
-            result_path = self.discovery.generate_adapter_config()
+            self.discovery.generate_adapter_config()
 
             # Check that write_text was called
             mock_write.assert_called_once()
@@ -206,7 +206,7 @@ class TestCLIToolDiscovery:
             mock_file = MagicMock()
             mock_open.return_value.__enter__.return_value = mock_file
 
-            result_path = self.discovery.generate_json_report()
+            self.discovery.generate_json_report()
 
             # Check that JSON dump was called
             mock_json_dump.assert_called_once()

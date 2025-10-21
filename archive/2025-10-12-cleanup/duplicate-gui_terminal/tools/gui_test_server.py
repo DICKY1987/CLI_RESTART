@@ -33,7 +33,7 @@ def run_server() -> int:
         print(json.dumps({"ok": False, "error": "PyQt or gui_terminal not available"}))
         return 1
 
-    app = QApplication([])
+    QApplication([])
     win = MainWindow()
     # We intentionally do not show the window for headless operation
     term = getattr(win, "_term", None)

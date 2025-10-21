@@ -3,7 +3,7 @@
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -20,7 +20,7 @@ class JiraIssue:
     status: str
     assignee: Optional[str] = None
     priority: str = "Medium"
-    labels: List[str] = None
+    labels: list[str] = None
 
     def __post_init__(self):
         if self.labels is None:
@@ -39,7 +39,7 @@ class JiraConnector:
             headers={"Accept": "application/json", "Content-Type": "application/json"},
         )
 
-    async def test_connection(self) -> Dict[str, Any]:
+    async def test_connection(self) -> dict[str, Any]:
         """Test JIRA connection."""
         try:
             response = await self.session.get(f"{self.base_url}/rest/api/3/myself")
@@ -57,7 +57,7 @@ class JiraConnector:
             return {"status": "failed", "error": str(e)}
 
     async def create_workflow_issue(
-        self, workflow_id: str, workflow_data: Dict[str, Any], project_key: str
+        self, workflow_id: str, workflow_data: dict[str, Any], project_key: str
     ) -> Optional[JiraIssue]:
         """Create JIRA issue for workflow execution."""
         try:
@@ -112,7 +112,7 @@ class JiraConnector:
             return None
 
     async def update_issue_progress(
-        self, issue_key: str, progress_data: Dict[str, Any]
+        self, issue_key: str, progress_data: dict[str, Any]
     ) -> bool:
         """Update JIRA issue with workflow progress."""
         try:
@@ -140,7 +140,7 @@ class JiraConnector:
             return False
 
     async def complete_workflow_issue(
-        self, issue_key: str, result_data: Dict[str, Any]
+        self, issue_key: str, result_data: dict[str, Any]
     ) -> bool:
         """Mark JIRA issue as complete with results."""
         try:
@@ -159,7 +159,7 @@ class JiraConnector:
             # Add completion comment
             comment_data = {"body": self._format_completion_comment(result_data)}
 
-            response = await self.session.post(
+            await self.session.post(
                 f"{self.base_url}/rest/api/3/issue/{issue_key}/comment",
                 json=comment_data,
             )
@@ -172,14 +172,14 @@ class JiraConnector:
             return False
 
     async def report_workflow_failure(
-        self, issue_key: str, error_data: Dict[str, Any]
+        self, issue_key: str, error_data: dict[str, Any]
     ) -> bool:
         """Report workflow failure in JIRA issue."""
         try:
             # Add failure comment
             comment_data = {"body": self._format_failure_comment(error_data)}
 
-            response = await self.session.post(
+            await self.session.post(
                 f"{self.base_url}/rest/api/3/issue/{issue_key}/comment",
                 json=comment_data,
             )
@@ -198,7 +198,7 @@ class JiraConnector:
             logger.error(f"Error reporting failure for JIRA issue {issue_key}: {e}")
             return False
 
-    async def get_project_info(self, project_key: str) -> Optional[Dict[str, Any]]:
+    async def get_project_info(self, project_key: str) -> Optional[dict[str, Any]]:
         """Get project information."""
         try:
             response = await self.session.get(
@@ -212,8 +212,8 @@ class JiraConnector:
             return None
 
     async def search_issues(
-        self, jql: str, fields: List[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, jql: str, fields: list[str] = None
+    ) -> list[dict[str, Any]]:
         """Search JIRA issues using JQL."""
         try:
             params = {"jql": jql}
@@ -233,7 +233,7 @@ class JiraConnector:
             return []
 
     def _format_workflow_description(
-        self, workflow_id: str, workflow_data: Dict[str, Any]
+        self, workflow_id: str, workflow_data: dict[str, Any]
     ) -> str:
         """Format workflow description for JIRA."""
         description = "*Automated Workflow Execution*\n\n"
@@ -257,7 +257,7 @@ class JiraConnector:
 
         return description
 
-    def _format_progress_comment(self, progress_data: Dict[str, Any]) -> str:
+    def _format_progress_comment(self, progress_data: dict[str, Any]) -> str:
         """Format progress update comment."""
         comment = f"*Workflow Progress Update* - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
@@ -278,7 +278,7 @@ class JiraConnector:
 
         return comment
 
-    def _format_completion_comment(self, result_data: Dict[str, Any]) -> str:
+    def _format_completion_comment(self, result_data: dict[str, Any]) -> str:
         """Format completion comment."""
         comment = f"*Workflow Completed Successfully* - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
@@ -296,7 +296,7 @@ class JiraConnector:
 
         return comment
 
-    def _format_failure_comment(self, error_data: Dict[str, Any]) -> str:
+    def _format_failure_comment(self, error_data: dict[str, Any]) -> str:
         """Format failure comment."""
         comment = (
             f"*Workflow Failed* - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
@@ -315,7 +315,7 @@ class JiraConnector:
 
         return comment
 
-    def _get_priority_from_workflow(self, workflow_data: Dict[str, Any]) -> str:
+    def _get_priority_from_workflow(self, workflow_data: dict[str, Any]) -> str:
         """Determine JIRA priority from workflow data."""
         priority_map = {
             "low": "Low",
@@ -326,7 +326,7 @@ class JiraConnector:
 
         return priority_map.get(workflow_data.get("priority", "medium"), "Medium")
 
-    async def _get_issue_transitions(self, issue_key: str) -> List[Dict[str, Any]]:
+    async def _get_issue_transitions(self, issue_key: str) -> list[dict[str, Any]]:
         """Get available transitions for issue."""
         try:
             response = await self.session.get(
@@ -353,7 +353,7 @@ class JiraConnector:
             return False
 
     async def _update_custom_fields(
-        self, issue_key: str, progress_data: Dict[str, Any]
+        self, issue_key: str, progress_data: dict[str, Any]
     ):
         """Update custom fields with progress data."""
         try:

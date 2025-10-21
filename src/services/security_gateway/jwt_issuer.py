@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 try:
     import jwt  # type: ignore
@@ -24,8 +24,8 @@ class JWTIssuer:
 
     def __init__(
         self,
-        private_key_path: Optional[Path] = None,
-        public_key_path: Optional[Path] = None,
+        private_key_path: Path | None = None,
+        public_key_path: Path | None = None,
         algorithm: str = "RS256",
     ) -> None:
         self.algorithm = algorithm
@@ -36,7 +36,7 @@ class JWTIssuer:
             public_key_path or DEFAULT_PUBLIC_KEY, env="JWT_PUBLIC_KEY"
         )
 
-    def _load_key(self, path: Path, env: str) -> Optional[str]:
+    def _load_key(self, path: Path, env: str) -> str | None:
         if os.getenv(env):
             return os.getenv(env)
         if path.exists():
@@ -55,7 +55,7 @@ class JWTIssuer:
         branch: str,
         task_id: str,
         ttl_seconds: int = 3600,
-        extra_claims: Optional[Dict[str, Any]] = None,
+        extra_claims: dict[str, Any] | None = None,
     ) -> str:
         """Issue a branch-scoped JWT with limited TTL.
 
@@ -65,7 +65,7 @@ class JWTIssuer:
             raise RuntimeError("JWTIssuer not enabled (missing keys or jwt library)")
 
         now = int(time.time())
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "sub": subject,
             "iat": now,
             "exp": now + max(60, ttl_seconds),

@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
@@ -30,18 +30,18 @@ class PytestRunnerAdapter(BaseAdapter):
         """Check if pytest is available."""
         return shutil.which("pytest") is not None
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         return self.is_available()
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic tools)."""
         return 0
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute pytest with specified configuration."""
@@ -166,7 +166,7 @@ class PytestRunnerAdapter(BaseAdapter):
                 success=False, error=f"Failed to run tests: {e}", artifacts=emit_paths
             )
 
-    def _parse_test_results(self) -> Dict[str, Any]:
+    def _parse_test_results(self) -> dict[str, Any]:
         """Parse pytest XML results."""
         xml_file = Path("test-results.xml")
         if not xml_file.exists():
@@ -226,7 +226,7 @@ class PytestRunnerAdapter(BaseAdapter):
             self.logger.error(f"Error processing test results: {e}")
             return {"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0}
 
-    def _parse_coverage_results(self) -> Optional[Dict[str, Any]]:
+    def _parse_coverage_results(self) -> Optional[dict[str, Any]]:
         """Parse coverage XML results."""
         xml_file = Path("coverage.xml")
         if not xml_file.exists():
@@ -272,11 +272,11 @@ class PytestRunnerAdapter(BaseAdapter):
 
     def _generate_artifacts(
         self,
-        emit_paths: List[str],
-        test_results: Dict[str, Any],
-        coverage_results: Optional[Dict[str, Any]],
+        emit_paths: list[str],
+        test_results: dict[str, Any],
+        coverage_results: Optional[dict[str, Any]],
         subprocess_result: subprocess.CompletedProcess,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate artifact files with test and coverage results."""
         artifacts = []
 
@@ -315,8 +315,8 @@ class PytestRunnerAdapter(BaseAdapter):
     def _format_output(
         self,
         subprocess_result: subprocess.CompletedProcess,
-        test_results: Dict[str, Any],
-        coverage_results: Optional[Dict[str, Any]],
+        test_results: dict[str, Any],
+        coverage_results: Optional[dict[str, Any]],
         coverage_threshold: int,
     ) -> str:
         """Format human-readable output summary."""

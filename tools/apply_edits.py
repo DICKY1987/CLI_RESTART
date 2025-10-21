@@ -12,7 +12,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 def _norm_sep(s: str) -> str:
@@ -37,13 +37,13 @@ def _sha256_bytes(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
 
 
-def _split_lines(text: str) -> List[str]:
+def _split_lines(text: str) -> list[str]:
     return text.splitlines(keepends=True)
 
 
 def _apply_to_file(
-    file_path: Path, edits: List[Dict[str, Any]], checksum_expected: str | None = None
-) -> Tuple[int, int]:
+    file_path: Path, edits: list[dict[str, Any]], checksum_expected: str | None = None
+) -> tuple[int, int]:
     created = 0
     modified = 0
     exists = file_path.exists()
@@ -147,7 +147,7 @@ def main():
         raise ValueError("Input must be list or object with 'edits'.")
 
     # group by file
-    by_file: Dict[str, List[Dict[str, Any]]] = {}
+    by_file: dict[str, list[dict[str, Any]]] = {}
     for e in edits:
         fp = str(e.get("file_path", "")).strip()
         target = _safe_path(fp)

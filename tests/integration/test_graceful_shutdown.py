@@ -1,4 +1,5 @@
 import asyncio
+
 import pytest
 
 from cli_multi_rapid.shutdown import GracefulShutdown

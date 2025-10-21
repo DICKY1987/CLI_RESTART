@@ -10,7 +10,7 @@ import json
 import os
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Optional
 
 
 class GitHubConfig:
@@ -35,7 +35,7 @@ class GitHubConfig:
         except Exception:
             return False
 
-    def get_repository_info(self) -> Optional[Dict[str, str]]:
+    def get_repository_info(self) -> Optional[dict[str, str]]:
         """Get current repository information from git remote."""
         try:
             result = subprocess.run(
@@ -51,7 +51,7 @@ class GitHubConfig:
             pass
         return None
 
-    def parse_github_url(self, url: str) -> Dict[str, str]:
+    def parse_github_url(self, url: str) -> dict[str, str]:
         """Parse GitHub URL to extract owner and repo."""
         # Handle SSH format: git@github.com:owner/repo.git
         if url.startswith("git@github.com:"):
@@ -71,7 +71,7 @@ class GitHubConfig:
             return {"owner": owner, "repo": repo, "full_name": f"{owner}/{repo}"}
         return {"owner": "unknown", "repo": "unknown", "full_name": "unknown/unknown"}
 
-    def validate_token(self) -> Tuple[bool, str]:
+    def validate_token(self) -> tuple[bool, str]:
         """Validate GitHub token by making a test API call."""
         if not self.github_token:
             return False, "No GitHub token found in environment"
@@ -101,7 +101,7 @@ class GitHubConfig:
         except Exception as e:
             return False, f"Token validation failed: {str(e)}"
 
-    def setup_configuration(self) -> Dict[str, str]:
+    def setup_configuration(self) -> dict[str, str]:
         """Set up GitHub integration configuration."""
         config = {"status": "not_configured", "issues": [], "recommendations": []}
 
@@ -180,13 +180,13 @@ To set up GitHub integration:
    - Run: cli-orchestrator config github --validate
 """
 
-    def save_config(self, config: Dict) -> None:
+    def save_config(self, config: dict) -> None:
         """Save configuration to local file."""
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
         with open(self.config_file, "w") as f:
             json.dump(config, f, indent=2)
 
-    def load_config(self) -> Optional[Dict]:
+    def load_config(self) -> Optional[dict]:
         """Load configuration from local file."""
         if self.config_file.exists():
             try:
@@ -196,7 +196,7 @@ To set up GitHub integration:
                 pass
         return None
 
-    def get_token_permissions(self) -> Optional[Dict[str, bool]]:
+    def get_token_permissions(self) -> Optional[dict[str, bool]]:
         """Check GitHub token permissions."""
         if not self.github_token:
             return None
@@ -231,7 +231,7 @@ To set up GitHub integration:
         return None
 
 
-def validate_github_setup() -> Dict[str, any]:
+def validate_github_setup() -> dict[str, any]:
     """Validate GitHub setup and return status report."""
     config = GitHubConfig()
     setup_info = config.setup_configuration()

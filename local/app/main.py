@@ -4,7 +4,7 @@ CLI Multi-Rapid Local Development FastAPI Application
 
 import os
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Optional
 
 import asyncpg
 import redis
@@ -110,7 +110,7 @@ async def get_database():
 
 
 # Routes
-@app.get("/", response_model=Dict[str, str])
+@app.get("/", response_model=dict[str, str])
 async def root():
     """Root endpoint with API information."""
     REQUEST_COUNT.labels(method="GET", endpoint="/").inc()
@@ -226,7 +226,7 @@ async def list_artifacts():
 
     try:
         files = []
-        for root, dirs, filenames in os.walk(artifacts_dir):
+        for root, _dirs, filenames in os.walk(artifacts_dir):
             for filename in filenames:
                 filepath = os.path.join(root, filename)
                 stat = os.stat(filepath)

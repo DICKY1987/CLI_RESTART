@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
 
 
 @dataclass
 class Connection:
     websocket: any
-    subscriptions: Set[str] = field(default_factory=set)
-    user_id: Optional[str] = None
+    subscriptions: set[str] = field(default_factory=set)
+    user_id: str | None = None
 
 
 class ConnectionManager:
@@ -19,7 +17,7 @@ class ConnectionManager:
 
     def __init__(self, redis_url: str | None = None) -> None:
         self.redis_url = redis_url
-        self.connections: Dict[str, Connection] = {}
+        self.connections: dict[str, Connection] = {}
 
     async def connect(self, websocket) -> str:
         await websocket.accept()
@@ -30,7 +28,7 @@ class ConnectionManager:
     async def disconnect(self, client_id: str) -> None:
         self.connections.pop(client_id, None)
 
-    async def subscribe(self, client_id: str, topics: List[str]) -> bool:
+    async def subscribe(self, client_id: str, topics: list[str]) -> bool:
         conn = self.connections.get(client_id)
         if not conn:
             return False
@@ -38,7 +36,7 @@ class ConnectionManager:
             conn.subscriptions.add(str(t))
         return True
 
-    async def unsubscribe(self, client_id: str, topics: List[str]) -> None:
+    async def unsubscribe(self, client_id: str, topics: list[str]) -> None:
         conn = self.connections.get(client_id)
         if not conn:
             return
@@ -63,8 +61,8 @@ class ConnectionManager:
         return sent
 
     def get_connection_stats(self) -> dict:
-        topics: Set[str] = set()
-        by_topic: Dict[str, int] = {}
+        topics: set[str] = set()
+        by_topic: dict[str, int] = {}
         for conn in self.connections.values():
             for t in conn.subscriptions:
                 topics.add(t)

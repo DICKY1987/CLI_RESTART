@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 import lib.audit_logger as audit_logger
 
@@ -93,10 +93,10 @@ class FileContext:
     path: str
     language: Language
     size_lines: int
-    imports: List[str] = field(default_factory=list)
-    functions: List[str] = field(default_factory=list)
-    classes: List[str] = field(default_factory=list)
-    dependencies: List[str] = field(default_factory=list)
+    imports: list[str] = field(default_factory=list)
+    functions: list[str] = field(default_factory=list)
+    classes: list[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     last_modified: Optional[datetime] = None
     complexity_score: float = 0.0
     test_coverage: float = 0.0
@@ -108,13 +108,13 @@ class ProjectContext:
 
     root_path: str
     project_type: str
-    languages: Set[Language] = field(default_factory=set)
-    frameworks: List[str] = field(default_factory=list)
-    dependencies: Dict[str, str] = field(default_factory=dict)
-    structure: Dict[str, Any] = field(default_factory=dict)
+    languages: set[Language] = field(default_factory=set)
+    frameworks: list[str] = field(default_factory=list)
+    dependencies: dict[str, str] = field(default_factory=dict)
+    structure: dict[str, Any] = field(default_factory=dict)
     test_framework: Optional[str] = None
     build_system: Optional[str] = None
-    ci_cd: List[str] = field(default_factory=list)
+    ci_cd: list[str] = field(default_factory=list)
     documentation_coverage: float = 0.0
 
 
@@ -126,11 +126,11 @@ class TaskContext:
     task_type: TaskType
     complexity: Complexity
     priority: Priority
-    affected_files: List[str] = field(default_factory=list)
-    dependencies: List[str] = field(default_factory=list)
+    affected_files: list[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     estimated_effort_hours: float = 0.0
     risk_level: str = "medium"
-    prerequisites: List[str] = field(default_factory=list)
+    prerequisites: list[str] = field(default_factory=list)
     suggested_approach: str = ""
 
 
@@ -140,12 +140,12 @@ class WorkflowSuggestion:
 
     name: str
     description: str
-    steps: List[str] = field(default_factory=list)
-    tools: List[str] = field(default_factory=list)
+    steps: list[str] = field(default_factory=list)
+    tools: list[str] = field(default_factory=list)
     estimated_cost: float = 0.0
     estimated_time_minutes: int = 0
     success_probability: float = 0.0
-    risk_factors: List[str] = field(default_factory=list)
+    risk_factors: list[str] = field(default_factory=list)
 
 
 class ContextAnalysisEngine:
@@ -166,14 +166,14 @@ class ContextAnalysisEngine:
 
         # Cache for project analysis
         self._project_context_cache: Optional[ProjectContext] = None
-        self._file_contexts_cache: Dict[str, FileContext] = {}
+        self._file_contexts_cache: dict[str, FileContext] = {}
 
         # Pattern libraries for task classification
         self.task_patterns = self._load_task_patterns()
         self.complexity_indicators = self._load_complexity_indicators()
         self.workflow_templates = self._load_workflow_templates()
 
-    def _load_task_patterns(self) -> Dict[TaskType, List[str]]:
+    def _load_task_patterns(self) -> dict[TaskType, list[str]]:
         """Load patterns for task type classification"""
         return {
             TaskType.CODE_GENERATION: [
@@ -228,7 +228,7 @@ class ContextAnalysisEngine:
             ],
         }
 
-    def _load_complexity_indicators(self) -> Dict[str, float]:
+    def _load_complexity_indicators(self) -> dict[str, float]:
         """Load indicators for complexity assessment"""
         return {
             # High complexity indicators
@@ -259,7 +259,7 @@ class ContextAnalysisEngine:
             "basic": 0.6,
         }
 
-    def _load_workflow_templates(self) -> Dict[str, WorkflowSuggestion]:
+    def _load_workflow_templates(self) -> dict[str, WorkflowSuggestion]:
         """Load predefined workflow templates"""
         return {
             "bug_fix_standard": WorkflowSuggestion(
@@ -427,7 +427,7 @@ class ContextAnalysisEngine:
 
         # Count files by extension
         extension_counts = {}
-        for root, _, files in os.walk(self.project_root):
+        for _root, _, files in os.walk(self.project_root):
             for file in files:
                 ext = Path(file).suffix.lower()
                 if ext in language_extensions:
@@ -476,7 +476,7 @@ class ContextAnalysisEngine:
                 except Exception:
                     continue
 
-    async def _parse_requirements_txt(self, file_path: Path) -> Dict[str, str]:
+    async def _parse_requirements_txt(self, file_path: Path) -> dict[str, str]:
         """Parse requirements.txt dependencies"""
         deps = {}
         content = file_path.read_text()
@@ -493,7 +493,7 @@ class ContextAnalysisEngine:
                     deps[line] = "latest"
         return deps
 
-    async def _parse_package_json(self, file_path: Path) -> Dict[str, str]:
+    async def _parse_package_json(self, file_path: Path) -> dict[str, str]:
         """Parse package.json dependencies"""
         try:
             content = json.loads(file_path.read_text())
@@ -504,7 +504,7 @@ class ContextAnalysisEngine:
         except:
             return {}
 
-    async def _parse_pipfile(self, file_path: Path) -> Dict[str, str]:
+    async def _parse_pipfile(self, file_path: Path) -> dict[str, str]:
         """Parse Pipfile dependencies"""
         # Simplified TOML parsing for Pipfile
         deps = {}
@@ -524,7 +524,7 @@ class ContextAnalysisEngine:
             pass
         return deps
 
-    async def _parse_pyproject_toml(self, file_path: Path) -> Dict[str, str]:
+    async def _parse_pyproject_toml(self, file_path: Path) -> dict[str, str]:
         """Parse pyproject.toml dependencies"""
         # Basic TOML parsing for dependencies
         deps = {}
@@ -743,7 +743,7 @@ class ContextAnalysisEngine:
 
         return Priority.MEDIUM
 
-    async def _identify_affected_files(self, description: str) -> List[str]:
+    async def _identify_affected_files(self, description: str) -> list[str]:
         """Identify files that might be affected by the task"""
         affected_files = []
 
@@ -766,7 +766,7 @@ class ContextAnalysisEngine:
 
         return list(set(affected_files))  # Remove duplicates
 
-    def _find_test_files(self) -> List[str]:
+    def _find_test_files(self) -> list[str]:
         """Find test files in the project"""
         test_files = []
         test_patterns = [
@@ -870,7 +870,7 @@ class ContextAnalysisEngine:
 
     async def suggest_workflows(
         self, task_context: TaskContext
-    ) -> List[WorkflowSuggestion]:
+    ) -> list[WorkflowSuggestion]:
         """Suggest optimal workflows for the task"""
 
         suggestions = []
@@ -982,7 +982,7 @@ class ContextAnalysisEngine:
             risk_factors=["AI hallucinations", "over-complexity", "cost overrun"],
         )
 
-    def generate_context_report(self, task_description: str) -> Dict[str, Any]:
+    def generate_context_report(self, task_description: str) -> dict[str, Any]:
         """Generate a comprehensive context analysis report"""
 
         # This would be called asynchronously in practice

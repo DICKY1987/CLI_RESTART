@@ -1,0 +1,162 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cli-orchestrator.dev/schemas/powershell/session_status.v1.schema.json",
+  "title": "PowerShell Session Status",
+  "description": "Status of PowerShell sessions and CLI environments",
+  "type": "object",
+  "required": ["timestamp", "sessions", "environment"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when status was captured"
+    },
+    "sessions": {
+      "type": "array",
+      "description": "Active PowerShell sessions",
+      "items": {
+        "type": "object",
+        "required": ["session_id", "process_id", "state"],
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Unique session identifier"
+          },
+          "process_id": {
+            "type": "integer",
+            "description": "PowerShell process ID"
+          },
+          "parent_process_id": {
+            "type": "integer",
+            "description": "Parent process ID (e.g., Windows Terminal)"
+          },
+          "state": {
+            "type": "string",
+            "enum": ["active", "idle", "busy", "disconnected", "exited"],
+            "description": "Current session state"
+          },
+          "working_directory": {
+            "type": "string",
+            "description": "Current working directory"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Session start time"
+          },
+          "shell_type": {
+            "type": "string",
+            "enum": ["pwsh", "powershell", "cmd", "bash", "other"],
+            "description": "Type of shell"
+          },
+          "version": {
+            "type": "string",
+            "description": "PowerShell version (e.g., 7.4.1)"
+          },
+          "profile_loaded": {
+            "type": "boolean",
+            "description": "Whether profile scripts were loaded"
+          }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "description": "Environment information",
+      "required": ["powershell_version", "os", "tools_available"],
+      "properties": {
+        "powershell_version": {
+          "type": "string",
+          "description": "Installed PowerShell version"
+        },
+        "os": {
+          "type": "string",
+          "description": "Operating system (Windows, Linux, macOS)"
+        },
+        "architecture": {
+          "type": "string",
+          "description": "CPU architecture (x64, arm64, etc.)"
+        },
+        "terminal_app": {
+          "type": "string",
+          "description": "Terminal application (Windows Terminal, ConEmu, etc.)"
+        },
+        "tools_available": {
+          "type": "object",
+          "description": "Availability of common tools",
+          "properties": {
+            "git": {
+              "type": "boolean",
+              "description": "Git available in PATH"
+            },
+            "pwsh": {
+              "type": "boolean",
+              "description": "PowerShell 7+ available"
+            },
+            "wt": {
+              "type": "boolean",
+              "description": "Windows Terminal available"
+            },
+            "python": {
+              "type": "boolean",
+              "description": "Python available in PATH"
+            },
+            "node": {
+              "type": "boolean",
+              "description": "Node.js available in PATH"
+            }
+          }
+        }
+      }
+    },
+    "launcher_config": {
+      "type": "object",
+      "description": "CLI launcher configuration",
+      "properties": {
+        "multi_tab_enabled": {
+          "type": "boolean",
+          "description": "Whether multi-tab launching is enabled"
+        },
+        "default_tabs": {
+          "type": "array",
+          "description": "Default tabs to open",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Tab name"
+              },
+              "command": {
+                "type": "string",
+                "description": "Command to run in tab"
+              },
+              "working_directory": {
+                "type": "string",
+                "description": "Working directory for tab"
+              }
+            }
+          }
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "description": "Summary statistics",
+      "properties": {
+        "total_sessions": {
+          "type": "integer",
+          "description": "Total number of sessions"
+        },
+        "active_sessions": {
+          "type": "integer",
+          "description": "Number of active sessions"
+        },
+        "uptime_seconds": {
+          "type": "integer",
+          "description": "Longest session uptime in seconds"
+        }
+      }
+    }
+  }
+}

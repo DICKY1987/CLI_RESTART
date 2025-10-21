@@ -3,7 +3,6 @@ from __future__ import annotations
 import base64
 import json
 import secrets
-from typing import Dict, List, Optional
 
 
 class WebSocketAuthMiddleware:
@@ -15,10 +14,10 @@ class WebSocketAuthMiddleware:
     def __init__(self, secret_key: str, redis_url: str | None = None) -> None:
         self.secret_key = secret_key
         self.redis_url = redis_url
-        self._api_keys: Dict[str, dict] = {}
-        self._sessions: Dict[str, dict] = {}
+        self._api_keys: dict[str, dict] = {}
+        self._sessions: dict[str, dict] = {}
 
-    def generate_token(self, user_id: str, username: str, roles: List[str], permissions: List[str]) -> str:
+    def generate_token(self, user_id: str, username: str, roles: list[str], permissions: list[str]) -> str:
         payload = {
             "user_id": user_id,
             "username": username,
@@ -28,7 +27,7 @@ class WebSocketAuthMiddleware:
         raw = json.dumps(payload, separators=(",", ":"))
         return base64.urlsafe_b64encode(raw.encode("utf-8")).decode("ascii")
 
-    async def authenticate_token(self, token: str) -> Optional[dict]:
+    async def authenticate_token(self, token: str) -> dict | None:
         try:
             raw = base64.urlsafe_b64decode(token.encode("ascii")).decode("utf-8")
             data = json.loads(raw)
@@ -36,7 +35,7 @@ class WebSocketAuthMiddleware:
         except Exception:
             return None
 
-    async def create_api_key(self, user_id: str, username: str, roles: List[str], permissions: List[str]) -> str:
+    async def create_api_key(self, user_id: str, username: str, roles: list[str], permissions: list[str]) -> str:
         key = secrets.token_urlsafe(24)
         self._api_keys[key] = {
             "user_id": user_id,
@@ -46,10 +45,10 @@ class WebSocketAuthMiddleware:
         }
         return key
 
-    async def authenticate_api_key(self, api_key: str) -> Optional[dict]:
+    async def authenticate_api_key(self, api_key: str) -> dict | None:
         return self._api_keys.get(api_key)
 
-    async def create_session(self, user_id: str, username: str, roles: List[str], permissions: List[str]) -> str:
+    async def create_session(self, user_id: str, username: str, roles: list[str], permissions: list[str]) -> str:
         session_id = secrets.token_urlsafe(24)
         self._sessions[session_id] = {
             "user_id": user_id,
@@ -59,7 +58,7 @@ class WebSocketAuthMiddleware:
         }
         return session_id
 
-    async def authenticate_session(self, session_id: str) -> Optional[dict]:
+    async def authenticate_session(self, session_id: str) -> dict | None:
         return self._sessions.get(session_id)
 
     def check_permission(self, user_info: dict, permission: str) -> bool:

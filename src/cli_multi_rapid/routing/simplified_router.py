@@ -8,7 +8,6 @@ with graceful fallback when unavailable. Provides basic cost estimation
 to integrate with the existing CostTracker.
 """
 
-from typing import Dict, Optional
 
 from ..roles.role_manager import RoleManager
 
@@ -18,7 +17,7 @@ class SimplifiedRouter:
         self.roles = RoleManager()
 
     def route_operation(
-        self, operation: Dict[str, object], complexity_score: Optional[int] = None
+        self, operation: dict[str, object], complexity_score: int | None = None
     ) -> str:
         op_type = str(operation.get("type", "edit")).lower()
         role = self.roles.get_role_for_operation(op_type)
@@ -28,8 +27,8 @@ class SimplifiedRouter:
         self,
         operation_type: str,
         role_name: str,
-        operation: Dict[str, object],
-        complexity_score: Optional[int],
+        operation: dict[str, object],
+        complexity_score: int | None,
     ) -> str:
         # Inputs to drive decision: file_count, file_size, complexity
         file_count = int(operation.get("file_count", 1) or 1)
@@ -53,7 +52,7 @@ class SimplifiedRouter:
         return self.check_fallback_availability(preferred, chain)
 
     def check_fallback_availability(
-        self, primary_tool: str, chain: Optional[list] = None
+        self, primary_tool: str, chain: list | None = None
     ) -> str:
         chain = chain or [primary_tool]
         for tool in chain:
@@ -62,7 +61,7 @@ class SimplifiedRouter:
         # last resort
         return primary_tool
 
-    def estimate_operation_cost(self, operation: Dict[str, object], tool: str) -> float:
+    def estimate_operation_cost(self, operation: dict[str, object], tool: str) -> float:
         # Crude token estimate based on complexity and file size
         cx = int(operation.get("complexity", 1) or 1)
         file_count = int(operation.get("file_count", 1) or 1)

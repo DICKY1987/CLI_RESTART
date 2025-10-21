@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from .process import CommandResult, ProcessRunner
 from .registry import get_selected_tool_path
 from .tools_base import PythonQuality, ToolProbe
@@ -31,7 +29,7 @@ class QualitySuite:
         )
 
     def ruff_check(
-        self, paths: Optional[List[str]] = None, fix: bool = False
+        self, paths: list[str] | None = None, fix: bool = False
     ) -> CommandResult:
         """Run ruff linting."""
         args = [self.ruff_binary, "check"]
@@ -43,7 +41,7 @@ class QualitySuite:
             args.append(".")
         return self.runner.run(args)
 
-    def mypy_check(self, targets: Optional[List[str]] = None) -> CommandResult:
+    def mypy_check(self, targets: list[str] | None = None) -> CommandResult:
         """Run mypy type checking."""
         args = [self.mypy_binary]
         if targets:
@@ -63,10 +61,10 @@ class QualitySuite:
         return self.runner.run(args)
 
     def run_all(
-        self, fix: bool = False, paths: Optional[List[str]] = None
-    ) -> Dict[str, CommandResult]:
+        self, fix: bool = False, paths: list[str] | None = None
+    ) -> dict[str, CommandResult]:
         """Run all quality tools and return results."""
-        results: Dict[str, CommandResult] = {}
+        results: dict[str, CommandResult] = {}
 
         # Run ruff
         results["ruff"] = self.ruff_check(paths=paths, fix=fix)
@@ -84,7 +82,7 @@ class QualitySuite:
 
         return results
 
-    def generate_summary(self, results: Dict[str, CommandResult]) -> str:
+    def generate_summary(self, results: dict[str, CommandResult]) -> str:
         """Generate a summary report of quality check results."""
         lines = ["Python Quality Tools Summary", "=" * 30, ""]
 
@@ -147,9 +145,9 @@ class RuffAdapter:
 
     def check(
         self,
-        paths: Optional[List[str]] = None,
+        paths: list[str] | None = None,
         fix: bool = False,
-        config: Optional[str] = None,
+        config: str | None = None,
     ) -> CommandResult:
         """Run ruff check."""
         args = [self.binary, "check"]
@@ -163,7 +161,7 @@ class RuffAdapter:
             args.append(".")
         return self.runner.run(args)
 
-    def format(self, paths: Optional[List[str]] = None) -> CommandResult:
+    def format(self, paths: list[str] | None = None) -> CommandResult:
         """Run ruff format."""
         args = [self.binary, "format"]
         if paths:
@@ -208,7 +206,7 @@ class MypyAdapter:
             )
 
     def check(
-        self, targets: Optional[List[str]] = None, config_file: Optional[str] = None
+        self, targets: list[str] | None = None, config_file: str | None = None
     ) -> CommandResult:
         """Run mypy type checking."""
         args = [self.binary]

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 from .automated_merge_strategy import AutomatedMergeStrategy, ConflictAnalysis
 from .automated_merge_strategy import MergeStrategy as _AMSStrategyEnum
 
@@ -15,7 +13,7 @@ class MergeStrategy:
     async def analyze(self, base_branch: str, feature_branch: str) -> ConflictAnalysis:
         return await self._impl.analyze_merge_conflicts(base_branch, feature_branch)
 
-    async def select(self, analysis: ConflictAnalysis) -> Tuple[str, _AMSStrategyEnum]:
+    async def select(self, analysis: ConflictAnalysis) -> tuple[str, _AMSStrategyEnum]:
         return await self._impl.select_optimal_merge_tool(analysis)
 
     async def execute(

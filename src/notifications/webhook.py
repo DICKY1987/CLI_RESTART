@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Any
+from typing import Any
 
 import requests
 
@@ -17,7 +17,7 @@ class WebhookNotifier:
         if not self.url:
             raise ValueError("Webhook URL not configured")
 
-    def send(self, event: str, data: Dict[str, Any]) -> bool:
+    def send(self, event: str, data: dict[str, Any]) -> bool:
         """Send webhook notification."""
         payload = {"event": event, "data": data}
 

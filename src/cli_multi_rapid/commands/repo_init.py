@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import os
 import platform
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 import typer
 from rich.console import Console
@@ -42,7 +40,7 @@ def check_command_exists(command: str) -> bool:
         return False
 
 
-def validate_required_tools() -> List[Tuple[str, bool, str]]:
+def validate_required_tools() -> list[tuple[str, bool, str]]:
     """Validate required tools are installed.
 
     Returns:
@@ -96,7 +94,7 @@ def validate_required_tools() -> List[Tuple[str, bool, str]]:
     return tools
 
 
-def create_required_directories() -> List[str]:
+def create_required_directories() -> list[str]:
     """Create required directories for CLI orchestrator.
 
     Returns:

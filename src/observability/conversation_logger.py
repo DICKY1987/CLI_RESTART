@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from .correlation import get_correlation_id
 
@@ -13,7 +13,7 @@ def log_interaction(
     response: Optional[str],
     model: Optional[str],
     tokens_used: Optional[int] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    metadata: Optional[dict[str, Any]] = None,
     base_dir: Path = Path("logs/conversations"),
 ) -> Path:
     """Append a single AI interaction to a JSONL file.
@@ -23,7 +23,7 @@ def log_interaction(
     base_dir.mkdir(parents=True, exist_ok=True)
     fname = base_dir / f"{datetime.utcnow():%Y%m%d}.jsonl"
 
-    record: Dict[str, Any] = {
+    record: dict[str, Any] = {
         "ts": datetime.utcnow().isoformat() + "Z",
         "correlation_id": get_correlation_id(),
         "actor": actor,

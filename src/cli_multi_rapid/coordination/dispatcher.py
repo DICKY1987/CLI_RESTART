@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable
 
 from .queue import PriorityQueue, _QItem
 from .worker import run_task
 
 
-def dispatch(queue: PriorityQueue, func: Callable[[dict[str, Any]], Any], *, workers: int = 4) -> List[Any]:
-    results: List[Any] = []
+def dispatch(queue: PriorityQueue, func: Callable[[dict[str, Any]], Any], *, workers: int = 4) -> list[Any]:
+    results: list[Any] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = []
         while not queue.empty():

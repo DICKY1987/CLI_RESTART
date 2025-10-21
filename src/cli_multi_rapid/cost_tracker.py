@@ -7,11 +7,11 @@ workflow executions that involve AI services.
 """
 
 import json
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Dict, Optional, List
-from collections import defaultdict
+from typing import Any, Optional
 
 from rich.console import Console
 
@@ -56,8 +56,8 @@ class CoordinationBudget:
     total_budget: float = 25.0
     per_workflow_budget: float = 10.0
     emergency_reserve: float = 5.0
-    workflow_allocations: Dict[str, float] = None
-    priority_multipliers: Dict[int, float] = None
+    workflow_allocations: dict[str, float] = None
+    priority_multipliers: dict[int, float] = None
 
     def __post_init__(self):
         if self.workflow_allocations is None:
@@ -85,7 +85,7 @@ class WorkflowCostSummary:
     budget_allocated: float = 0.0
     budget_used: float = 0.0
     budget_remaining: float = 0.0
-    phases: Dict[str, Dict[str, Any]] = None
+    phases: dict[str, dict[str, Any]] = None
 
     def __post_init__(self):
         if self.phases is None:
@@ -96,7 +96,7 @@ class WorkflowCostSummary:
 class CostTracker:
     """Tracks and manages AI token usage and costs."""
 
-    _COST_REGISTRY_CACHE: Optional[Dict[str, float]] = None
+    _COST_REGISTRY_CACHE: Optional[dict[str, float]] = None
 
     def __init__(self, logs_dir: str = "logs"):
         self.logs_dir = Path(logs_dir)
@@ -168,7 +168,7 @@ class CostTracker:
         return costs.get(model_key, 0.00001)  # Conservative fallback
 
     @classmethod
-    def _load_cost_registry_mapping(cls) -> Optional[Dict[str, float]]:
+    def _load_cost_registry_mapping(cls) -> Optional[dict[str, float]]:
         """Load mapping of model name (lowercase) -> per-token cost from registry.
 
         Returns None if unavailable. Result is cached for the process lifetime.
@@ -182,10 +182,10 @@ class CostTracker:
                 cls._COST_REGISTRY_CACHE = None
                 return cls._COST_REGISTRY_CACHE
 
-            with open(registry_path, "r", encoding="utf-8") as f:
+            with open(registry_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)  # type: ignore[no-untyped-call]
 
-            result: Dict[str, float] = {}
+            result: dict[str, float] = {}
             vendors = (data or {}).get("vendors", {})
             for _vendor, vdata in (vendors or {}).items():
                 models = (vdata or {}).get("models", {})
@@ -201,7 +201,7 @@ class CostTracker:
                         elif isinstance(out, (int, float)):
                             per_1k = float(out)
                         elif isinstance(mdata.get("per_1k"), (int, float)):
-                            per_1k = float(mdata["per_1k"]) 
+                            per_1k = float(mdata["per_1k"])
 
                     if per_1k is not None:
                         result[str(model_name).lower()] = per_1k / 1000.0
@@ -212,7 +212,7 @@ class CostTracker:
             cls._COST_REGISTRY_CACHE = None
             return cls._COST_REGISTRY_CACHE
 
-    def get_daily_usage(self, target_date: Optional[date] = None) -> Dict[str, Any]:
+    def get_daily_usage(self, target_date: Optional[date] = None) -> dict[str, Any]:
         """Get token usage summary for a specific date."""
         if target_date is None:
             target_date = date.today()
@@ -225,7 +225,7 @@ class CostTracker:
 
         try:
             if self.usage_file.exists():
-                with open(self.usage_file, "r", encoding="utf-8") as f:
+                with open(self.usage_file, encoding="utf-8") as f:
                     for line in f:
                         if line.strip():
                             usage = json.loads(line.strip())
@@ -249,7 +249,7 @@ class CostTracker:
 
     def check_budget_limits(
         self, budget: Optional[BudgetLimit] = None, tokens_to_spend: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Check if operation would exceed budget limits."""
 
         if budget is None:
@@ -281,7 +281,7 @@ class CostTracker:
 
     def generate_report(
         self, last_run: bool = False, detailed: bool = False, days: int = 7
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate usage and cost report."""
 
         if last_run:
@@ -289,7 +289,7 @@ class CostTracker:
             operations = []
             try:
                 if self.usage_file.exists():
-                    with open(self.usage_file, "r", encoding="utf-8") as f:
+                    with open(self.usage_file, encoding="utf-8") as f:
                         for line in f:
                             if line.strip():
                                 operations.append(json.loads(line.strip()))
@@ -349,8 +349,8 @@ class CostTracker:
             adapter_name=adapter_name
         )
 
-    def allocate_budget(self, workflows: List[Dict[str, Any]],
-                       coordination_budget: CoordinationBudget) -> Dict[str, float]:
+    def allocate_budget(self, workflows: list[dict[str, Any]],
+                       coordination_budget: CoordinationBudget) -> dict[str, float]:
         """Allocate budget across workflows based on priority and requirements."""
 
         allocations = {}
@@ -388,7 +388,7 @@ class CostTracker:
 
         return allocations
 
-    def get_coordination_summary(self, coordination_id: str) -> Dict[str, Any]:
+    def get_coordination_summary(self, coordination_id: str) -> dict[str, Any]:
         """Get cost summary for a coordination session."""
 
         workflows = defaultdict(lambda: {
@@ -404,7 +404,7 @@ class CostTracker:
 
         try:
             if self.usage_file.exists():
-                with open(self.usage_file, "r", encoding="utf-8") as f:
+                with open(self.usage_file, encoding="utf-8") as f:
                     for line in f:
                         if line.strip():
                             usage = json.loads(line.strip())
@@ -457,7 +457,7 @@ class CostTracker:
 
         try:
             if self.usage_file.exists():
-                with open(self.usage_file, "r", encoding="utf-8") as f:
+                with open(self.usage_file, encoding="utf-8") as f:
                     successful_ops = 0
                     total_ops = 0
 
@@ -498,7 +498,7 @@ class CostTracker:
         return summary
 
     def check_coordination_budget(self, coordination_id: str,
-                                coordination_budget: CoordinationBudget) -> Dict[str, Any]:
+                                coordination_budget: CoordinationBudget) -> dict[str, Any]:
         """Check budget status for coordination session."""
 
         summary = self.get_coordination_summary(coordination_id)
@@ -531,8 +531,8 @@ class CostTracker:
         return budget_status
 
     def optimize_remaining_allocation(self, coordination_id: str,
-                                    remaining_workflows: List[str],
-                                    coordination_budget: CoordinationBudget) -> Dict[str, float]:
+                                    remaining_workflows: list[str],
+                                    coordination_budget: CoordinationBudget) -> dict[str, float]:
         """Optimize budget allocation for remaining workflows based on current usage."""
 
         current_summary = self.get_coordination_summary(coordination_id)
@@ -541,7 +541,7 @@ class CostTracker:
         if remaining_budget <= coordination_budget.emergency_reserve:
             # Emergency mode: minimal allocation
             emergency_per_workflow = coordination_budget.emergency_reserve / max(len(remaining_workflows), 1)
-            return {workflow_id: emergency_per_workflow for workflow_id in remaining_workflows}
+            return dict.fromkeys(remaining_workflows, emergency_per_workflow)
 
         # Normal mode: distribute remaining budget proportionally
         available_budget = remaining_budget - coordination_budget.emergency_reserve
@@ -550,7 +550,7 @@ class CostTracker:
         return {workflow_id: min(per_workflow_allocation, coordination_budget.per_workflow_budget)
                 for workflow_id in remaining_workflows}
 
-    def _estimate_workflow_complexity(self, workflow: Dict[str, Any]) -> float:
+    def _estimate_workflow_complexity(self, workflow: dict[str, Any]) -> float:
         """Estimate workflow complexity for budget allocation."""
 
         complexity = 1.0

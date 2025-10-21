@@ -1,9 +1,10 @@
 """Tests for ConversationLogger."""
 
 import json
-import pytest
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from cli_multi_rapid.logging.conversation_logger import ConversationLogger
 
@@ -48,7 +49,7 @@ def test_log_conversation(logger, temp_log_dir):
     assert len(log_files) == 1
 
     # Verify log entry
-    with open(log_files[0], "r") as f:
+    with open(log_files[0]) as f:
         entry = json.loads(f.readline())
         assert entry["conversation_id"] == conversation_id
         assert entry["adapter_name"] == "test_adapter"
@@ -63,7 +64,7 @@ def test_pii_redaction(logger, temp_log_dir):
     """Test PII redaction in logged conversations."""
     prompt_with_pii = "My email is test@example.com and my API key is sk-1234567890abcdef"
 
-    conversation_id = logger.log_conversation(
+    logger.log_conversation(
         adapter_name="test_adapter",
         model="test-model",
         prompt=prompt_with_pii,
@@ -72,7 +73,7 @@ def test_pii_redaction(logger, temp_log_dir):
 
     # Read the log file
     log_files = list(temp_log_dir.glob("*.jsonl"))
-    with open(log_files[0], "r") as f:
+    with open(log_files[0]) as f:
         entry = json.loads(f.readline())
 
     # Check that PII was redacted
@@ -138,7 +139,7 @@ def test_export_conversation(logger, temp_log_dir):
     assert output_file.exists()
 
     # Verify exported data
-    with open(output_file, "r") as f:
+    with open(output_file) as f:
         data = json.load(f)
         assert data["conversation_id"] == conversation_id
         assert len(data["turns"]) == 1

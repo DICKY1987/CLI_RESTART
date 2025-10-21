@@ -73,9 +73,8 @@ class VSCodeMigrator:
             command = task.get("command", "")
 
             # Add arguments if present
-            if "args" in task:
-                if isinstance(task["args"], list):
-                    command += " " + " ".join(task["args"])
+            if "args" in task and isinstance(task["args"], list):
+                command += " " + " ".join(task["args"])
 
             # Categorize based on label content
             if any(
@@ -467,7 +466,7 @@ def main():
         for category, task_list in commands.items():
             if task_list:
                 print(f"   {category}: {len(task_list)} commands")
-                for label, command in task_list[:3]:  # Show first 3
+                for label, _command in task_list[:3]:  # Show first 3
                     print(f"      - {label}")
                 if len(task_list) > 3:
                     print(f"      ... and {len(task_list) - 3} more")

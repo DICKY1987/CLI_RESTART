@@ -3,7 +3,7 @@
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -19,7 +19,7 @@ class GitHubIssue:
     body: str
     state: str
     assignee: Optional[str] = None
-    labels: List[str] = None
+    labels: list[str] = None
 
     def __post_init__(self):
         if self.labels is None:
@@ -41,7 +41,7 @@ class GitHubConnector:
             }
         )
 
-    async def test_connection(self) -> Dict[str, Any]:
+    async def test_connection(self) -> dict[str, Any]:
         """Test GitHub connection."""
         try:
             response = await self.session.get(f"{self.base_url}/user")
@@ -59,7 +59,7 @@ class GitHubConnector:
             return {"status": "failed", "error": str(e)}
 
     async def create_workflow_issue(
-        self, repo: str, workflow_id: str, workflow_data: Dict[str, Any]
+        self, repo: str, workflow_id: str, workflow_data: dict[str, Any]
     ) -> Optional[GitHubIssue]:
         """Create GitHub issue for workflow execution."""
         try:
@@ -127,7 +127,7 @@ class GitHubConnector:
             return False
 
     async def update_issue_progress(
-        self, repo: str, issue_number: int, progress_data: Dict[str, Any]
+        self, repo: str, issue_number: int, progress_data: dict[str, Any]
     ) -> bool:
         """Update GitHub issue with workflow progress."""
         try:
@@ -139,7 +139,7 @@ class GitHubConnector:
             return False
 
     async def close_workflow_issue(
-        self, repo: str, issue_number: int, result_data: Dict[str, Any]
+        self, repo: str, issue_number: int, result_data: dict[str, Any]
     ) -> bool:
         """Close GitHub issue with results."""
         try:
@@ -166,7 +166,7 @@ class GitHubConnector:
             return False
 
     async def report_workflow_failure(
-        self, repo: str, issue_number: int, error_data: Dict[str, Any]
+        self, repo: str, issue_number: int, error_data: dict[str, Any]
     ) -> bool:
         """Report workflow failure in GitHub issue."""
         try:
@@ -177,7 +177,7 @@ class GitHubConnector:
             # Add bug label
             labels_data = {"labels": ["bug", "workflow-failure"]}
 
-            response = await self.session.post(
+            await self.session.post(
                 f"{self.base_url}/repos/{repo}/issues/{issue_number}/labels",
                 json=labels_data,
             )
@@ -193,7 +193,7 @@ class GitHubConnector:
 
     async def create_pull_request(
         self, repo: str, title: str, body: str, head: str, base: str = "main"
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[dict[str, Any]]:
         """Create pull request."""
         try:
             pr_data = {"title": title, "body": body, "head": head, "base": base}
@@ -217,22 +217,11 @@ class GitHubConnector:
             return None
 
     async def create_workflow_discussion(
-        self, repo: str, workflow_id: str, workflow_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, repo: str, workflow_id: str, workflow_data: dict[str, Any]
+    ) -> Optional[dict[str, Any]]:
         """Create GitHub discussion for workflow."""
         try:
             # Note: This requires GraphQL API for discussions
-            query = """
-            mutation CreateDiscussion($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
-              createDiscussion(input: {repositoryId: $repositoryId, categoryId: $categoryId, title: $title, body: $body}) {
-                discussion {
-                  id
-                  number
-                  url
-                }
-              }
-            }
-            """
 
             # For now, fall back to creating an issue
             return await self.create_workflow_issue(repo, workflow_id, workflow_data)
@@ -241,7 +230,7 @@ class GitHubConnector:
             logger.error(f"Error creating GitHub discussion: {e}")
             return None
 
-    async def get_repository_info(self, repo: str) -> Optional[Dict[str, Any]]:
+    async def get_repository_info(self, repo: str) -> Optional[dict[str, Any]]:
         """Get repository information."""
         try:
             response = await self.session.get(f"{self.base_url}/repos/{repo}")
@@ -254,7 +243,7 @@ class GitHubConnector:
 
     async def list_workflow_runs(
         self, repo: str, workflow_id: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """List GitHub Actions workflow runs."""
         try:
             url = f"{self.base_url}/repos/{repo}/actions/runs"
@@ -278,7 +267,7 @@ class GitHubConnector:
         repo: str,
         workflow_id: str,
         ref: str = "main",
-        inputs: Optional[Dict[str, Any]] = None,
+        inputs: Optional[dict[str, Any]] = None,
     ) -> bool:
         """Trigger workflow dispatch event."""
         try:
@@ -301,7 +290,7 @@ class GitHubConnector:
             return False
 
     def _format_workflow_description(
-        self, workflow_id: str, workflow_data: Dict[str, Any]
+        self, workflow_id: str, workflow_data: dict[str, Any]
     ) -> str:
         """Format workflow description for GitHub."""
         description = "## Automated Workflow Execution\n\n"
@@ -328,7 +317,7 @@ class GitHubConnector:
 
         return description
 
-    def _format_progress_comment(self, progress_data: Dict[str, Any]) -> str:
+    def _format_progress_comment(self, progress_data: dict[str, Any]) -> str:
         """Format progress update comment."""
         comment = f"## Workflow Progress Update - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
@@ -351,7 +340,7 @@ class GitHubConnector:
 
         return comment
 
-    def _format_completion_comment(self, result_data: Dict[str, Any]) -> str:
+    def _format_completion_comment(self, result_data: dict[str, Any]) -> str:
         """Format completion comment."""
         comment = f"## ✅ Workflow Completed Successfully - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
@@ -371,7 +360,7 @@ class GitHubConnector:
 
         return comment
 
-    def _format_failure_comment(self, error_data: Dict[str, Any]) -> str:
+    def _format_failure_comment(self, error_data: dict[str, Any]) -> str:
         """Format failure comment."""
         comment = f"## ❌ Workflow Failed - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 

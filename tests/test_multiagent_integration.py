@@ -331,7 +331,7 @@ class TestMultiAgentIntegration:
         assert result.parallel_efficiency >= 0
 
         # Verify all workflows completed
-        for workflow_id, workflow_result in result.workflow_results.items():
+        for _workflow_id, workflow_result in result.workflow_results.items():
             assert workflow_result.success is True
             assert workflow_result.steps_completed > 0
 
@@ -399,7 +399,7 @@ class TestMultiAgentIntegration:
         assert "wf1" in branch_map
         assert "wf2" in branch_map
 
-        for workflow_id, branch_info in branch_map.items():
+        for _workflow_id, branch_info in branch_map.items():
             assert "branch_name" in branch_info
             assert "base_branch" in branch_info
             assert "created_at" in branch_info

@@ -171,7 +171,7 @@ class TestContextAnalysisEngine:
         assert TaskType.CODE_GENERATION in patterns
         assert TaskType.REFACTORING in patterns
 
-        for task_type, pattern_list in patterns.items():
+        for _task_type, pattern_list in patterns.items():
             assert isinstance(pattern_list, list)
             assert len(pattern_list) > 0
 
@@ -267,7 +267,7 @@ class TestContextAnalysisEngine:
         assert "bug_fix_standard" in templates
         assert "feature_development" in templates
 
-        for template_name, template in templates.items():
+        for _template_name, template in templates.items():
             assert isinstance(template, WorkflowSuggestion)
             assert len(template.name) > 0
             assert len(template.steps) > 0

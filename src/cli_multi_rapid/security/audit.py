@@ -16,15 +16,13 @@ Enhancements:
 """
 
 import asyncio
+import hashlib
 import json
+import re
 import time
-import hashlib
-import re
 from dataclasses import asdict, dataclass
-import hashlib
-import re
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 @dataclass
@@ -37,7 +35,7 @@ class AuditEvent:
     resource: str
     resource_id: Optional[str] = None
     success: bool = True
-    details: Dict[str, Any] = None
+    details: dict[str, Any] = None
     session_id: Optional[str] = None
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
@@ -88,7 +86,7 @@ class AuditLogger:
         return "0" * 64
 
     @staticmethod
-    def _redact_details(details: Dict[str, Any]) -> Dict[str, Any]:
+    def _redact_details(details: dict[str, Any]) -> dict[str, Any]:
         if not details:
             return {}
         sensitive_keys = {
@@ -104,7 +102,7 @@ class AuditLogger:
         }
         email_re = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
-        redacted: Dict[str, Any] = {}
+        redacted: dict[str, Any] = {}
         for k, v in details.items():
             if k.lower() in sensitive_keys:
                 redacted[k] = "***REDACTED***"
@@ -151,7 +149,7 @@ class AuditLogger:
         return "0" * 64
 
     @staticmethod
-    def _redact_details(details: Dict[str, Any]) -> Dict[str, Any]:
+    def _redact_details(details: dict[str, Any]) -> dict[str, Any]:
         """Redact obvious PII or credentials in a shallow dict.
 
         - Masks values of keys likely to contain secrets.
@@ -172,7 +170,7 @@ class AuditLogger:
         }
         email_re = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
-        redacted: Dict[str, Any] = {}
+        redacted: dict[str, Any] = {}
         for k, v in details.items():
             if k.lower() in sensitive_keys:
                 redacted[k] = "***REDACTED***"
@@ -190,7 +188,7 @@ class AuditLogger:
         resource: str,
         resource_id: Optional[str] = None,
         success: bool = True,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
         session_id: Optional[str] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
@@ -218,7 +216,7 @@ class AuditLogger:
         workflow_id: str,
         workflow_name: str,
         success: bool = True,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ) -> None:
         """Log workflow-specific audit event."""
         workflow_details = {"workflow_name": workflow_name, **(details or {})}
@@ -238,7 +236,7 @@ class AuditLogger:
         action: str,
         adapter_name: str,
         success: bool = True,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
     ) -> None:
         """Log adapter usage audit event."""
         adapter_details = {"adapter_name": adapter_name, **(details or {})}
@@ -257,7 +255,7 @@ class AuditLogger:
         user_id: str,
         action: str,
         success: bool = True,
-        details: Optional[Dict[str, Any]] = None,
+        details: Optional[dict[str, Any]] = None,
         ip_address: Optional[str] = None,
     ) -> None:
         """Log security-specific audit event."""
@@ -382,7 +380,7 @@ class AuditLogger:
 
     async def get_user_activity_summary(
         self, user_id: str, hours: int = 24
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get activity summary for a user."""
         start_time = time.time() - (hours * 3600)
         events = await self.search_events(
@@ -560,7 +558,7 @@ class AuditLogger:
 
         return {"valid": True, "checked": checked}
 
-    def get_log_stats(self) -> Dict[str, Any]:
+    def get_log_stats(self) -> dict[str, Any]:
         """Get audit log statistics."""
         if not self.log_file.exists():
             return {"total_events": 0, "file_size": 0}

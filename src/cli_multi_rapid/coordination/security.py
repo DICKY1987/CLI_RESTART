@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 
 class SecurityLevel(Enum):
@@ -39,11 +39,11 @@ class SecurityContext:
 
     workflow_id: str
     security_level: SecurityLevel = SecurityLevel.MEDIUM
-    allowed_paths: List[str] = None
-    forbidden_paths: List[str] = None
-    allowed_commands: List[str] = None
-    forbidden_commands: List[str] = None
-    file_access_modes: Dict[str, AccessMode] = None
+    allowed_paths: list[str] = None
+    forbidden_paths: list[str] = None
+    allowed_commands: list[str] = None
+    forbidden_commands: list[str] = None
+    file_access_modes: dict[str, AccessMode] = None
     network_access: bool = False
     temp_directory: Optional[str] = None
     max_file_size: int = 10_000_000  # 10MB default
@@ -75,7 +75,7 @@ class SecurityViolation:
     workflow_id: str
     severity: str = "medium"
     timestamp: Optional[str] = None
-    context: Dict[str, Any] = None
+    context: dict[str, Any] = None
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -91,10 +91,10 @@ class IsolationEnvironment:
     environment_id: str
     workflow_id: str
     temp_directory: Path
-    allowed_files: Set[str] = None
+    allowed_files: set[str] = None
     sandbox_root: Optional[Path] = None
-    environment_variables: Dict[str, str] = None
-    resource_limits: Dict[str, Any] = None
+    environment_variables: dict[str, str] = None
+    resource_limits: dict[str, Any] = None
 
     def __post_init__(self):
         if self.allowed_files is None:
@@ -115,12 +115,12 @@ class SecurityManager:
     def __init__(self, base_security_dir: Optional[Path] = None):
         self.base_security_dir = base_security_dir or Path(".ai/security")
         self.base_security_dir.mkdir(parents=True, exist_ok=True)
-        self.active_contexts: Dict[str, SecurityContext] = {}
-        self.active_environments: Dict[str, IsolationEnvironment] = {}
+        self.active_contexts: dict[str, SecurityContext] = {}
+        self.active_environments: dict[str, IsolationEnvironment] = {}
         self.violation_log = self.base_security_dir / "violations.jsonl"
 
     def create_security_context(
-        self, workflow_id: str, coordination_metadata: Dict[str, Any]
+        self, workflow_id: str, coordination_metadata: dict[str, Any]
     ) -> SecurityContext:
         """Create security context based on workflow coordination metadata."""
 
@@ -363,7 +363,7 @@ class SecurityManager:
             )
             return False
 
-    def get_security_summary(self, coordination_id: str) -> Dict[str, Any]:
+    def get_security_summary(self, coordination_id: str) -> dict[str, Any]:
         """Get security summary for coordination session."""
 
         violations = []
@@ -390,7 +390,7 @@ class SecurityManager:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def _get_forbidden_paths(self, security_level: SecurityLevel) -> List[str]:
+    def _get_forbidden_paths(self, security_level: SecurityLevel) -> list[str]:
         """Get forbidden file paths based on security level."""
 
         base_forbidden = [
@@ -416,7 +416,7 @@ class SecurityManager:
 
         return base_forbidden
 
-    def _get_allowed_commands(self, security_level: SecurityLevel) -> List[str]:
+    def _get_allowed_commands(self, security_level: SecurityLevel) -> list[str]:
         """Get allowed commands based on security level."""
 
         if security_level == SecurityLevel.LOW:

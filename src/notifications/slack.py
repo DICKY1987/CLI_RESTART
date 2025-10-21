@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Any
+from typing import Any
 
 import requests
 
@@ -31,7 +31,7 @@ class SlackNotifier:
         Returns:
             True if sent successfully
         """
-        payload: Dict[str, Any] = {"text": message}
+        payload: dict[str, Any] = {"text": message}
         payload.update(kwargs)
 
         try:

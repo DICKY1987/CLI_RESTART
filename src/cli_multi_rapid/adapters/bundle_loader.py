@@ -8,7 +8,7 @@ Ensures bundles meet schema requirements and pre-validates modifications.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import jsonschema
 from jsonschema import validate
@@ -28,8 +28,8 @@ class BundleLoaderAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute bundle loading and validation."""
@@ -164,12 +164,12 @@ class BundleLoaderAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__},
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
         return "bundle_path" in with_params and "validation_schema" in with_params
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic operations)."""
         return 0
 
@@ -182,7 +182,7 @@ class BundleLoaderAdapter(BaseAdapter):
         except ImportError:
             return False
 
-    def _pre_validate_bundle(self, bundle_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _pre_validate_bundle(self, bundle_data: dict[str, Any]) -> dict[str, Any]:
         """Perform pre-validation checks on bundle contents."""
         validation_result = {"valid": True, "checks": [], "warnings": [], "errors": []}
 
@@ -248,7 +248,7 @@ class BundleLoaderAdapter(BaseAdapter):
 
         return validation_result
 
-    def _validate_patch(self, patch: Any, index: int) -> Dict[str, Any]:
+    def _validate_patch(self, patch: Any, index: int) -> dict[str, Any]:
         """Validate an individual patch structure."""
         patch_validation = {"valid": True, "checks": [], "errors": []}
 

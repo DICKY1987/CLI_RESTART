@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 from .github_connector import GitHubConnector
 from .jira_connector import JiraConnector
@@ -32,9 +32,9 @@ class IntegrationConfig:
 
     integration_type: IntegrationType
     enabled: bool
-    config: Dict[str, Any]
-    channels: List[str] = field(default_factory=list)
-    filters: Dict[str, Any] = field(default_factory=dict)
+    config: dict[str, Any]
+    channels: list[str] = field(default_factory=list)
+    filters: dict[str, Any] = field(default_factory=dict)
     rate_limit: Optional[int] = None
     retry_count: int = 3
 
@@ -51,17 +51,17 @@ class WorkflowIntegrationContext:
     github_repo: Optional[str] = None
     jira_issue_key: Optional[str] = None
     teams_thread_id: Optional[str] = None
-    created_resources: Set[str] = field(default_factory=set)
+    created_resources: set[str] = field(default_factory=set)
 
 
 class IntegrationManager:
     """Manages all enterprise integrations."""
 
     def __init__(self, config_file: Optional[str] = None):
-        self.integrations: Dict[IntegrationType, Any] = {}
-        self.configs: Dict[IntegrationType, IntegrationConfig] = {}
-        self.workflow_contexts: Dict[str, WorkflowIntegrationContext] = {}
-        self.rate_limiters: Dict[str, List[datetime]] = {}
+        self.integrations: dict[IntegrationType, Any] = {}
+        self.configs: dict[IntegrationType, IntegrationConfig] = {}
+        self.workflow_contexts: dict[str, WorkflowIntegrationContext] = {}
+        self.rate_limiters: dict[str, list[datetime]] = {}
 
         if config_file:
             self.load_config(config_file)
@@ -115,7 +115,7 @@ class IntegrationManager:
                 logger.error(f"Error initializing {integration_type.value}: {e}")
 
     async def create_workflow_context(
-        self, workflow_id: str, workflow_data: Dict[str, Any]
+        self, workflow_id: str, workflow_data: dict[str, Any]
     ) -> WorkflowIntegrationContext:
         """Create integration context for workflow."""
         context = WorkflowIntegrationContext(
@@ -135,7 +135,7 @@ class IntegrationManager:
         return context
 
     async def notify_workflow_started(
-        self, workflow_id: str, workflow_data: Dict[str, Any]
+        self, workflow_id: str, workflow_data: dict[str, Any]
     ):
         """Notify all integrations about workflow start."""
         context = await self.create_workflow_context(workflow_id, workflow_data)
@@ -163,7 +163,7 @@ class IntegrationManager:
             await asyncio.gather(*tasks, return_exceptions=True)
 
     async def notify_workflow_progress(
-        self, workflow_id: str, progress_data: Dict[str, Any]
+        self, workflow_id: str, progress_data: dict[str, Any]
     ):
         """Notify all integrations about workflow progress."""
         if workflow_id not in self.workflow_contexts:
@@ -201,7 +201,7 @@ class IntegrationManager:
             await asyncio.gather(*tasks, return_exceptions=True)
 
     async def notify_workflow_completed(
-        self, workflow_id: str, result_data: Dict[str, Any]
+        self, workflow_id: str, result_data: dict[str, Any]
     ):
         """Notify all integrations about workflow completion."""
         if workflow_id not in self.workflow_contexts:
@@ -236,7 +236,7 @@ class IntegrationManager:
         del self.workflow_contexts[workflow_id]
 
     async def notify_workflow_failed(
-        self, workflow_id: str, error_data: Dict[str, Any]
+        self, workflow_id: str, error_data: dict[str, Any]
     ):
         """Notify all integrations about workflow failure."""
         if workflow_id not in self.workflow_contexts:
@@ -296,7 +296,7 @@ class IntegrationManager:
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def notify_cost_alert(self, service: str, cost_data: Dict[str, Any]):
+    async def notify_cost_alert(self, service: str, cost_data: dict[str, Any]):
         """Notify about cost alerts."""
         # Rate limit cost alerts
         if not self._check_rate_limit(
@@ -318,7 +318,7 @@ class IntegrationManager:
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
 
-    def get_integration_status(self) -> Dict[str, Any]:
+    def get_integration_status(self) -> dict[str, Any]:
         """Get status of all integrations."""
         status = {}
 
@@ -333,7 +333,7 @@ class IntegrationManager:
         return {"integrations": status, "active_workflows": len(self.workflow_contexts)}
 
     async def _create_connector(
-        self, integration_type: IntegrationType, config: Dict[str, Any]
+        self, integration_type: IntegrationType, config: dict[str, Any]
     ):
         """Create connector instance."""
         if integration_type == IntegrationType.JIRA:
@@ -361,7 +361,7 @@ class IntegrationManager:
         return None
 
     async def _create_workflow_resources(
-        self, context: WorkflowIntegrationContext, workflow_data: Dict[str, Any]
+        self, context: WorkflowIntegrationContext, workflow_data: dict[str, Any]
     ):
         """Create workflow-specific resources."""
         try:
@@ -381,7 +381,7 @@ class IntegrationManager:
             logger.error(f"Error creating workflow resources: {e}")
 
     async def _create_jira_issue(
-        self, context: WorkflowIntegrationContext, workflow_data: Dict[str, Any]
+        self, context: WorkflowIntegrationContext, workflow_data: dict[str, Any]
     ):
         """Create JIRA issue for workflow."""
         try:
@@ -396,7 +396,7 @@ class IntegrationManager:
             logger.error(f"Error creating JIRA issue: {e}")
 
     async def _notify_slack_started(
-        self, context: WorkflowIntegrationContext, workflow_data: Dict[str, Any]
+        self, context: WorkflowIntegrationContext, workflow_data: dict[str, Any]
     ):
         """Send Slack started notification."""
         try:
@@ -408,7 +408,7 @@ class IntegrationManager:
             logger.error(f"Error sending Slack notification: {e}")
 
     async def _update_jira_progress(
-        self, context: WorkflowIntegrationContext, progress_data: Dict[str, Any]
+        self, context: WorkflowIntegrationContext, progress_data: dict[str, Any]
     ):
         """Update JIRA issue progress."""
         try:
@@ -418,7 +418,7 @@ class IntegrationManager:
             logger.error(f"Error updating JIRA progress: {e}")
 
     async def _notify_slack_progress(
-        self, context: WorkflowIntegrationContext, progress_data: Dict[str, Any]
+        self, context: WorkflowIntegrationContext, progress_data: dict[str, Any]
     ):
         """Send Slack progress notification."""
         try:

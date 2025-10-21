@@ -8,13 +8,12 @@ and all tool adapters.
 
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-def check_core_imports() -> Tuple[bool, List[str]]:
+def check_core_imports() -> tuple[bool, list[str]]:
     """Check if core CLI orchestrator modules can be imported."""
     errors = []
 
@@ -36,7 +35,7 @@ def check_core_imports() -> Tuple[bool, List[str]]:
     return len(errors) == 0, errors
 
 
-def check_integrations() -> Tuple[bool, List[str]]:
+def check_integrations() -> tuple[bool, list[str]]:
     """Check if tool integration modules can be imported."""
     errors = []
 
@@ -69,7 +68,7 @@ def check_integrations() -> Tuple[bool, List[str]]:
     return len(errors) == 0, errors
 
 
-def check_dependencies() -> Tuple[bool, List[str]]:
+def check_dependencies() -> tuple[bool, list[str]]:
     """Check if required dependencies are available."""
     errors = []
 
@@ -85,7 +84,7 @@ def check_dependencies() -> Tuple[bool, List[str]]:
     return len(errors) == 0, errors
 
 
-def check_config_files() -> Tuple[bool, List[str]]:
+def check_config_files() -> tuple[bool, list[str]]:
     """Check if required configuration files exist."""
     errors = []
 
@@ -104,7 +103,7 @@ def check_config_files() -> Tuple[bool, List[str]]:
     return len(errors) == 0, errors
 
 
-def test_tool_detection() -> Tuple[bool, List[str]]:
+def test_tool_detection() -> tuple[bool, list[str]]:
     """Test tool detection functionality."""
     errors = []
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any, Optional
+from typing import Any
 
 
 class PlatformEventClient:
@@ -12,10 +12,10 @@ class PlatformEventClient:
     dependencies optional. Call `connect()` to start a background task.
     """
 
-    def __init__(self, url: str, auth_token: Optional[str] = None) -> None:
+    def __init__(self, url: str, auth_token: str | None = None) -> None:
         self.url = url
         self.auth_token = auth_token
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
         self._ws = None  # type: ignore
 
     async def _ensure_lib(self):

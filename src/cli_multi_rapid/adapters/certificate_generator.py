@@ -11,7 +11,7 @@ import hashlib
 import json
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
@@ -28,8 +28,8 @@ class CertificateGeneratorAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute certificate generation."""
@@ -112,12 +112,12 @@ class CertificateGeneratorAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__},
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
         return "verification_results" in with_params
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic operations)."""
         return 0
 
@@ -133,7 +133,7 @@ class CertificateGeneratorAdapter(BaseAdapter):
         unique_data = f"codex_cert_{timestamp}_{uuid.uuid4()}"
         return hashlib.sha256(unique_data.encode()).hexdigest()[:16].upper()
 
-    def _get_issuer_info(self) -> Dict[str, Any]:
+    def _get_issuer_info(self) -> dict[str, Any]:
         """Get certificate issuer information."""
         return {
             "name": "CLI Orchestrator Codex Pipeline",
@@ -143,8 +143,8 @@ class CertificateGeneratorAdapter(BaseAdapter):
         }
 
     def _create_verification_summary(
-        self, verification_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, verification_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Create a summary of verification results."""
         summary = {
             "total_checks": 0,
@@ -209,8 +209,8 @@ class CertificateGeneratorAdapter(BaseAdapter):
         return summary
 
     def _calculate_integrity_hashes(
-        self, verification_results: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, verification_results: dict[str, Any]
+    ) -> dict[str, str]:
         """Calculate integrity hashes for verification data."""
         hashes = {}
 
@@ -252,8 +252,8 @@ class CertificateGeneratorAdapter(BaseAdapter):
         return hashes
 
     def _build_validation_chain(
-        self, verification_results: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, verification_results: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Build a chronological chain of validation steps."""
         chain = []
 
@@ -282,8 +282,8 @@ class CertificateGeneratorAdapter(BaseAdapter):
         return chain
 
     def _assess_compliance(
-        self, verification_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, verification_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Assess compliance status based on verification results."""
         compliance = {
             "level": "unknown",
@@ -354,7 +354,7 @@ class CertificateGeneratorAdapter(BaseAdapter):
 
         return compliance
 
-    def _calculate_validity_period(self, validation_level: str) -> Dict[str, Any]:
+    def _calculate_validity_period(self, validation_level: str) -> dict[str, Any]:
         """Calculate certificate validity period based on validation level."""
         from datetime import datetime, timedelta
 
@@ -378,7 +378,7 @@ class CertificateGeneratorAdapter(BaseAdapter):
             "validation_level": validation_level,
         }
 
-    def _generate_signatures(self, certificate_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_signatures(self, certificate_data: dict[str, Any]) -> dict[str, Any]:
         """Generate digital signatures for the certificate."""
         signatures = {
             "generation_timestamp": self._get_timestamp(),
@@ -423,7 +423,7 @@ class CertificateGeneratorAdapter(BaseAdapter):
 
         return signatures
 
-    def _get_git_signature(self) -> Optional[Dict[str, Any]]:
+    def _get_git_signature(self) -> Optional[dict[str, Any]]:
         """Get git-based signature information."""
         try:
             # Get current commit hash
@@ -472,7 +472,7 @@ class CertificateGeneratorAdapter(BaseAdapter):
         return None
 
     def _validate_certificate_requirements(
-        self, certificate_data: Dict[str, Any], verification_results: Dict[str, Any]
+        self, certificate_data: dict[str, Any], verification_results: dict[str, Any]
     ) -> bool:
         """Validate that certificate meets requirements for validity."""
         try:

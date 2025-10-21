@@ -9,7 +9,7 @@ import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass
@@ -24,7 +24,7 @@ class ServiceConfig:
     # Network settings
     host: str = "0.0.0.0"
     port: int = 8000
-    cors_origins: List[str] = field(default_factory=lambda: ["http://localhost:3000"])
+    cors_origins: list[str] = field(default_factory=lambda: ["http://localhost:3000"])
 
     # Database (optional for CLI services)
     database_url: str = ""
@@ -42,7 +42,7 @@ class ServiceConfig:
     prometheus_port: int = 9090
 
     # Feature flags
-    features: Dict[str, bool] = field(
+    features: dict[str, bool] = field(
         default_factory=lambda: {
             "health_checks": True,
             "metrics": True,
@@ -87,7 +87,7 @@ class ServiceConfig:
 
         return cls(**config_data)
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate configuration and return list of errors."""
         errors = []
 
@@ -114,7 +114,7 @@ class ServiceConfig:
 
         return errors
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert config to dictionary."""
         return {
             field.name: getattr(self, field.name)

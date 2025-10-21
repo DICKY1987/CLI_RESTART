@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 try:
+    from PyQt6 import QtCore, QtGui, QtWidgets  # type: ignore
+
     from gui_terminal.core.cost_integration import CostEvent, CostTrackerBridge
     from gui_terminal.core.logging_config import LoggerConfig, StructuredLogger
     from gui_terminal.core.terminal_widget import TerminalWidget
     from gui_terminal.security.policy_manager import PolicyManager
     from gui_terminal.ui.cli_interface import CLIExecutionInterface
-    from PyQt6 import QtCore, QtGui, QtWidgets  # type: ignore
 except Exception:  # pragma: no cover - allow headless import
     QtWidgets = None  # type: ignore
     QtGui = None  # type: ignore

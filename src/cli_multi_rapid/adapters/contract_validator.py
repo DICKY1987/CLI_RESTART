@@ -8,7 +8,7 @@ all requirements for the Codex 100% Accurate Modification Pipeline.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import jsonschema
 import yaml
@@ -29,8 +29,8 @@ class ContractValidatorAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute contract validation."""
@@ -136,12 +136,12 @@ class ContractValidatorAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__},
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
         return "contract_file" in with_params and "schema_path" in with_params
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic operations)."""
         return 0
 

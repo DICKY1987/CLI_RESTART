@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Optional
 
 from .locks import LockBackend
 
 
 class RedisLockBackend(LockBackend):
-    def __init__(self, url: Optional[str] = None) -> None:
+    def __init__(self, url: str | None = None) -> None:
         try:
             import redis  # type: ignore
         except Exception as e:  # pragma: no cover - optional

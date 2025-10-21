@@ -53,16 +53,6 @@ class TestWorkflowSchemaContracts:
 
     def test_actor_field_contract(self, sample_workflow):
         """Test that actor fields are valid identifiers."""
-        valid_actors = {
-            "mock_deterministic",
-            "mock_ai",
-            "vscode_diagnostics",
-            "code_fixers",
-            "ai_editor",
-            "pytest_runner",
-            "verifier",
-            "git_ops",
-        }
 
         for step in sample_workflow["steps"]:
             actor = step["actor"]
@@ -272,7 +262,7 @@ class TestAPIResponseContracts:
 
         # Validate checks structure
         if "checks" in health_response:
-            for check_name, check_data in health_response["checks"].items():
+            for _check_name, check_data in health_response["checks"].items():
                 assert "status" in check_data
                 assert check_data["status"] in ["healthy", "degraded", "unhealthy"]
 

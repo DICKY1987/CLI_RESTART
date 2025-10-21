@@ -10,7 +10,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -24,8 +24,8 @@ class CLIToolDiscovery:
     def __init__(self, home_dir: Optional[Path] = None):
         """Initialize tool discovery system."""
         self.home_dir = home_dir or Path.home()
-        self.discovered_tools: Dict[str, Dict] = {}
-        self.working_tools: Dict[str, Dict] = {}
+        self.discovered_tools: dict[str, dict] = {}
+        self.working_tools: dict[str, dict] = {}
 
         # Tool categories for organized discovery
         self.tool_categories = {
@@ -60,7 +60,7 @@ class CLIToolDiscovery:
         # Search directories (cross-platform)
         self.search_directories = self._get_search_directories()
 
-    def _get_search_directories(self) -> List[Path]:
+    def _get_search_directories(self) -> list[Path]:
         """Get platform-specific search directories."""
         dirs = [
             self.home_dir,
@@ -102,8 +102,8 @@ class CLIToolDiscovery:
         return [d for d in dirs if d.exists()]
 
     def scan_for_executables(
-        self, tool_names: Optional[List[str]] = None
-    ) -> Dict[str, str]:
+        self, tool_names: Optional[list[str]] = None
+    ) -> dict[str, str]:
         """Scan directories for executable tools."""
         if tool_names is None:
             tool_names = [
@@ -129,7 +129,7 @@ class CLIToolDiscovery:
 
         return found_tools
 
-    def _scan_directory(self, directory: Path, tool_names: List[str]) -> Dict[str, str]:
+    def _scan_directory(self, directory: Path, tool_names: list[str]) -> dict[str, str]:
         """Scan a specific directory for tools."""
         found = {}
 
@@ -160,7 +160,7 @@ class CLIToolDiscovery:
 
         return None
 
-    def test_tool_functionality(self, tool_path: str, tool_name: str) -> Dict:
+    def test_tool_functionality(self, tool_path: str, tool_name: str) -> dict:
         """Test if a tool works and get version information."""
         version_commands = ["--version", "-v", "--help", "-h"]
 
@@ -210,7 +210,7 @@ class CLIToolDiscovery:
 
         return None
 
-    def check_path_tools(self) -> Dict[str, str]:
+    def check_path_tools(self) -> dict[str, str]:
         """Check which tools are available in PATH."""
         all_tools = [tool for tools in self.tool_categories.values() for tool in tools]
         path_tools = {}
@@ -229,7 +229,7 @@ class CLIToolDiscovery:
 
         return path_tools
 
-    def discover_and_validate_tools(self) -> Dict[str, Dict]:
+    def discover_and_validate_tools(self) -> dict[str, dict]:
         """Complete tool discovery and validation process."""
         console.print(
             "[bold blue]🔍 Starting comprehensive tool discovery...[/bold blue]"

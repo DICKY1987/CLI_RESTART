@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .cost_tracker import record_gdw_cost
 
 
 def run_gdw(
-    spec_path: Path, inputs: Optional[Dict[str, Any]] = None, dry_run: bool = True
-) -> Dict[str, Any]:
+    spec_path: Path, inputs: dict[str, Any] | None = None, dry_run: bool = True
+) -> dict[str, Any]:
     """Run a minimal GDW workflow.
 
     This is a lightweight stub to satisfy benchmark and integration tests.

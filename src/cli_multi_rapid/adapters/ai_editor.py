@@ -12,9 +12,14 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
+from .base_adapter import (
+    AdapterPerformanceProfile,
+    AdapterResult,
+    AdapterType,
+    BaseAdapter,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +54,8 @@ class AIEditorAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute AI editing workflow step."""
@@ -121,7 +126,7 @@ class AIEditorAdapter(BaseAdapter):
         model: str,
         max_tokens: int,
         operation: str,
-        emit_paths: List[str],
+        emit_paths: list[str],
     ) -> AdapterResult:
         """Execute aider-based AI editing."""
 
@@ -200,7 +205,7 @@ class AIEditorAdapter(BaseAdapter):
         prompt: str,
         model: str,
         max_tokens: int,
-        emit_paths: List[str],
+        emit_paths: list[str],
     ) -> AdapterResult:
         """Execute direct Claude API integration (placeholder for future implementation)."""
 
@@ -214,7 +219,7 @@ class AIEditorAdapter(BaseAdapter):
             },
         )
 
-    def _resolve_file_pattern(self, pattern: str) -> List[str]:
+    def _resolve_file_pattern(self, pattern: str) -> list[str]:
         """Resolve glob pattern to list of actual files."""
         try:
             from glob import glob
@@ -251,8 +256,8 @@ class AIEditorAdapter(BaseAdapter):
         return len(output.split()) * 1.3  # Conservative estimate
 
     def _generate_diff_artifacts(
-        self, emit_paths: List[str], modified_files: List[str]
-    ) -> List[str]:
+        self, emit_paths: list[str], modified_files: list[str]
+    ) -> list[str]:
         """Generate diff artifacts for modified files."""
         artifacts = []
 
@@ -293,7 +298,7 @@ class AIEditorAdapter(BaseAdapter):
 
         return datetime.now().isoformat()
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
 
@@ -307,7 +312,7 @@ class AIEditorAdapter(BaseAdapter):
 
         return tool in supported_tools
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost for AI editing operation."""
         with_params = self._extract_with_params(step)
 
@@ -349,7 +354,7 @@ class AIEditorAdapter(BaseAdapter):
             self.logger.error(f"Error checking aider availability: {e}")
             return False
 
-    def get_supported_models(self) -> List[str]:
+    def get_supported_models(self) -> list[str]:
         """Get list of supported AI models."""
         return [
             "claude-3-5-sonnet-20241022",
@@ -359,7 +364,7 @@ class AIEditorAdapter(BaseAdapter):
             "gemini-1.5-pro",
         ]
 
-    def get_supported_operations(self) -> List[str]:
+    def get_supported_operations(self) -> list[str]:
         """Get list of supported editing operations."""
         return [
             "edit",  # General editing
@@ -370,7 +375,7 @@ class AIEditorAdapter(BaseAdapter):
             "test",  # Add tests
         ]
 
-    def _validate_aider_configuration(self) -> Dict[str, Any]:
+    def _validate_aider_configuration(self) -> dict[str, Any]:
         """Validate aider configuration and environment setup."""
         config = {
             "aider_path": None,
@@ -455,7 +460,7 @@ class AIEditorAdapter(BaseAdapter):
 
         return self._environment_validated
 
-    def get_aider_health_status(self) -> Dict[str, Any]:
+    def get_aider_health_status(self) -> dict[str, Any]:
         """Get comprehensive health status for aider integration."""
         self._validate_environment()
 

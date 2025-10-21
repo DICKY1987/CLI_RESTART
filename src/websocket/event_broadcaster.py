@@ -3,7 +3,6 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
 
 from .connection_manager import ConnectionManager
 
@@ -22,7 +21,7 @@ class EventType(str, Enum):
 @dataclass
 class WorkflowEvent:
     event_type: EventType
-    workflow_id: Optional[str]
+    workflow_id: str | None
     timestamp: dt.datetime
     data: dict
 
@@ -34,7 +33,7 @@ connection_manager = ConnectionManager("redis://local")
 class EventBroadcaster:
     def __init__(self, redis_url: str | None = None) -> None:
         self.redis_url = redis_url
-        self.event_history: List[WorkflowEvent] = []
+        self.event_history: list[WorkflowEvent] = []
 
     def _record(self, event: WorkflowEvent) -> None:
         self.event_history.append(event)
@@ -115,10 +114,10 @@ class EventBroadcaster:
     def get_recent_events(
         self,
         *,
-        workflow_id: Optional[str] = None,
-        event_type: Optional[EventType] = None,
+        workflow_id: str | None = None,
+        event_type: EventType | None = None,
         limit: int = 100,
-    ) -> List[WorkflowEvent]:
+    ) -> list[WorkflowEvent]:
         events = self.event_history
         if workflow_id is not None:
             events = [e for e in events if e.workflow_id == workflow_id]

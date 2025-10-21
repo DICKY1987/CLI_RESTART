@@ -22,7 +22,6 @@ import sys
 import threading
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
 
 # GUI imports are lazy; file can be inspected without PyQt installed
 from PyQt6.QtCore import QObject, QSize, Qt, QTimer, QUrl, pyqtSignal
@@ -121,21 +120,21 @@ class EventBus(QObject):
 @dataclass
 class CommandRequest:
     tool: str
-    args: List[str] = field(default_factory=list)
+    args: list[str] = field(default_factory=list)
     env: dict = field(default_factory=dict)
-    cwd: Optional[str] = None
-    timeout_sec: Optional[int] = None
+    cwd: str | None = None
+    timeout_sec: int | None = None
     interactive: bool = True
     command_preview: str = ""  # exact string that will be executed (display-only)
 
 
 @dataclass
 class CommandResponse:
-    exit_code: Optional[int] = None
+    exit_code: int | None = None
     duration_sec: float = 0.0
     started_at: float = 0.0
     ended_at: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 # ---- Minimal ANSI Handler (line-oriented) ----
@@ -439,7 +438,7 @@ class TerminalWidget(QTextEdit):
         self.moveCursor(QTextCursor.MoveOperation.End)
 
     # rough cols/rows estimation
-    def estimate_cols_rows(self) -> Tuple[int, int]:
+    def estimate_cols_rows(self) -> tuple[int, int]:
         fm = self.fontMetrics()
         char_w = fm.horizontalAdvance("M")
         char_h = fm.height()
@@ -485,12 +484,12 @@ class HistoryLineEdit(QLineEdit):
 
 
 class TerminalTab(QWidget):
-    def __init__(self, event_bus: EventBus, cwd: Optional[str] = None, parent=None):
+    def __init__(self, event_bus: EventBus, cwd: str | None = None, parent=None):
         super().__init__(parent)
         self.bus = event_bus
         self.cwd = cwd or os.getcwd()
         self.output_q: queue.Queue = queue.Queue()
-        self.worker: Optional[PTYWorker] = None
+        self.worker: PTYWorker | None = None
         self.started = 0.0
 
         # UI
@@ -567,7 +566,7 @@ class TerminalTab(QWidget):
     def _snapshot_artifacts(self):
         try:
             self._artifact_baseline = set()
-            for root, dirs, files in os.walk(self.cwd):
+            for root, _dirs, files in os.walk(self.cwd):
                 for f in files:
                     self._artifact_baseline.add(os.path.join(root, f))
         except Exception:
@@ -576,12 +575,10 @@ class TerminalTab(QWidget):
     def _scan_artifacts(self):
         try:
             current = set()
-            for root, dirs, files in os.walk(self.cwd):
+            for root, _dirs, files in os.walk(self.cwd):
                 for f in files:
                     current.add(os.path.join(root, f))
-            new_files = [
-                p for p in current - self._artifact_baseline - self._artifact_new
-            ]
+            new_files = list(current - self._artifact_baseline - self._artifact_new)
             for p in sorted(new_files):
                 self._artifact_new.add(p)
                 item = QListWidgetItem(os.path.relpath(p, self.cwd))
@@ -782,7 +779,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Ready")
         self.new_tab()
 
-    def new_tab(self, cwd: Optional[str] = None):
+    def new_tab(self, cwd: str | None = None):
         tab = TerminalTab(self.bus, cwd=cwd, parent=self)
         # apply appearance/perf config
         tab.terminal.setFont(

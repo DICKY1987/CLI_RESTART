@@ -1,6 +1,6 @@
 """Bridge between tool integrations and CLI orchestrator adapters."""
 
-from typing import Any, Dict
+from typing import Any
 
 from .base_adapter import AdapterResult, BaseAdapter
 
@@ -30,7 +30,7 @@ class ToolAdapterBridge(BaseAdapter):
         """Return the actor name for this bridge."""
         return f"tool_{self.tool_type}"
 
-    def execute(self, task: Dict[str, Any]) -> AdapterResult:
+    def execute(self, task: dict[str, Any]) -> AdapterResult:
         """Execute a tool operation through the bridge."""
         operation = task.get("operation", "version")
 
@@ -89,7 +89,7 @@ class ToolAdapterBridge(BaseAdapter):
             return AdapterResult(success=False, error=str(e), output="", artifacts={})
 
     def _execute_vcs_operation(
-        self, adapter, operation: str, task: Dict[str, Any]
+        self, adapter, operation: str, task: dict[str, Any]
     ) -> AdapterResult:
         """Execute VCS operations."""
         if operation == "clone":
@@ -117,7 +117,7 @@ class ToolAdapterBridge(BaseAdapter):
         )
 
     def _execute_containers_operation(
-        self, adapter, operation: str, task: Dict[str, Any]
+        self, adapter, operation: str, task: dict[str, Any]
     ) -> AdapterResult:
         """Execute container operations."""
         if operation == "compose_up":
@@ -145,7 +145,7 @@ class ToolAdapterBridge(BaseAdapter):
         )
 
     def _execute_editor_operation(
-        self, adapter, operation: str, task: Dict[str, Any]
+        self, adapter, operation: str, task: dict[str, Any]
     ) -> AdapterResult:
         """Execute editor operations."""
         if operation == "open_file":
@@ -168,7 +168,7 @@ class ToolAdapterBridge(BaseAdapter):
         )
 
     def _execute_js_operation(
-        self, adapter, operation: str, task: Dict[str, Any]
+        self, adapter, operation: str, task: dict[str, Any]
     ) -> AdapterResult:
         """Execute JavaScript runtime operations."""
         cwd = task.get("cwd")
@@ -193,7 +193,7 @@ class ToolAdapterBridge(BaseAdapter):
         )
 
     def _execute_ai_operation(
-        self, adapter, operation: str, task: Dict[str, Any]
+        self, adapter, operation: str, task: dict[str, Any]
     ) -> AdapterResult:
         """Execute AI CLI operations."""
         cwd = task.get("cwd")
@@ -212,7 +212,7 @@ class ToolAdapterBridge(BaseAdapter):
         )
 
     def _execute_quality_operation(
-        self, adapter, operation: str, task: Dict[str, Any]
+        self, adapter, operation: str, task: dict[str, Any]
     ) -> AdapterResult:
         """Execute Python quality operations."""
         if operation == "ruff_check":
@@ -254,7 +254,7 @@ class ToolAdapterBridge(BaseAdapter):
         )
 
     def _execute_precommit_operation(
-        self, adapter, operation: str, task: Dict[str, Any]
+        self, adapter, operation: str, task: dict[str, Any]
     ) -> AdapterResult:
         """Execute pre-commit operations."""
         if operation == "install":
@@ -273,11 +273,11 @@ class ToolAdapterBridge(BaseAdapter):
             artifacts={"command_result": result},
         )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         # ToolAdapterBridge can handle most steps as it's a generic bridge
         return "operation" in step or "tool_type" in step
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic tool operations)."""
         return 0

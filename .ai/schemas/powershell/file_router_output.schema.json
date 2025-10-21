@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cli-orchestrator.dev/schemas/powershell/file_router_output.v1.schema.json",
+  "title": "PowerShell File Router Output",
+  "description": "Output format from PowerShell_deterministi_factory file routing operations",
+  "type": "object",
+  "required": ["timestamp", "operation", "status", "routed_files"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when routing occurred"
+    },
+    "operation": {
+      "type": "string",
+      "enum": ["route_files", "quarantine", "dedupe", "auto_commit"],
+      "description": "Type of routing operation performed"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "partial", "failed"],
+      "description": "Overall status of the routing operation"
+    },
+    "routed_files": {
+      "type": "array",
+      "description": "Files successfully routed to their destinations",
+      "items": {
+        "type": "object",
+        "required": ["source_path", "destination_path", "project", "alias"],
+        "properties": {
+          "source_path": {
+            "type": "string",
+            "description": "Original file path (e.g., Downloads)"
+          },
+          "destination_path": {
+            "type": "string",
+            "description": "Final destination in repo structure"
+          },
+          "project": {
+            "type": "string",
+            "description": "Project identifier from filename"
+          },
+          "alias": {
+            "type": "string",
+            "description": "Alias/category from naming convention"
+          },
+          "timestamp_parsed": {
+            "type": "string",
+            "description": "Timestamp extracted from filename"
+          },
+          "file_hash": {
+            "type": "string",
+            "description": "SHA256 hash for deduplication"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "description": "File size in bytes"
+          }
+        }
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "description": "Files that had conflicts during routing",
+      "items": {
+        "type": "object",
+        "required": ["file_path", "conflict_type", "resolution"],
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path of conflicting file"
+          },
+          "conflict_type": {
+            "type": "string",
+            "enum": ["duplicate", "name_collision", "path_exists", "unknown"],
+            "description": "Type of conflict encountered"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": ["quarantined", "renamed", "merged", "skipped"],
+            "description": "How the conflict was resolved"
+          },
+          "quarantine_path": {
+            "type": "string",
+            "description": "Path where file was quarantined (if applicable)"
+          }
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "description": "Summary statistics for the operation",
+      "properties": {
+        "total_processed": {
+          "type": "integer",
+          "description": "Total files processed"
+        },
+        "successful_routes": {
+          "type": "integer",
+          "description": "Files successfully routed"
+        },
+        "conflicts_found": {
+          "type": "integer",
+          "description": "Number of conflicts encountered"
+        },
+        "bytes_processed": {
+          "type": "integer",
+          "description": "Total bytes processed"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "description": "Operation duration in milliseconds"
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "description": "Errors encountered during routing",
+      "items": {
+        "type": "object",
+        "required": ["file_path", "error_message"],
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path of file that caused error"
+          },
+          "error_message": {
+            "type": "string",
+            "description": "Error message text"
+          },
+          "error_code": {
+            "type": "string",
+            "description": "PowerShell error code if available"
+          }
+        }
+      }
+    },
+    "router_config": {
+      "type": "object",
+      "description": "Router configuration used for this operation",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Router config version"
+        },
+        "conflict_policy": {
+          "type": "string",
+          "description": "Conflict resolution policy applied"
+        },
+        "file_stable_ms": {
+          "type": "integer",
+          "description": "File stability wait time in milliseconds"
+        }
+      }
+    }
+  }
+}

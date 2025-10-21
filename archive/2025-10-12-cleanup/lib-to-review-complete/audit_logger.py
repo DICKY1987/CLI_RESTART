@@ -4,7 +4,7 @@ import hashlib
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 AUDIT = Path("state/audit.jsonl")
 
@@ -25,7 +25,7 @@ def log_action(
     task_id: str,
     phase: str,
     action: str,
-    details: Dict[str, Any] | None = None,
+    details: dict[str, Any] | None = None,
     cost_delta: float | None = None,
     tool: str | None = None,
 ) -> None:

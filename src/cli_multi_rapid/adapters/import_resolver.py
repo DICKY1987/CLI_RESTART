@@ -8,7 +8,7 @@ and suggests fixes for import-related issues in the Codex pipeline.
 
 import ast
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
@@ -25,8 +25,8 @@ class ImportResolverAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute import resolution and validation."""
@@ -131,12 +131,12 @@ class ImportResolverAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__},
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
         return "target_files" in with_params
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic operations)."""
         return 0
 
@@ -147,10 +147,10 @@ class ImportResolverAdapter(BaseAdapter):
     def _analyze_file_imports(
         self,
         file_path: str,
-        languages: List[str],
+        languages: list[str],
         check_availability: bool,
         suggest_fixes: bool,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze imports for a single file."""
         file_analysis = {
             "file_path": file_path,
@@ -210,7 +210,7 @@ class ImportResolverAdapter(BaseAdapter):
     def _analyze_python_imports(
         self,
         file_path: Path,
-        analysis: Dict[str, Any],
+        analysis: dict[str, Any],
         check_availability: bool,
         suggest_fixes: bool,
     ) -> None:
@@ -396,7 +396,7 @@ class ImportResolverAdapter(BaseAdapter):
     def _analyze_js_ts_imports(
         self,
         file_path: Path,
-        analysis: Dict[str, Any],
+        analysis: dict[str, Any],
         check_availability: bool,
         suggest_fixes: bool,
     ) -> None:
@@ -491,7 +491,7 @@ class ImportResolverAdapter(BaseAdapter):
             return False
 
     def _suggest_python_fixes(
-        self, analysis: Dict[str, Any], missing_modules: Set[str]
+        self, analysis: dict[str, Any], missing_modules: set[str]
     ) -> None:
         """Suggest fixes for missing Python modules."""
         suggestions = []
@@ -526,7 +526,7 @@ class ImportResolverAdapter(BaseAdapter):
         analysis["suggestions"] = suggestions
 
     def _suggest_js_fixes(
-        self, analysis: Dict[str, Any], missing_modules: Set[str]
+        self, analysis: dict[str, Any], missing_modules: set[str]
     ) -> None:
         """Suggest fixes for missing JavaScript/TypeScript modules."""
         suggestions = []

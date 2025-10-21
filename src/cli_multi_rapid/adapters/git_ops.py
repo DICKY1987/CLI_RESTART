@@ -15,7 +15,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -44,9 +44,9 @@ class GitOpsAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
-        files: Optional[str] = None,
+        step: dict[str, Any],
+        context: dict[str, Any] | None = None,
+        files: str | None = None,
     ) -> AdapterResult:
         self._log_execution_start(step)
         try:
@@ -221,7 +221,7 @@ class GitOpsAdapter(BaseAdapter):
         except Exception:
             return False
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         params = self._extract_with_params(step)
         operation = params.get("operation", "status")
@@ -243,13 +243,13 @@ class GitOpsAdapter(BaseAdapter):
 
         return operation in valid_operations
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate the token cost of executing this step."""
         # Deterministic operations have zero token cost
         return 0
 
     # Helpers
-    def _git(self, args: List[str]) -> GitCommandResult:
+    def _git(self, args: list[str]) -> GitCommandResult:
         try:
             p = subprocess.run(
                 ["git", *args], capture_output=True, text=True, timeout=30
@@ -263,7 +263,7 @@ class GitOpsAdapter(BaseAdapter):
         res = self._git(["checkout", "-B", name])
         return res
 
-    def _commit(self, add: List[str], message: str) -> GitCommandResult:
+    def _commit(self, add: list[str], message: str) -> GitCommandResult:
         add_res = self._git(["add", *add])
         if not add_res.success:
             return add_res
@@ -277,15 +277,15 @@ class GitOpsAdapter(BaseAdapter):
         ts = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         return f"feature/ai-auto-{ts}"
 
-    def _artifact(self, kind: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _artifact(self, kind: str, payload: dict[str, Any]) -> dict[str, Any]:
         return {
             "timestamp": datetime.utcnow().isoformat(),
             "type": kind,
             **payload,
         }
 
-    def _write_artifacts(self, emit_paths: List[str], obj: Dict[str, Any]) -> List[str]:
-        written: List[str] = []
+    def _write_artifacts(self, emit_paths: list[str], obj: dict[str, Any]) -> list[str]:
+        written: list[str] = []
         for p in emit_paths:
             dest = Path(p)
             dest.parent.mkdir(parents=True, exist_ok=True)
@@ -315,8 +315,8 @@ class GitOpsAdapter(BaseAdapter):
         return "unknown/unknown"
 
     def _github_api_request(
-        self, endpoint: str, method: str = "GET", data: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+        self, endpoint: str, method: str = "GET", data: dict | None = None
+    ) -> dict[str, Any]:
         """Make authenticated GitHub API request."""
         if not self.github_token:
             return {"error": "GitHub token not found in environment"}
@@ -351,7 +351,7 @@ class GitOpsAdapter(BaseAdapter):
         except Exception as e:
             return {"error": f"GitHub API request failed: {str(e)}"}
 
-    def _analyze_repository(self, repo: str) -> Dict[str, Any]:
+    def _analyze_repository(self, repo: str) -> dict[str, Any]:
         """Analyze GitHub repository structure and metadata."""
         analysis = {
             "repo": repo,
@@ -415,8 +415,8 @@ class GitOpsAdapter(BaseAdapter):
         return analysis
 
     def _create_github_issue(
-        self, repo: str, title: str, body: str, labels: List[str], assignees: List[str]
-    ) -> Dict[str, Any]:
+        self, repo: str, title: str, body: str, labels: list[str], assignees: list[str]
+    ) -> dict[str, Any]:
         """Create a new GitHub issue."""
         data = {"title": title, "body": body, "labels": labels, "assignees": assignees}
 
@@ -439,8 +439,8 @@ class GitOpsAdapter(BaseAdapter):
             return result
 
     def _get_github_issues(
-        self, repo: str, state: str, labels: List[str]
-    ) -> List[Dict[str, Any]]:
+        self, repo: str, state: str, labels: list[str]
+    ) -> list[dict[str, Any]]:
         """Get GitHub issues with filtering."""
         params = f"state={state}"
         if labels:
@@ -467,7 +467,7 @@ class GitOpsAdapter(BaseAdapter):
             ]
         return []
 
-    def _analyze_pr(self, repo: str, pr_number: int) -> Dict[str, Any]:
+    def _analyze_pr(self, repo: str, pr_number: int) -> dict[str, Any]:
         """Analyze a GitHub pull request."""
         if not pr_number:
             return {"error": "PR number is required"}
@@ -511,7 +511,7 @@ class GitOpsAdapter(BaseAdapter):
 
         return analysis
 
-    def _get_release_info(self, repo: str, tag: str) -> Dict[str, Any]:
+    def _get_release_info(self, repo: str, tag: str) -> dict[str, Any]:
         """Get GitHub release information."""
         if tag == "latest":
             endpoint = f"repos/{repo}/releases/latest"
@@ -543,7 +543,7 @@ class GitOpsAdapter(BaseAdapter):
             }
         return release
 
-    def _list_github_workflows(self, repo: str) -> List[Dict[str, Any]]:
+    def _list_github_workflows(self, repo: str) -> list[dict[str, Any]]:
         """List GitHub Actions workflows."""
         workflows = self._github_api_request(f"repos/{repo}/actions/workflows")
 
@@ -562,7 +562,7 @@ class GitOpsAdapter(BaseAdapter):
             ]
         return []
 
-    def create_coordination_branches(self, workflows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    def create_coordination_branches(self, workflows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         """Create isolated branches for parallel workflow execution."""
 
         branch_map = {}
@@ -603,8 +603,8 @@ class GitOpsAdapter(BaseAdapter):
 
         return branch_map
 
-    def setup_merge_queue(self, branches: List[str],
-                         verification_level: str = "standard") -> Dict[str, Any]:
+    def setup_merge_queue(self, branches: list[str],
+                         verification_level: str = "standard") -> dict[str, Any]:
         """Setup merge queue for coordinated integration."""
 
         queue_config = {
@@ -627,7 +627,7 @@ class GitOpsAdapter(BaseAdapter):
         self.console.print(f"[blue]Merge queue configured with {len(branches)} branches[/blue]")
         return queue_config
 
-    def execute_merge_queue(self, queue_config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def execute_merge_queue(self, queue_config: dict[str, Any]) -> list[dict[str, Any]]:
         """Execute merge queue with verification."""
 
         results = []
@@ -703,7 +703,7 @@ class GitOpsAdapter(BaseAdapter):
         return results
 
     def _shadow_merge_verification(self, branch: str, base_branch: str,
-                                 quality_gates: List[str]) -> Dict[str, Any]:
+                                 quality_gates: list[str]) -> dict[str, Any]:
         """Perform shadow merge verification without affecting main branch."""
 
         # Create temporary worktree for shadow merge
@@ -756,7 +756,7 @@ class GitOpsAdapter(BaseAdapter):
             except:
                 pass  # Best effort cleanup
 
-    def _get_quality_gates(self, verification_level: str) -> List[str]:
+    def _get_quality_gates(self, verification_level: str) -> list[str]:
         """Get quality gates based on verification level."""
 
         gates_map = {
@@ -767,7 +767,7 @@ class GitOpsAdapter(BaseAdapter):
 
         return gates_map.get(verification_level, gates_map["standard"])
 
-    def _run_quality_gates(self, gates: List[str]) -> List[Dict[str, Any]]:
+    def _run_quality_gates(self, gates: list[str]) -> list[dict[str, Any]]:
         """Run quality gates and return results."""
 
         results = []
@@ -811,7 +811,7 @@ class GitOpsAdapter(BaseAdapter):
 
     # --- Git Snapshot and Session Statistics Methods ---
 
-    def capture_git_snapshot(self, lookback_minutes: int = 10) -> Dict[str, Any]:
+    def capture_git_snapshot(self, lookback_minutes: int = 10) -> dict[str, Any]:
         """Capture comprehensive Git state snapshot.
 
         Args:
@@ -854,7 +854,7 @@ class GitOpsAdapter(BaseAdapter):
             "timestamp": datetime.utcnow().isoformat() + "Z"
         }
 
-    def get_session_statistics(self, start_time: datetime) -> Dict[str, Any]:
+    def get_session_statistics(self, start_time: datetime) -> dict[str, Any]:
         """Get Git statistics for a workflow session.
 
         Args:
@@ -907,7 +907,7 @@ class GitOpsAdapter(BaseAdapter):
             return len(result.stdout.strip().split('\n'))
         return 0
 
-    def _get_uncommitted_files(self) -> List[str]:
+    def _get_uncommitted_files(self) -> list[str]:
         """Get list of uncommitted file paths."""
         result = self._git(['status', '--porcelain'])
         if result.success and result.stdout.strip():

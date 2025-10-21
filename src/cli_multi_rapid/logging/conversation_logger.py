@@ -11,7 +11,7 @@ import logging
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -49,8 +49,8 @@ class ConversationLogger:
         model: str,
         prompt: str,
         response: str,
-        context: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
         conversation_id: Optional[str] = None,
     ) -> str:
         """Log a complete AI conversation.
@@ -117,8 +117,8 @@ class ConversationLogger:
         prompt: str,
         response: str,
         turn_number: int,
-        context: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> None:
         """Log a single turn in a multi-turn conversation.
 
@@ -165,7 +165,7 @@ class ConversationLogger:
         except Exception as e:
             logger.error(f"Failed to write conversation turn log: {e}")
 
-    def get_conversation(self, conversation_id: str) -> List[Dict[str, Any]]:
+    def get_conversation(self, conversation_id: str) -> list[dict[str, Any]]:
         """Retrieve all turns of a conversation by ID.
 
         Args:
@@ -179,7 +179,7 @@ class ConversationLogger:
         # Search through all log files
         for log_file in sorted(self.log_dir.glob("*.jsonl")):
             try:
-                with open(log_file, "r", encoding="utf-8") as f:
+                with open(log_file, encoding="utf-8") as f:
                     for line in f:
                         if not line.strip():
                             continue
@@ -204,7 +204,7 @@ class ConversationLogger:
         adapter_name: Optional[str] = None,
         model: Optional[str] = None,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """List conversations with optional filtering.
 
         Args:
@@ -230,7 +230,7 @@ class ConversationLogger:
                 continue
 
             try:
-                with open(log_file, "r", encoding="utf-8") as f:
+                with open(log_file, encoding="utf-8") as f:
                     for line in f:
                         if not line.strip():
                             continue

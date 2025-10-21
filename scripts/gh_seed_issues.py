@@ -19,19 +19,18 @@ import argparse
 import json
 import subprocess
 from pathlib import Path
-from typing import Dict, List
 
 import yaml
 
 
-def run(cmd: List[str]) -> str:
+def run(cmd: list[str]) -> str:
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
         raise SystemError(f"Command failed: {' '.join(cmd)}\n{res.stderr}")
     return res.stdout
 
 
-def gh_json(cmd: List[str]) -> List[Dict]:
+def gh_json(cmd: list[str]) -> list[dict]:
     out = run(cmd)
     try:
         return json.loads(out)
@@ -39,7 +38,7 @@ def gh_json(cmd: List[str]) -> List[Dict]:
         return []
 
 
-def ensure_milestones(repo: str, paths: List[Path]):
+def ensure_milestones(repo: str, paths: list[Path]):
     existing = {m["title"] for m in gh_json(["gh", "api", f"repos/{repo}/milestones"])}
     for p in paths:
         data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
@@ -64,7 +63,7 @@ def ensure_milestones(repo: str, paths: List[Path]):
             print(f"[milestone] created: {title}")
 
 
-def ensure_issues(repo: str, paths: List[Path]):
+def ensure_issues(repo: str, paths: list[Path]):
     existing_titles = {
         i["title"]
         for i in gh_json(

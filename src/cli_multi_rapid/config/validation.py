@@ -2,7 +2,6 @@ from __future__ import annotations
 
 """Configuration validation helpers."""
 
-from typing import Optional, Tuple
 
 from .loader import load_config, resolve_environment
 from .models import Settings
@@ -12,7 +11,7 @@ class ConfigValidationError(Exception):
     pass
 
 
-def validate_and_build_settings(explicit_env: Optional[str] = None) -> Tuple[str, Settings]:
+def validate_and_build_settings(explicit_env: str | None = None) -> tuple[str, Settings]:
     """Validate configuration and return (env, settings).
 
     Raises ConfigValidationError on invalid configuration.

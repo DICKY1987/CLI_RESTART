@@ -17,7 +17,7 @@ def main() -> int:
 
     # Simple mapping: each finding becomes a task
     tasks = []
-    for i, f in enumerate(items, 1):
+    for _i, f in enumerate(items, 1):
         tasks.append(
             {
                 "id": f["id"].replace("-", "_"),

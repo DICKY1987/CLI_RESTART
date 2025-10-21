@@ -9,7 +9,7 @@ modifications don't introduce syntax errors in the Codex pipeline.
 import ast
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
@@ -26,8 +26,8 @@ class SyntaxValidatorAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute syntax validation."""
@@ -119,12 +119,12 @@ class SyntaxValidatorAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__},
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
         return "target_files" in with_params
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic operations)."""
         return 0
 
@@ -134,8 +134,8 @@ class SyntaxValidatorAdapter(BaseAdapter):
         return True
 
     def _validate_file_syntax(
-        self, file_path: str, languages: List[str]
-    ) -> Dict[str, Any]:
+        self, file_path: str, languages: list[str]
+    ) -> dict[str, Any]:
         """Validate syntax for a single file."""
         file_validation = {
             "file_path": file_path,
@@ -209,7 +209,7 @@ class SyntaxValidatorAdapter(BaseAdapter):
         return language_map.get(extension, "unknown")
 
     def _validate_python_syntax(
-        self, file_path: Path, validation: Dict[str, Any]
+        self, file_path: Path, validation: dict[str, Any]
     ) -> None:
         """Validate Python syntax using AST."""
         try:
@@ -235,7 +235,7 @@ class SyntaxValidatorAdapter(BaseAdapter):
             validation["errors"].append({"type": "ParseError", "message": str(e)})
 
     def _validate_javascript_syntax(
-        self, file_path: Path, validation: Dict[str, Any]
+        self, file_path: Path, validation: dict[str, Any]
     ) -> None:
         """Validate JavaScript syntax using Node.js."""
         try:
@@ -258,7 +258,7 @@ class SyntaxValidatorAdapter(BaseAdapter):
             self._basic_syntax_check(file_path, validation, "javascript")
 
     def _validate_typescript_syntax(
-        self, file_path: Path, validation: Dict[str, Any]
+        self, file_path: Path, validation: dict[str, Any]
     ) -> None:
         """Validate TypeScript syntax using tsc."""
         try:
@@ -281,7 +281,7 @@ class SyntaxValidatorAdapter(BaseAdapter):
             self._validate_javascript_syntax(file_path, validation)
 
     def _validate_json_syntax(
-        self, file_path: Path, validation: Dict[str, Any]
+        self, file_path: Path, validation: dict[str, Any]
     ) -> None:
         """Validate JSON syntax."""
         try:
@@ -305,7 +305,7 @@ class SyntaxValidatorAdapter(BaseAdapter):
             validation["errors"].append({"type": "JSONError", "message": str(e)})
 
     def _validate_yaml_syntax(
-        self, file_path: Path, validation: Dict[str, Any]
+        self, file_path: Path, validation: dict[str, Any]
     ) -> None:
         """Validate YAML syntax."""
         try:
@@ -322,7 +322,7 @@ class SyntaxValidatorAdapter(BaseAdapter):
             validation["errors"].append({"type": "YAMLParseError", "message": str(e)})
 
     def _basic_syntax_check(
-        self, file_path: Path, validation: Dict[str, Any], language: str
+        self, file_path: Path, validation: dict[str, Any], language: str
     ) -> None:
         """Perform basic syntax validation for unsupported languages."""
         try:

@@ -10,11 +10,12 @@ import json
 import logging
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 try:
     import jsonschema
-    from jsonschema import Draft7Validator, ValidationError as JSONSchemaValidationError
+    from jsonschema import Draft7Validator
+    from jsonschema import ValidationError as JSONSchemaValidationError
     JSONSCHEMA_AVAILABLE = True
 except ImportError:
     JSONSCHEMA_AVAILABLE = False
@@ -59,8 +60,8 @@ class ContractValidator:
             schema_dir = repo_root / ".ai" / "schemas"
 
         self.schema_dir = Path(schema_dir)
-        self._schema_cache: Dict[str, dict] = {}
-        self._validator_cache: Dict[str, Draft7Validator] = {}
+        self._schema_cache: dict[str, dict] = {}
+        self._validator_cache: dict[str, Draft7Validator] = {}
 
         if not JSONSCHEMA_AVAILABLE:
             logger.warning("jsonschema package not available - schema validation disabled")
@@ -100,7 +101,7 @@ class ContractValidator:
 
         logger.debug(f"Loading schema from {schema_path}")
 
-        with open(schema_path, 'r') as f:
+        with open(schema_path) as f:
             schema = json.load(f)
 
         # Cache the schema

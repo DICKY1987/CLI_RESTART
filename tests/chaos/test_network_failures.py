@@ -41,7 +41,7 @@ def test_circuit_breaker_opens_on_repeated_failures():
         raise ConnectionError("Network failure")
 
     # First 3 failures should increment counter
-    for i in range(3):
+    for _i in range(3):
         with pytest.raises(ConnectionError):
             cb.call(failing_call)
 
@@ -104,14 +104,16 @@ def test_retry_with_exponential_backoff():
     call_times = []
 
     @retry_with_backoff(max_retries=3, base_delay=0.1, max_delay=1.0)
-    def flaky_function(attempt=[0]):
+    def flaky_function(attempt=None):
+        if attempt is None:
+            attempt = [0]
         call_times.append(time.time())
         attempt[0] += 1
         if attempt[0] < 3:
             raise ConnectionError("Temporary failure")
         return "success"
 
-    start = time.time()
+    time.time()
     result = flaky_function()
 
     assert result == "success"

@@ -61,8 +61,9 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         # Import lazily so this module works without GUI deps installed.
-        from gui_terminal.ui.main_window import MainWindow
         from PyQt6 import QtWidgets  # type: ignore
+
+        from gui_terminal.ui.main_window import MainWindow
 
         app = QtWidgets.QApplication([])
         win = MainWindow(_)

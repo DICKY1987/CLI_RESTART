@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from .process import CommandResult, ProcessRunner
 from .registry import get_selected_tool_path
 from .tools_base import Editor, ToolProbe
@@ -84,8 +82,8 @@ class VSCodeAdapter:
         return self.runner.run(args)
 
     def install_recommended_extensions(
-        self, extensions: List[str]
-    ) -> List[CommandResult]:
+        self, extensions: list[str]
+    ) -> list[CommandResult]:
         """Install a list of recommended extensions."""
         results = []
         for ext in extensions:

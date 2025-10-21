@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.table import Table
@@ -110,13 +108,13 @@ def show(
 
 @app.command()
 def list(
-    date: Optional[str] = typer.Option(
+    date: str | None = typer.Option(
         None, "--date", "-d", help="Filter by date (YYYY-MM-DD)"
     ),
-    adapter: Optional[str] = typer.Option(
+    adapter: str | None = typer.Option(
         None, "--adapter", "-a", help="Filter by adapter name"
     ),
-    model: Optional[str] = typer.Option(
+    model: str | None = typer.Option(
         None, "--model", "-m", help="Filter by AI model"
     ),
     limit: int = typer.Option(50, "--limit", "-n", help="Maximum conversations to show"),
@@ -162,7 +160,7 @@ def list(
 @app.command()
 def export(
     conversation_id: str = typer.Argument(..., help="Conversation ID to export"),
-    output: Optional[Path] = typer.Option(
+    output: Path | None = typer.Option(
         None, "--output", "-o", help="Output file path"
     ),
 ):
@@ -192,7 +190,7 @@ def export(
 @app.command()
 def search(
     query: str = typer.Argument(..., help="Search query (regex supported)"),
-    date: Optional[str] = typer.Option(
+    date: str | None = typer.Option(
         None, "--date", "-d", help="Filter by date (YYYY-MM-DD)"
     ),
     limit: int = typer.Option(20, "--limit", "-n", help="Maximum results to show"),
@@ -226,7 +224,7 @@ def search(
             continue
 
         try:
-            with open(log_file, "r", encoding="utf-8") as f:
+            with open(log_file, encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         continue
@@ -308,7 +306,7 @@ def cleanup(
 
 @app.command()
 def stats(
-    date: Optional[str] = typer.Option(
+    date: str | None = typer.Option(
         None, "--date", "-d", help="Show stats for specific date (YYYY-MM-DD)"
     ),
 ):
@@ -343,7 +341,7 @@ def stats(
             continue
 
         try:
-            with open(log_file, "r", encoding="utf-8") as f:
+            with open(log_file, encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         continue

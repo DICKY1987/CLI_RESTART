@@ -42,7 +42,7 @@ def test_security_hard_fail_contains_sig_invalid():
 def test_every_reason_has_fixers():
     fixers = load_policy()["self_healing"]["fixers"]
     assert len(fixers) > 10
-    for reason, actions in fixers.items():
+    for _reason, actions in fixers.items():
         assert isinstance(actions, list) and len(actions) >= 1
 
 

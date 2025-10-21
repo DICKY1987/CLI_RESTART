@@ -3,7 +3,7 @@
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -17,8 +17,8 @@ class TeamsCard:
     title: str
     text: str
     color: str = "Good"  # Good, Warning, Attention
-    facts: List[Dict[str, str]] = None
-    actions: List[Dict[str, Any]] = None
+    facts: list[dict[str, str]] = None
+    actions: list[dict[str, Any]] = None
 
     def __post_init__(self):
         if self.facts is None:
@@ -41,7 +41,7 @@ class TeamsConnector:
         self.app_password = app_password
         self.session = httpx.AsyncClient(headers={"Content-Type": "application/json"})
 
-    async def test_connection(self) -> Dict[str, Any]:
+    async def test_connection(self) -> dict[str, Any]:
         """Test Teams connection."""
         try:
             if self.webhook_url:
@@ -77,7 +77,7 @@ class TeamsConnector:
             return {"status": "failed", "error": str(e)}
 
     async def notify_workflow_started(
-        self, workflow_id: str, workflow_data: Dict[str, Any]
+        self, workflow_id: str, workflow_data: dict[str, Any]
     ) -> bool:
         """Send workflow started notification."""
         try:
@@ -89,7 +89,7 @@ class TeamsConnector:
             return False
 
     async def notify_workflow_progress(
-        self, workflow_id: str, progress_data: Dict[str, Any]
+        self, workflow_id: str, progress_data: dict[str, Any]
     ) -> bool:
         """Send workflow progress update."""
         try:
@@ -101,7 +101,7 @@ class TeamsConnector:
             return False
 
     async def notify_workflow_completed(
-        self, workflow_id: str, result_data: Dict[str, Any]
+        self, workflow_id: str, result_data: dict[str, Any]
     ) -> bool:
         """Send workflow completion notification."""
         try:
@@ -113,7 +113,7 @@ class TeamsConnector:
             return False
 
     async def notify_workflow_failed(
-        self, workflow_id: str, error_data: Dict[str, Any]
+        self, workflow_id: str, error_data: dict[str, Any]
     ) -> bool:
         """Send workflow failure notification."""
         try:
@@ -129,7 +129,6 @@ class TeamsConnector:
     ) -> bool:
         """Send error recovery notification."""
         try:
-            color = "Good" if success else "Attention"
             status_text = "Successful" if success else "Failed"
 
             card_data = {
@@ -161,14 +160,13 @@ class TeamsConnector:
             logger.error(f"Error sending recovery notification: {e}")
             return False
 
-    async def notify_cost_alert(self, service: str, cost_data: Dict[str, Any]) -> bool:
+    async def notify_cost_alert(self, service: str, cost_data: dict[str, Any]) -> bool:
         """Send cost alert notification."""
         try:
             current_cost = cost_data.get("current_cost", 0)
             budget_limit = cost_data.get("budget_limit", 0)
             usage_percent = cost_data.get("usage_percent", 0)
 
-            color = "Attention" if usage_percent >= 80 else "Warning"
 
             card_data = {
                 "@type": "MessageCard",
@@ -245,7 +243,7 @@ class TeamsConnector:
             logger.error(f"Error sending Teams card: {e}")
             return False
 
-    async def send_adaptive_card_v2(self, card_payload: Dict[str, Any]) -> bool:
+    async def send_adaptive_card_v2(self, card_payload: dict[str, Any]) -> bool:
         """Send Adaptive Card v2 format."""
         try:
             if not self.webhook_url:
@@ -268,7 +266,7 @@ class TeamsConnector:
             return False
 
     def _build_workflow_started_card(
-        self, workflow_id: str, workflow_data: Dict[str, Any]
+        self, workflow_id: str, workflow_data: dict[str, Any]
     ) -> TeamsCard:
         """Build card for workflow started notification."""
         facts = [
@@ -300,7 +298,7 @@ class TeamsConnector:
         )
 
     def _build_progress_card(
-        self, workflow_id: str, progress_data: Dict[str, Any]
+        self, workflow_id: str, progress_data: dict[str, Any]
     ) -> TeamsCard:
         """Build card for progress update."""
         progress_percent = progress_data.get("overall_progress", 0)
@@ -346,7 +344,7 @@ class TeamsConnector:
         )
 
     def _build_completion_card(
-        self, workflow_id: str, result_data: Dict[str, Any]
+        self, workflow_id: str, result_data: dict[str, Any]
     ) -> TeamsCard:
         """Build card for workflow completion."""
         facts = [
@@ -385,7 +383,7 @@ class TeamsConnector:
         )
 
     def _build_failure_card(
-        self, workflow_id: str, error_data: Dict[str, Any]
+        self, workflow_id: str, error_data: dict[str, Any]
     ) -> TeamsCard:
         """Build card for workflow failure."""
         facts = [

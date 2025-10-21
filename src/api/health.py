@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from datetime import timedelta
 import os
 import time
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter
 
@@ -37,7 +36,7 @@ def _with_optional_dependencies(manager: HealthCheckManager) -> None:
 
 
 @router.get("/health")
-async def health() -> Dict[str, Any]:
+async def health() -> dict[str, Any]:
     manager = HealthCheckManager("cli-orchestrator")
     manager.add_default_checks()
     _with_optional_dependencies(manager)
@@ -51,7 +50,7 @@ async def health() -> Dict[str, Any]:
 
 
 @router.get("/ready")
-async def ready() -> Dict[str, Any]:
+async def ready() -> dict[str, Any]:
     manager = HealthCheckManager("cli-orchestrator")
     manager.add_default_checks()
     _with_optional_dependencies(manager)

@@ -8,7 +8,7 @@ PowerShell script generation and platform-specific tool configuration.
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from rich.console import Console
 
@@ -25,7 +25,7 @@ class PlatformSetup:
         self.is_windows = self.platform == "win32"
 
     def generate_windows_setup_script(
-        self, discovered_tools: Dict[str, Dict], output_path: Optional[Path] = None
+        self, discovered_tools: dict[str, dict], output_path: Optional[Path] = None
     ) -> Path:
         """Generate Windows PowerShell setup script."""
         if output_path is None:
@@ -41,7 +41,7 @@ class PlatformSetup:
         )
         return output_path
 
-    def _generate_powershell_script(self, discovered_tools: Dict[str, Dict]) -> str:
+    def _generate_powershell_script(self, discovered_tools: dict[str, dict]) -> str:
         """Generate PowerShell script content for Windows setup."""
         tools_to_add = [
             tool_info
@@ -152,7 +152,7 @@ Write-Host "   For permanent changes, update your system PATH or user profile." 
         return script
 
     def generate_environment_setup(
-        self, discovered_tools: Dict[str, Dict], output_path: Optional[Path] = None
+        self, discovered_tools: dict[str, dict], output_path: Optional[Path] = None
     ) -> Path:
         """Generate cross-platform environment setup."""
         if output_path is None:
@@ -177,7 +177,7 @@ Write-Host "   For permanent changes, update your system PATH or user profile." 
         )
         return output_path
 
-    def _generate_windows_env_setup(self, discovered_tools: Dict[str, Dict]) -> str:
+    def _generate_windows_env_setup(self, discovered_tools: dict[str, dict]) -> str:
         """Generate Windows environment setup script."""
         custom_tools = {
             name: info
@@ -231,7 +231,7 @@ Write-Host "Run 'python -m cli_multi_rapid.main tools doctor' to verify all tool
 
         return script
 
-    def _generate_unix_env_setup(self, discovered_tools: Dict[str, Dict]) -> str:
+    def _generate_unix_env_setup(self, discovered_tools: dict[str, dict]) -> str:
         """Generate Unix/Linux environment setup script."""
         custom_tools = {
             name: info
@@ -280,7 +280,7 @@ echo "Run 'python -m cli_multi_rapid.main tools doctor' to verify all tools."
 
         return script
 
-    def create_platform_config(self, discovered_tools: Dict[str, Dict]) -> Dict:
+    def create_platform_config(self, discovered_tools: dict[str, dict]) -> dict:
         """Create platform-specific configuration."""
         config = {
             "platform": self.platform,

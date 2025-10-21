@@ -10,12 +10,11 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from rich.console import Console
 
 from .workflow_runner import CoordinatedWorkflowResult, WorkflowResult
-from dataclasses import dataclass
 
 
 @dataclass
@@ -68,9 +67,9 @@ console = Console()
 
 @dataclass
 class AtomClassification:
-    deterministic: List[Dict[str, Any]]
-    ai_required: List[Dict[str, Any]]
-    uncertain: List[Dict[str, Any]]
+    deterministic: list[dict[str, Any]]
+    ai_required: list[dict[str, Any]]
+    uncertain: list[dict[str, Any]]
     total_atoms: int
     deterministic_percentage: float
 
@@ -85,13 +84,13 @@ class AtomClassifier:
     - else => uncertain
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
 
-    def classify_atoms(self, atoms: List[Dict[str, Any]]) -> Dict[str, Any]:
-        det: List[Dict[str, Any]] = []
-        ai: List[Dict[str, Any]] = []
-        unc: List[Dict[str, Any]] = []
+    def classify_atoms(self, atoms: list[dict[str, Any]]) -> dict[str, Any]:
+        det: list[dict[str, Any]] = []
+        ai: list[dict[str, Any]] = []
+        unc: list[dict[str, Any]] = []
         for a in atoms:
             if a.get("deterministic") is True:
                 det.append(a)
@@ -106,7 +105,7 @@ class AtomClassifier:
         pct = (len(det) / total * 100.0) if total else 0.0
 
         # Split into 6 coarse phases for orchestration
-        phases: List[Dict[str, Any]] = []
+        phases: list[dict[str, Any]] = []
         buckets = [det, ai, unc]
         phase_names = ["deterministic-core", "ai-support", "uncertain-queue"]
         for i, bucket in enumerate(buckets):
@@ -137,16 +136,16 @@ class PipelineOrchestrator:
 
     def execute_phases(
         self,
-        classification: Dict[str, Any],
-        coordination_id: Optional[str] = None,
+        classification: dict[str, Any],
+        coordination_id: str | None = None,
         execution_mode: str = "production",
     ) -> CoordinatedWorkflowResult:
         phases = classification.get("phases") or []
         start = time.time()
-        workflow_results: Dict[str, WorkflowResult] = {}
+        workflow_results: dict[str, WorkflowResult] = {}
 
         for phase in phases:
-            atoms: List[Dict[str, Any]] = phase.get("atoms") or []
+            atoms: list[dict[str, Any]] = phase.get("atoms") or []
             steps = []
             # Convert atoms to pseudo-steps for routing + cost estimation
             for a in atoms:

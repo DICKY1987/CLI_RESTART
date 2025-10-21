@@ -9,7 +9,7 @@ checking test results, and enforcing quality standards.
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from rich.console import Console
 
@@ -23,7 +23,7 @@ class GateResult:
     gate_name: str
     passed: bool
     message: str
-    details: Dict[str, Any] = None
+    details: dict[str, Any] = None
 
     def __post_init__(self):
         if self.details is None:
@@ -66,7 +66,7 @@ class Verifier:
             return False
 
     def _validate_against_schema(
-        self, artifact: Dict[str, Any], schema_file: Path
+        self, artifact: dict[str, Any], schema_file: Path
     ) -> bool:
         """Validate artifact against JSON schema."""
         try:
@@ -88,7 +88,7 @@ class Verifier:
             console.print(f"[red]Schema validation failed: {e}[/red]")
             return False
 
-    def _basic_validation(self, artifact: Dict[str, Any]) -> bool:
+    def _basic_validation(self, artifact: dict[str, Any]) -> bool:
         """Perform basic validation checks."""
         # Check for required top-level fields
         required_fields = ["timestamp", "type"]
@@ -102,8 +102,8 @@ class Verifier:
         return True
 
     def check_gates(
-        self, gates: List[Dict[str, Any]], artifacts_dir: Path = Path("artifacts")
-    ) -> List[GateResult]:
+        self, gates: list[dict[str, Any]], artifacts_dir: Path = Path("artifacts")
+    ) -> list[GateResult]:
         """Check multiple quality gates."""
 
         results = []
@@ -125,7 +125,7 @@ class Verifier:
         return results
 
     def _check_single_gate(
-        self, gate_config: Dict[str, Any], artifacts_dir: Path
+        self, gate_config: dict[str, Any], artifacts_dir: Path
     ) -> GateResult:
         """Check a single quality gate."""
 
@@ -156,7 +156,7 @@ class Verifier:
             )
 
     def _check_tests_pass_gate(
-        self, gate_config: Dict[str, Any], artifacts_dir: Path
+        self, gate_config: dict[str, Any], artifacts_dir: Path
     ) -> GateResult:
         """Check if test results indicate passing tests."""
 
@@ -206,7 +206,7 @@ class Verifier:
             )
 
     def _check_diff_limits_gate(
-        self, gate_config: Dict[str, Any], artifacts_dir: Path
+        self, gate_config: dict[str, Any], artifacts_dir: Path
     ) -> GateResult:
         """Check if diff size is within acceptable limits."""
 
@@ -250,7 +250,7 @@ class Verifier:
             )
 
     def _check_schema_valid_gate(
-        self, gate_config: Dict[str, Any], artifacts_dir: Path
+        self, gate_config: dict[str, Any], artifacts_dir: Path
     ) -> GateResult:
         """Check if all artifacts have valid schemas.
 
@@ -261,7 +261,7 @@ class Verifier:
         try:
             artifacts = gate_config.get("artifacts", [])
             schema_dir = Path(gate_config.get("schema_dir", ".ai/schemas"))
-            mapping: Dict[str, str] = gate_config.get("schema_map", {})
+            mapping: dict[str, str] = gate_config.get("schema_map", {})
 
             if not artifacts:
                 return GateResult(
@@ -271,7 +271,7 @@ class Verifier:
                 )
 
             all_ok = True
-            details: Dict[str, Any] = {}
+            details: dict[str, Any] = {}
             for art in artifacts:
                 art_path = artifacts_dir / art if not art.startswith("/") else Path(art)
                 # Determine schema path
@@ -312,7 +312,7 @@ class Verifier:
                 message=f"Schema gate error: {e}",
             )
 
-    def _check_yaml_schema_valid_gate(self, gate_config: Dict[str, Any]) -> GateResult:
+    def _check_yaml_schema_valid_gate(self, gate_config: dict[str, Any]) -> GateResult:
         """Validate a YAML file against a JSON schema.
 
         Expects:
@@ -366,7 +366,7 @@ class Verifier:
                 message=f"YAML schema validation failed: {e}",
             )
 
-    def _check_yaml_schema_valid_gate(self, gate_config: Dict[str, Any]) -> GateResult:
+    def _check_yaml_schema_valid_gate(self, gate_config: dict[str, Any]) -> GateResult:
         """Validate a YAML file against a JSON schema.
 
         Expects:
@@ -376,6 +376,7 @@ class Verifier:
         try:
             import json
             from pathlib import Path
+
             import jsonschema  # type: ignore
             import yaml  # type: ignore
 
@@ -395,9 +396,9 @@ class Verifier:
                     message=f"Schema file not found: {schema_path}",
                 )
 
-            with open(yaml_path, "r", encoding="utf-8") as yf:
+            with open(yaml_path, encoding="utf-8") as yf:
                 data = yaml.safe_load(yf)
-            with open(schema_path, "r", encoding="utf-8") as sf:
+            with open(schema_path, encoding="utf-8") as sf:
                 schema = json.load(sf)
 
             jsonschema.validate(data, schema)
@@ -415,7 +416,7 @@ class Verifier:
                 gate_name="yaml_schema_valid", passed=False, message=f"YAML schema validation failed: {e}"
             )
 
-    def _check_yaml_schema_valid_gate(self, gate_config: Dict[str, Any]) -> GateResult:
+    def _check_yaml_schema_valid_gate(self, gate_config: dict[str, Any]) -> GateResult:
         """Validate a YAML file against a JSON schema.
 
         Expects:
@@ -425,6 +426,7 @@ class Verifier:
         try:
             import json
             from pathlib import Path
+
             import jsonschema  # type: ignore
             import yaml  # type: ignore
 
@@ -444,9 +446,9 @@ class Verifier:
                     message=f"Schema file not found: {schema_path}",
                 )
 
-            with open(yaml_path, "r", encoding="utf-8") as yf:
+            with open(yaml_path, encoding="utf-8") as yf:
                 data = yaml.safe_load(yf)
-            with open(schema_path, "r", encoding="utf-8") as sf:
+            with open(schema_path, encoding="utf-8") as sf:
                 schema = json.load(sf)
 
             jsonschema.validate(data, schema)
@@ -465,7 +467,7 @@ class Verifier:
             )
 
     def _check_token_budget_gate(
-        self, gate_config: Dict[str, Any], artifacts_dir: Path
+        self, gate_config: dict[str, Any], artifacts_dir: Path
     ) -> GateResult:
         """Check if token usage is within budget."""
         try:

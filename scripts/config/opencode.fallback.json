@@ -1,0 +1,14 @@
+{
+  "": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama": {
+      "name": "Ollama (local)",
+      "options": { "baseURL": "http://127.0.0.1:11434/v1" },
+      "models": {
+        "deepseek-coder:latest": { "name": "DeepSeek Coder (local)" },
+        "deepseek-r1:latest":    { "name": "DeepSeek R1 (local)" }
+      }
+    }
+  },
+  "model": "ollama/deepseek-coder:latest"
+}

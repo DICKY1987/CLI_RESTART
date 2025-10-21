@@ -7,7 +7,7 @@ Cost-optimized agent routing with built-in quota management
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 
 import click
 from langchain_anthropic import ChatAnthropic
@@ -25,7 +25,7 @@ class ServiceConfig:
     daily_limit: int
     cost_per_request: float
     priority: int
-    complexity_match: List[str]
+    complexity_match: list[str]
 
 
 SERVICES = {
@@ -42,7 +42,7 @@ class AgentState(MessagesState):
     task_complexity: str = "simple"
     selected_agent: str = ""
     cost_estimate: float = 0.0
-    usage_today: Dict[str, int] = {}
+    usage_today: dict[str, int] = {}
 
 
 class CostOptimizedOrchestrator:
@@ -72,11 +72,11 @@ class CostOptimizedOrchestrator:
         # Create the supervisor graph
         self.graph = self.build_graph()
 
-    def load_usage(self) -> Dict[str, int]:
+    def load_usage(self) -> dict[str, int]:
         """Load today's quota usage (replaces PowerShell quota tracking)"""
         if self.quota_file.exists():
             data = json.loads(self.quota_file.read_text())
-            today = str(Path().cwd())  # Simplified - use proper date
+            str(Path().cwd())  # Simplified - use proper date
             return data.get("services", {})
         return {}
 
@@ -195,7 +195,7 @@ class CostOptimizedOrchestrator:
         memory = SqliteSaver.from_conn_string(":memory:")
         return workflow.compile(checkpointer=memory)
 
-    async def execute_task(self, task: str) -> Dict[str, Any]:
+    async def execute_task(self, task: str) -> dict[str, Any]:
         """Execute task with cost optimization"""
         config = {"configurable": {"thread_id": "main"}}
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 import yaml
 
@@ -17,10 +16,10 @@ from .tools_base import ToolProbe
 class ToolConfig:
     """Configuration for a specific tool."""
 
-    path: Optional[str] = None
-    args: Optional[Dict[str, str]] = None
+    path: str | None = None
+    args: dict[str, str] | None = None
     timeout_ms: int = 30000
-    env: Optional[Dict[str, str]] = None
+    env: dict[str, str] | None = None
 
 
 @dataclass
@@ -32,9 +31,9 @@ class ToolSelection:
     editor: str = "vscode"
     js_runtime: str = "node"
     ai_cli: str = "claude"
-    python_quality: Dict[str, bool] = None
+    python_quality: dict[str, bool] = None
     precommit: bool = True
-    paths: Dict[str, str] = None
+    paths: dict[str, str] = None
 
     def __post_init__(self):
         if self.python_quality is None:
@@ -79,7 +78,7 @@ def load_config(config_path: str = "config/tool_adapters.yaml") -> ToolSelection
         return ToolSelection()
 
 
-def _extract_version(output: str) -> Optional[str]:
+def _extract_version(output: str) -> str | None:
     """Extract version from tool output."""
     if not output:
         return None
@@ -112,7 +111,7 @@ def probe_binary(
         return ToolProbe(name=binary, path=None, version=None, ok=False, details=str(e))
 
 
-def detect_all(runner: ProcessRunner) -> Dict[str, ToolProbe]:
+def detect_all(runner: ProcessRunner) -> dict[str, ToolProbe]:
     """Detect all available tools."""
     sel = load_config()
 
@@ -133,7 +132,7 @@ def detect_all(runner: ProcessRunner) -> Dict[str, ToolProbe]:
         "semgrep": sel.paths.get("semgrep") or "semgrep",
     }
 
-    probes: Dict[str, ToolProbe] = {}
+    probes: dict[str, ToolProbe] = {}
 
     # Core tools
     probes["git"] = probe_binary(runner, paths["git"], ["--version"])
@@ -166,7 +165,7 @@ def detect_all(runner: ProcessRunner) -> Dict[str, ToolProbe]:
     return probes
 
 
-def generate_doctor_report(probes: Dict[str, ToolProbe]) -> str:
+def generate_doctor_report(probes: dict[str, ToolProbe]) -> str:
     """Generate a health report for detected tools."""
     lines = ["Tool Health Report", "=" * 20, ""]
 

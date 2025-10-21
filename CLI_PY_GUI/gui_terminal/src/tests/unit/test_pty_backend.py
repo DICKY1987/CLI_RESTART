@@ -6,6 +6,7 @@ import time
 from unittest.mock import Mock, patch
 
 import pytest
+
 from gui_terminal.core.pty_backend import (
     CommandResult,
     CommandStatus,

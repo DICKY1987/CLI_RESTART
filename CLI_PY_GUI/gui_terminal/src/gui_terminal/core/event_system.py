@@ -4,6 +4,7 @@ WebSocket integration and platform event handling
 """
 
 import asyncio
+import contextlib
 import json
 import logging
 import time
@@ -252,10 +253,8 @@ class EventSystem(QObject):
     ):
         """Unsubscribe from event type"""
         if event_type in self.subscribers:
-            try:
+            with contextlib.suppress(ValueError):
                 self.subscribers[event_type].remove(callback)
-            except ValueError:
-                pass
 
     def emit_event(self, event: TerminalEvent):
         """Emit event to subscribers"""

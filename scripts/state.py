@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 STATE_PATH = Path(".ai/state.json")
 
 
-def read_state() -> Dict[str, Any]:
+def read_state() -> dict[str, Any]:
     if not STATE_PATH.exists():
         return {}
     try:
@@ -16,7 +16,7 @@ def read_state() -> Dict[str, Any]:
         return {}
 
 
-def write_state(data: Dict[str, Any]) -> None:
+def write_state(data: dict[str, Any]) -> None:
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     tmp = STATE_PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")

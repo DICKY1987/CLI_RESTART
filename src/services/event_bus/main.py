@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Dict, List, Set
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import PlainTextResponse
@@ -16,9 +15,9 @@ except Exception:  # pragma: no cover - optional
 
 class Hub:
     def __init__(self) -> None:
-        self.clients: Set[WebSocket] = set()
+        self.clients: set[WebSocket] = set()
         self.queue: asyncio.Queue[str] = asyncio.Queue(maxsize=1000)
-        self.recent: List[str] = []
+        self.recent: list[str] = []
 
     async def connect(self, ws: WebSocket) -> None:
         await ws.accept()
@@ -27,7 +26,7 @@ class Hub:
     def disconnect(self, ws: WebSocket) -> None:
         self.clients.discard(ws)
 
-    async def broadcast(self, message: Dict) -> None:
+    async def broadcast(self, message: dict) -> None:
         data = json.dumps(message)
         try:
             self.queue.put_nowait(data)
@@ -43,7 +42,7 @@ class Hub:
     async def pump(self) -> None:
         while True:
             data = await self.queue.get()
-            dead: List[WebSocket] = []
+            dead: list[WebSocket] = []
             for ws in list(self.clients):
                 try:
                     await ws.send_text(data)
@@ -73,7 +72,7 @@ async def ws_endpoint(ws: WebSocket):
 
 
 @app.post("/publish")
-async def publish(message: Dict):
+async def publish(message: dict):
     await hub.broadcast(message)
     return {"ok": True}
 

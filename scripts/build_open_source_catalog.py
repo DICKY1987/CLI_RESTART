@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, List, Set
 
 
 def normalize_name(raw: str) -> str:
@@ -12,7 +12,7 @@ def normalize_name(raw: str) -> str:
 
 
 def parse_opensource_md(path: Path) -> Iterable[str]:
-    names: List[str] = []
+    names: list[str] = []
     if not path.exists():
         return names
 
@@ -54,7 +54,7 @@ def parse_opensource_md(path: Path) -> Iterable[str]:
 
 
 def parse_opensource1_md(path: Path) -> Iterable[str]:
-    names: List[str] = []
+    names: list[str] = []
     if not path.exists():
         return names
     with path.open("r", encoding="utf-8", errors="ignore") as f:
@@ -80,7 +80,7 @@ def parse_opensource1_md(path: Path) -> Iterable[str]:
 
 
 def parse_missing_csv(path: Path) -> Iterable[str]:
-    names: List[str] = []
+    names: list[str] = []
     if not path.exists():
         return names
     with path.open("r", encoding="utf-8", errors="ignore") as f:
@@ -95,9 +95,9 @@ def parse_missing_csv(path: Path) -> Iterable[str]:
     return names
 
 
-def unique_ordered(items: Iterable[str]) -> List[str]:
-    seen: Set[str] = set()
-    out: List[str] = []
+def unique_ordered(items: Iterable[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
     for it in items:
         if it and it not in seen:
             seen.add(it)
@@ -131,7 +131,7 @@ def main() -> None:
     md2 = src / "opensource1.md"
     csv = src / "Apps_Missing_From_Document.csv"
 
-    names: List[str] = []
+    names: list[str] = []
     names.extend(parse_opensource_md(md1))
     names.extend(parse_opensource1_md(md2))
     if args.include_missing_csv:

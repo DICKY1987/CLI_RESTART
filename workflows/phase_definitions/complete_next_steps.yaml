@@ -4,7 +4,6 @@ description: Execute follow-up tasks after MOD integrations (tests, planner, coc
 
 global_policies:
   execution_mode: sequential_with_validation
-  rollback_on_failure: false
   validation_gates: true
 
 phases:

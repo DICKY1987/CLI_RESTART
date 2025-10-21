@@ -11,13 +11,17 @@ import json
 import logging
 import os
 import subprocess
-import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import requests
 
-from .base_adapter import AdapterResult, AdapterType, BaseAdapter, AdapterPerformanceProfile
+from .base_adapter import (
+    AdapterPerformanceProfile,
+    AdapterResult,
+    AdapterType,
+    BaseAdapter,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +58,8 @@ class DeepSeekAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute DeepSeek AI workflow step."""
@@ -130,7 +134,7 @@ class DeepSeekAdapter(BaseAdapter):
         prompt: str,
         operation: str,
         read_only: bool,
-        emit_paths: List[str],
+        emit_paths: list[str],
     ) -> AdapterResult:
         """Execute aider with DeepSeek model (auto-configured via .aider.conf.yml)."""
 
@@ -212,7 +216,7 @@ class DeepSeekAdapter(BaseAdapter):
         files: Optional[str],
         prompt: str,
         operation: str,
-        emit_paths: List[str],
+        emit_paths: list[str],
     ) -> AdapterResult:
         """Execute OpenCode wrapper script with DeepSeek."""
 
@@ -279,7 +283,7 @@ class DeepSeekAdapter(BaseAdapter):
         prompt: str,
         files: Optional[str],
         max_tokens: int,
-        emit_paths: List[str],
+        emit_paths: list[str],
     ) -> AdapterResult:
         """Execute direct Ollama API call with DeepSeek model."""
 
@@ -349,7 +353,7 @@ class DeepSeekAdapter(BaseAdapter):
                 error=f"Ollama API error: {str(e)}",
             )
 
-    def _resolve_file_pattern(self, pattern: str) -> List[str]:
+    def _resolve_file_pattern(self, pattern: str) -> list[str]:
         """Resolve glob pattern to list of actual files."""
         try:
             from glob import glob
@@ -368,12 +372,12 @@ class DeepSeekAdapter(BaseAdapter):
             logger.warning(f"Failed to resolve file pattern {pattern}: {e}")
             return []
 
-    def _read_files_for_context(self, file_paths: List[str]) -> str:
+    def _read_files_for_context(self, file_paths: list[str]) -> str:
         """Read file contents to provide context to the AI."""
         context_parts = []
         for file_path in file_paths:
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, encoding='utf-8') as f:
                     content = f.read()
                     context_parts.append(f"File: {file_path}\n```\n{content}\n```\n")
             except Exception as e:
@@ -388,8 +392,8 @@ class DeepSeekAdapter(BaseAdapter):
         return int(len(text.split()) * 1.3)
 
     def _generate_diff_artifacts(
-        self, emit_paths: List[str], modified_files: List[str]
-    ) -> List[str]:
+        self, emit_paths: list[str], modified_files: list[str]
+    ) -> list[str]:
         """Generate diff artifacts for modified files."""
         artifacts = []
 
@@ -425,8 +429,8 @@ class DeepSeekAdapter(BaseAdapter):
         return artifacts
 
     def _save_ollama_response(
-        self, emit_paths: List[str], response: str, prompt: str
-    ) -> List[str]:
+        self, emit_paths: list[str], response: str, prompt: str
+    ) -> list[str]:
         """Save Ollama API response to artifact files."""
         artifacts = []
 
@@ -457,7 +461,7 @@ class DeepSeekAdapter(BaseAdapter):
         from datetime import datetime
         return datetime.now().isoformat()
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
 
@@ -471,7 +475,7 @@ class DeepSeekAdapter(BaseAdapter):
 
         return tool in supported_tools
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (always 0 for local inference)."""
         # Local inference is free, but we can estimate tokens for tracking
         with_params = self._extract_with_params(step)
@@ -596,7 +600,7 @@ class DeepSeekAdapter(BaseAdapter):
 
         return self._environment_validated
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get comprehensive health status for DeepSeek integration."""
         self._validate_environment()
 
@@ -632,7 +636,7 @@ class DeepSeekAdapter(BaseAdapter):
 
         return health
 
-    def get_supported_operations(self) -> List[str]:
+    def get_supported_operations(self) -> list[str]:
         """Get list of supported operations."""
         return [
             "edit",  # Code editing

@@ -3,7 +3,7 @@
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -16,7 +16,7 @@ class SlackMessage:
 
     channel: str
     text: str
-    blocks: Optional[List[Dict]] = None
+    blocks: Optional[list[dict]] = None
     thread_ts: Optional[str] = None
     username: Optional[str] = "Workflow Bot"
     icon_emoji: Optional[str] = ":robot_face:"
@@ -36,7 +36,7 @@ class SlackConnector:
             }
         )
 
-    async def test_connection(self) -> Dict[str, Any]:
+    async def test_connection(self) -> dict[str, Any]:
         """Test Slack connection."""
         try:
             response = await self.session.post(f"{self.base_url}/auth.test")
@@ -58,7 +58,7 @@ class SlackConnector:
             return {"status": "failed", "error": str(e)}
 
     async def notify_workflow_started(
-        self, channel: str, workflow_id: str, workflow_data: Dict[str, Any]
+        self, channel: str, workflow_id: str, workflow_data: dict[str, Any]
     ) -> Optional[str]:
         """Send workflow started notification."""
         try:
@@ -79,7 +79,7 @@ class SlackConnector:
         self,
         channel: str,
         workflow_id: str,
-        progress_data: Dict[str, Any],
+        progress_data: dict[str, Any],
         thread_ts: Optional[str] = None,
     ) -> Optional[str]:
         """Send workflow progress update."""
@@ -102,7 +102,7 @@ class SlackConnector:
         self,
         channel: str,
         workflow_id: str,
-        result_data: Dict[str, Any],
+        result_data: dict[str, Any],
         thread_ts: Optional[str] = None,
     ) -> Optional[str]:
         """Send workflow completion notification."""
@@ -125,7 +125,7 @@ class SlackConnector:
         self,
         channel: str,
         workflow_id: str,
-        error_data: Dict[str, Any],
+        error_data: dict[str, Any],
         thread_ts: Optional[str] = None,
     ) -> Optional[str]:
         """Send workflow failure notification."""
@@ -177,7 +177,7 @@ class SlackConnector:
             return None
 
     async def notify_cost_alert(
-        self, channel: str, service: str, cost_data: Dict[str, Any]
+        self, channel: str, service: str, cost_data: dict[str, Any]
     ) -> Optional[str]:
         """Send cost alert notification."""
         try:
@@ -309,7 +309,7 @@ class SlackConnector:
             logger.error(f"Error setting channel topic: {e}")
             return False
 
-    async def invite_users_to_channel(self, channel: str, users: List[str]) -> bool:
+    async def invite_users_to_channel(self, channel: str, users: list[str]) -> bool:
         """Invite users to channel."""
         try:
             payload = {"channel": channel, "users": ",".join(users)}
@@ -327,7 +327,7 @@ class SlackConnector:
             logger.error(f"Error inviting users to channel: {e}")
             return False
 
-    async def get_user_info(self, user_id: str) -> Optional[Dict[str, Any]]:
+    async def get_user_info(self, user_id: str) -> Optional[dict[str, Any]]:
         """Get user information."""
         try:
             response = await self.session.get(
@@ -345,8 +345,8 @@ class SlackConnector:
             return None
 
     def _build_workflow_started_blocks(
-        self, workflow_id: str, workflow_data: Dict[str, Any]
-    ) -> List[Dict]:
+        self, workflow_id: str, workflow_data: dict[str, Any]
+    ) -> list[dict]:
         """Build blocks for workflow started message."""
         blocks = [
             {
@@ -393,8 +393,8 @@ class SlackConnector:
         return blocks
 
     def _build_progress_blocks(
-        self, workflow_id: str, progress_data: Dict[str, Any]
-    ) -> List[Dict]:
+        self, workflow_id: str, progress_data: dict[str, Any]
+    ) -> list[dict]:
         """Build blocks for progress update message."""
         progress_percent = progress_data.get("overall_progress", 0)
         progress_bar = self._create_progress_bar(progress_percent)
@@ -432,8 +432,8 @@ class SlackConnector:
         return blocks
 
     def _build_completion_blocks(
-        self, workflow_id: str, result_data: Dict[str, Any]
-    ) -> List[Dict]:
+        self, workflow_id: str, result_data: dict[str, Any]
+    ) -> list[dict]:
         """Build blocks for completion message."""
         blocks = [
             {
@@ -476,8 +476,8 @@ class SlackConnector:
         return blocks
 
     def _build_failure_blocks(
-        self, workflow_id: str, error_data: Dict[str, Any]
-    ) -> List[Dict]:
+        self, workflow_id: str, error_data: dict[str, Any]
+    ) -> list[dict]:
         """Build blocks for failure message."""
         blocks = [
             {

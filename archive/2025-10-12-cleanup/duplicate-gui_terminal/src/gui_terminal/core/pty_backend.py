@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class PtyProcess:
-    pid: Optional[int] = None
+    pid: int | None = None
 
 
 class PtyBackend:
@@ -17,12 +16,12 @@ class PtyBackend:
     backends and provide async IO for the terminal widget.
     """
 
-    def __init__(self, shell: Optional[str] = None, cwd: Optional[str] = None) -> None:
+    def __init__(self, shell: str | None = None, cwd: str | None = None) -> None:
         self.shell = shell or self._default_shell()
         self.cwd = cwd or os.getcwd()
         self.process = PtyProcess()
         self._pty = None  # underlying backend object
-        self._exit_code: Optional[int] = None
+        self._exit_code: int | None = None
 
     def _default_shell(self) -> str:
         if os.name == "nt":  # Windows
@@ -148,7 +147,7 @@ class PtyBackend:
             pass
 
     # --- Exit code helpers ---
-    def _extract_exit_code(self) -> Optional[int]:
+    def _extract_exit_code(self) -> int | None:
         try:
             if self._pty is None:
                 return self._exit_code
@@ -168,7 +167,7 @@ class PtyBackend:
             return None
         return None
 
-    def get_exit_code(self) -> Optional[int]:
+    def get_exit_code(self) -> int | None:
         code = self._extract_exit_code()
         if code is not None:
             self._exit_code = int(code)

@@ -11,7 +11,11 @@ Tests validate:
   - Unicode/UTF-8 handling
   - Exit code propagation
 """
-import os, sys, time, json, socket
+import json
+import os
+import socket
+import sys
+import time
 
 HOST, PORT = "127.0.0.1", 45454
 
@@ -58,7 +62,7 @@ def test_stderr_interleave_order():
     if os.name != "nt":
         cmd = ["bash","-lc","python3 - <<'PY'\nimport sys\nprint('out1')\nsys.stderr.write('err1\\n')\nprint('out2')\nsys.stderr.write('err2\\n')\nPY"]
     else:
-        cmd = ["cmd","/c","python -c "import sys; print('out1'); sys.stderr.write('err1\\n'); print('out2'); sys.stderr.write('err2\\n')""]
+        cmd = ["cmd","/c","python -c \"import sys; print('out1'); sys.stderr.write('err1\\n'); print('out2'); sys.stderr.write('err2\\n')\""]
     assert rpc({"op":"start","cmd":cmd})["ok"]
     time.sleep(1.0)
     out = rpc({"op":"read","max":4096})["data"]

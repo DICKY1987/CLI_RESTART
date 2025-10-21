@@ -11,7 +11,7 @@ import json
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 try:
     import jsonschema
@@ -38,7 +38,7 @@ class EditValidatorV2:
             except FileNotFoundError:
                 self._plan_schema = None
 
-    def load_edits(self, obj: Any) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    def load_edits(self, obj: Any) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         if isinstance(obj, list):
             return obj, {}
         if isinstance(obj, dict) and "edits" in obj and isinstance(obj["edits"], list):
@@ -47,7 +47,7 @@ class EditValidatorV2:
             "Input must be a list of edits or an object with an 'edits' array."
         )
 
-    def validate_against_schema(self, obj: Any) -> Tuple[bool, List[str]]:
+    def validate_against_schema(self, obj: Any) -> tuple[bool, list[str]]:
         if jsonschema is None:
             return True, []
         errors = []
@@ -76,8 +76,8 @@ class EditValidatorV2:
                 return False, ["Input was neither a list nor a plan object"]
 
     def validate_business_rules(
-        self, edits: List[Dict[str, Any]], metadata: Dict[str, Any]
-    ) -> List[str]:
+        self, edits: list[dict[str, Any]], metadata: dict[str, Any]
+    ) -> list[str]:
         errors = []
         errors += self._validate_file_safety(edits)
         errors += self._validate_line_consistency(edits)
@@ -86,7 +86,7 @@ class EditValidatorV2:
         errors += self._validate_pre_edit_checksums(edits, metadata)
         return errors
 
-    def generate_report(self, obj: Any) -> Dict[str, Any]:
+    def generate_report(self, obj: Any) -> dict[str, Any]:
         edits, metadata = self.load_edits(obj)
         schema_ok, schema_errors = self.validate_against_schema(obj)
         business_errors = self.validate_business_rules(edits, metadata)
@@ -109,7 +109,7 @@ class EditValidatorV2:
                 "total_edits": len(edits),
                 "files_affected": len(file_stats),
                 "edit_types": sorted(
-                    list(set(edit.get("edit_type") for edit in edits))
+                    {edit.get("edit_type") for edit in edits}
                 ),
                 "file_stats": file_stats,
             },
@@ -117,7 +117,7 @@ class EditValidatorV2:
             "validated_at": datetime.utcnow().isoformat() + "Z",
         }
 
-    def _validate_file_safety(self, edits: List[Dict[str, Any]]) -> List[str]:
+    def _validate_file_safety(self, edits: list[dict[str, Any]]) -> list[str]:
         errors = []
         for edit in edits:
             raw = str(edit.get("file_path", ""))
@@ -131,7 +131,7 @@ class EditValidatorV2:
                 errors.append(f"Path traversal not allowed: {raw}")
         return errors
 
-    def _validate_line_consistency(self, edits: List[Dict[str, Any]]) -> List[str]:
+    def _validate_line_consistency(self, edits: list[dict[str, Any]]) -> list[str]:
         errors = []
         for i, edit in enumerate(edits):
             et = edit.get("edit_type")
@@ -145,9 +145,9 @@ class EditValidatorV2:
                     errors.append(f"[{i}] invalid line_number: {line}")
         return errors
 
-    def _validate_edit_conflicts(self, edits: List[Dict[str, Any]]) -> List[str]:
+    def _validate_edit_conflicts(self, edits: list[dict[str, Any]]) -> list[str]:
         errors = []
-        by_file: Dict[str, List[Tuple[int, int, int, str]]] = {}
+        by_file: dict[str, list[tuple[int, int, int, str]]] = {}
         for idx, edit in enumerate(edits):
             f = edit.get("file_path")
             et = edit.get("edit_type")
@@ -170,7 +170,7 @@ class EditValidatorV2:
                     )
         return errors
 
-    def _validate_content_integrity(self, edits: List[Dict[str, Any]]) -> List[str]:
+    def _validate_content_integrity(self, edits: list[dict[str, Any]]) -> list[str]:
         errors = []
         for i, edit in enumerate(edits):
             et = edit.get("edit_type")
@@ -188,8 +188,8 @@ class EditValidatorV2:
         return errors
 
     def _validate_pre_edit_checksums(
-        self, edits: List[Dict[str, Any]], metadata: Dict[str, Any]
-    ) -> List[str]:
+        self, edits: list[dict[str, Any]], metadata: dict[str, Any]
+    ) -> list[str]:
         errors = []
         checksum_map = metadata.get("pre_edit_checksums") or {}
         for i, e in enumerate(edits):
@@ -207,7 +207,7 @@ class EditValidatorV2:
                     errors.append(f"[{i}] pre_edit_checksum mismatch for {path}")
         return errors
 
-    def create_edit_signature(self, edit: Dict[str, Any]) -> str:
+    def create_edit_signature(self, edit: dict[str, Any]) -> str:
         m = hashlib.sha256()
         payload = "|".join(
             str(edit.get(k, ""))
@@ -217,16 +217,16 @@ class EditValidatorV2:
         return m.hexdigest()
 
     def _build_file_stats(
-        self, edits: List[Dict[str, Any]]
-    ) -> Dict[str, Dict[str, Any]]:
-        stats: Dict[str, Dict[str, Any]] = {}
+        self, edits: list[dict[str, Any]]
+    ) -> dict[str, dict[str, Any]]:
+        stats: dict[str, dict[str, Any]] = {}
         for e in edits:
             f = e.get("file_path", "")
             stats.setdefault(f, {"count": 0, "types": set()})
             stats[f]["count"] += 1
             stats[f]["types"].add(e.get("edit_type"))
         for s in stats.values():
-            s["types"] = sorted(list(s["types"]))
+            s["types"] = sorted(s["types"])
         return stats
 
     def _format_schema_error(self, err) -> str:

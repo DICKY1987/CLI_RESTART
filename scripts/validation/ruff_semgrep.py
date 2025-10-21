@@ -8,7 +8,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 class RuffSemgrepPlugin:
@@ -19,7 +19,7 @@ class RuffSemgrepPlugin:
         self.description = "Code quality (ruff) and security scanning (semgrep)"
         self.version = "1.0.0"
 
-    def discover(self) -> Dict[str, Any]:
+    def discover(self) -> dict[str, Any]:
         """Discover available tools and Python files."""
 
         # Check tool availability
@@ -47,7 +47,7 @@ class RuffSemgrepPlugin:
             "supported_checkpoints": ["pre_commit", "pre_merge", "security_scan"],
         }
 
-    def _check_tool_availability(self, tool: str, args: List[str]) -> bool:
+    def _check_tool_availability(self, tool: str, args: list[str]) -> bool:
         """Check if a tool is available."""
         try:
             result = subprocess.run(
@@ -58,8 +58,8 @@ class RuffSemgrepPlugin:
             return False
 
     def run(
-        self, checkpoint_id: str, config: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, checkpoint_id: str, config: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """Run ruff and semgrep verification."""
 
         config = config or {}
@@ -98,7 +98,7 @@ class RuffSemgrepPlugin:
 
         return results
 
-    def _run_ruff(self, target_path: str, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_ruff(self, target_path: str, config: dict[str, Any]) -> dict[str, Any]:
         """Run ruff linting."""
 
         # Build ruff command
@@ -168,7 +168,7 @@ class RuffSemgrepPlugin:
                 "stderr": str(e),
             }
 
-    def _run_semgrep(self, target_path: str, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _run_semgrep(self, target_path: str, config: dict[str, Any]) -> dict[str, Any]:
         """Run semgrep security scanning."""
 
         # Build semgrep command
@@ -248,7 +248,7 @@ class RuffSemgrepPlugin:
                 "stderr": str(e),
             }
 
-    def report(self, results: Dict[str, Any]) -> str:
+    def report(self, results: dict[str, Any]) -> str:
         """Generate human-readable report."""
 
         status_emoji = {

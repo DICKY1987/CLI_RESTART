@@ -7,8 +7,8 @@ for the CLI Orchestrator.
 
 from .contract_validator import (
     ContractValidator,
-    validate_contract,
     ValidationError,
+    validate_contract,
 )
 
 __all__ = [

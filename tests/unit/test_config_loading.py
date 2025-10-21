@@ -4,9 +4,9 @@ from pathlib import Path
 import pytest
 
 from cli_multi_rapid.config.loader import (
+    UnknownEnvironmentError,
     load_config,
     resolve_environment,
-    UnknownEnvironmentError,
 )
 
 

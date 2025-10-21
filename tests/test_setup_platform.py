@@ -83,7 +83,7 @@ class TestPlatformSetup:
             patch("pathlib.Path.write_text") as mock_write,
         ):
 
-            result_path = self.platform_setup.generate_windows_setup_script(mock_tools)
+            self.platform_setup.generate_windows_setup_script(mock_tools)
 
             mock_write.assert_called_once()
             written_content = mock_write.call_args[0][0]
@@ -345,12 +345,12 @@ class TestPlatformSetupIntegration:
             setup = PlatformSetup()
 
             # Test environment setup
-            result_path = setup.generate_environment_setup(tools)
+            setup.generate_environment_setup(tools)
             mock_mkdir.assert_called()
             mock_write.assert_called()
 
             # Test installer generation
-            installer_path = setup.generate_installer_script()
+            setup.generate_installer_script()
             assert mock_write.call_count >= 2  # Called for both scripts
 
             # On Unix, chmod should be called

@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 
+
 def get_last_commit_date(file_path):
     """Gets the last commit date of a file using git."""
     try:

@@ -4,15 +4,15 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
-def _load_json(p: Path) -> Dict[str, Any]:
+def _load_json(p: Path) -> dict[str, Any]:
     with p.open("r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def _git_show(path: str, ref: str) -> Dict[str, Any] | None:
+def _git_show(path: str, ref: str) -> dict[str, Any] | None:
     try:
         out = subprocess.check_output(["git", "show", f"{ref}:{path}"])  # nosec B603
     except subprocess.CalledProcessError:
@@ -20,8 +20,8 @@ def _git_show(path: str, ref: str) -> Dict[str, Any] | None:
     return json.loads(out.decode("utf-8"))
 
 
-def compare_schemas(base: Dict[str, Any], curr: Dict[str, Any]) -> Tuple[bool, List[str]]:
-    reasons: List[str] = []
+def compare_schemas(base: dict[str, Any], curr: dict[str, Any]) -> tuple[bool, list[str]]:
+    reasons: list[str] = []
     base_required = set(base.get("required", []))
     curr_required = set(curr.get("required", []))
     removed_required = base_required - curr_required
@@ -40,8 +40,8 @@ def compare_schemas(base: Dict[str, Any], curr: Dict[str, Any]) -> Tuple[bool, L
     return (len(reasons) == 0, reasons)
 
 
-def ensure_schema_headers(schema: Dict[str, Any]) -> List[str]:
-    errs: List[str] = []
+def ensure_schema_headers(schema: dict[str, Any]) -> list[str]:
+    errs: list[str] = []
     if "$schema" not in schema:
         errs.append("missing $schema")
     if "version" not in schema:
@@ -49,7 +49,7 @@ def ensure_schema_headers(schema: Dict[str, Any]) -> List[str]:
     return errs
 
 
-def main(argv: List[str]) -> int:
+def main(argv: list[str]) -> int:
     base_ref = "origin/main"
     root = Path(__file__).resolve().parents[1]
     schemas_dir = root / ".ai" / "schemas"
@@ -60,7 +60,7 @@ def main(argv: List[str]) -> int:
     except Exception:
         pass
 
-    failures: List[str] = []
+    failures: list[str] = []
     for path in schemas_dir.glob("*.json"):
         schema = _load_json(path)
         header_errs = ensure_schema_headers(schema)

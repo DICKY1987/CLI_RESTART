@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 LEDGER = Path("state/cost_ledger.jsonl")
 
@@ -16,7 +16,7 @@ def record_cost(
     task_id: str, tool: str, action: str, tokens: int | None, amount: float
 ) -> None:
     _ensure_dirs()
-    entry: Dict[str, Any] = {
+    entry: dict[str, Any] = {
         "ts": int(time.time()),
         "task_id": task_id,
         "tool": tool,

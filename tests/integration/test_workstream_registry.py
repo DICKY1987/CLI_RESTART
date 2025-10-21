@@ -2,9 +2,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from alembic import command
 from alembic.config import Config
 
+from alembic import command
 from src.cli_multi_rapid.coordination.registry import (
     create_workstream,
     get_workstream,

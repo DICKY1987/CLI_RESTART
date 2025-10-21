@@ -7,10 +7,9 @@ configured policies and step requirements.
 """
 
 import glob
-import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from rich.console import Console
 
@@ -21,6 +20,7 @@ from .adapters.code_fixers import CodeFixersAdapter
 from .adapters.pytest_runner import PytestRunnerAdapter
 from .adapters.vscode_diagnostics import VSCodeDiagnosticsAdapter
 from .coordination import FileScopeManager
+
 
 # Local lightweight placeholders to avoid import errors; full
 # implementations are not required for the current tests.
@@ -55,11 +55,11 @@ class RoutingDecision:
 class ParallelRoutingPlan:
     """Plan for parallel execution of multiple steps."""
 
-    routing_decisions: List[Tuple[Dict[str, Any], RoutingDecision]]
-    execution_groups: List[List[int]]  # Groups of step indices that can run in parallel
+    routing_decisions: list[tuple[dict[str, Any], RoutingDecision]]
+    execution_groups: list[list[int]]  # Groups of step indices that can run in parallel
     total_estimated_cost: int = 0
-    conflicts: List[ScopeConflict] = None
-    resource_allocation: Dict[str, List[int]] = (
+    conflicts: list[ScopeConflict] = None
+    resource_allocation: dict[str, list[int]] = (
         None  # adapter_name -> list of step indices
     )
 
@@ -75,7 +75,7 @@ class ComplexityAnalysis:
     """Analysis of step complexity for routing decisions."""
 
     score: float  # 0.0 (simple) to 1.0 (complex)
-    factors: Dict[str, float]  # Individual complexity factors
+    factors: dict[str, float]  # Individual complexity factors
     file_count: int = 0
     estimated_file_size: int = 0  # bytes
     operation_type: str = "unknown"
@@ -86,11 +86,11 @@ class ComplexityAnalysis:
 class AllocationPlan:
     """Resource allocation plan for coordinated workflows."""
 
-    assignments: Dict[str, Dict[str, Any]]  # step_id -> allocation info
+    assignments: dict[str, dict[str, Any]]  # step_id -> allocation info
     total_estimated_cost: int = 0
     estimated_usd_cost: float = 0.0
     within_budget: bool = True
-    parallel_groups: List[List[str]] = None
+    parallel_groups: list[list[str]] = None
 
     def __post_init__(self):
         if self.parallel_groups is None:
@@ -141,15 +141,11 @@ class Router:
         self.registry.register(DeepSeekAdapter())
 
         # Register Codex pipeline adapters
-        from .adapters.backup_manager import BackupManagerAdapter
         from .adapters.bundle_loader import BundleLoaderAdapter
         from .adapters.contract_validator import ContractValidatorAdapter
         from .adapters.enhanced_bundle_applier import EnhancedBundleApplierAdapter
-        from .adapters.state_capture import StateCaptureAdapter
 
         self.registry.register(ContractValidatorAdapter())
-        self.registry.register(StateCaptureAdapter())
-        self.registry.register(BackupManagerAdapter())
         self.registry.register(BundleLoaderAdapter())
         self.registry.register(EnhancedBundleApplierAdapter())
 
@@ -176,7 +172,7 @@ class Router:
         )
 
     # Minimal helper used by tests to fetch the adapter for a step
-    def _route_step(self, step: Dict[str, Any]):
+    def _route_step(self, step: dict[str, Any]):
         """Return the adapter instance for the given step's actor."""
         actor = (step or {}).get("actor")
         return self.registry.get_adapter(actor) if actor else None
@@ -190,7 +186,7 @@ class Router:
             history_file = state_dir / "performance_history.json"
             if history_file.exists():
                 import json
-                with open(history_file, 'r') as f:
+                with open(history_file) as f:
                     self.performance_history = json.load(f)
         except Exception:
             # Non-fatal if loading fails
@@ -242,7 +238,7 @@ class Router:
         self._save_performance_history()
 
     def route_step(
-        self, step: Dict[str, Any], policy: Optional[Dict[str, Any]] = None
+        self, step: dict[str, Any], policy: Optional[dict[str, Any]] = None
     ) -> RoutingDecision:
         """Route a workflow step to the appropriate adapter with complexity analysis."""
 
@@ -379,7 +375,7 @@ class Router:
         }
         return mapping.get(deterministic_actor)
 
-    def _analyze_step_complexity(self, step: Dict[str, Any]) -> ComplexityAnalysis:
+    def _analyze_step_complexity(self, step: dict[str, Any]) -> ComplexityAnalysis:
         """Analyze the complexity of a workflow step."""
         factors = {}
         score = 0.0
@@ -513,11 +509,11 @@ class Router:
             deterministic_confidence=deterministic_confidence
         )
 
-    def _infer_operation_type(self, step: Dict[str, Any]) -> str:
+    def _infer_operation_type(self, step: dict[str, Any]) -> str:
         """Infer the type of operation from step configuration."""
         actor = step.get("actor", "")
         name = step.get("name", "").lower()
-        with_params = step.get("with", {})
+        step.get("with", {})
 
         # Check actor name patterns
         if "diagnostic" in actor or "lint" in actor:
@@ -655,7 +651,7 @@ class Router:
 
     def route_with_budget_awareness(
         self,
-        step: Dict[str, Any],
+        step: dict[str, Any],
         role: str,
         budget_remaining: Optional[int] = None,
     ) -> RoutingDecision:
@@ -670,7 +666,7 @@ class Router:
 
             role_lc = (role or "").lower()
             if role_lc == "ipt":
-                preferred: List[str] = ["ai_analyst", "ai_editor"]
+                preferred: list[str] = ["ai_analyst", "ai_editor"]
             else:  # default to WT
                 preferred = ["code_fixers", "pytest_runner", "vscode_diagnostics"]
 
@@ -725,7 +721,7 @@ class Router:
             )
 
     def route_parallel_steps(
-        self, steps: List[Dict[str, Any]], policy: Optional[Dict[str, Any]] = None
+        self, steps: list[dict[str, Any]], policy: Optional[dict[str, Any]] = None
     ) -> ParallelRoutingPlan:
         """Route multiple steps to appropriate adapters with conflict detection."""
 
@@ -781,14 +777,13 @@ class Router:
 
     def create_allocation_plan(
         self,
-        workflows: List[Dict[str, Any]],
+        workflows: list[dict[str, Any]],
         budget: Optional[float] = None,
         max_parallel: int = 3,
     ) -> AllocationPlan:
         """Create resource allocation plan for coordinated workflows."""
 
         adapter_assignments = {}
-        cost_estimates = {}
         total_cost = 0
 
         for workflow in workflows:
@@ -865,7 +860,7 @@ class Router:
             parallel_groups=parallel_groups,
         )
 
-    def estimate_parallel_cost(self, steps: List[Dict[str, Any]]) -> int:
+    def estimate_parallel_cost(self, steps: list[dict[str, Any]]) -> int:
         """Estimate cost for parallel step execution."""
 
         total_cost = 0
@@ -875,7 +870,7 @@ class Router:
 
         return total_cost
 
-    def get_adapter_availability(self) -> Dict[str, bool]:
+    def get_adapter_availability(self) -> dict[str, bool]:
         """Get availability status of all adapters."""
 
         availability = {}
@@ -885,8 +880,8 @@ class Router:
         return availability
 
     def _create_execution_groups(
-        self, steps: List[Dict[str, Any]], conflicts: List[ScopeConflict]
-    ) -> List[List[int]]:
+        self, steps: list[dict[str, Any]], conflicts: list[ScopeConflict]
+    ) -> list[list[int]]:
         """Create groups of step indices that can run in parallel."""
 
         groups = []
@@ -941,13 +936,13 @@ class Router:
         return groups
 
     def _calculate_resource_allocation(
-        self, routing_decisions: List[Tuple[Dict[str, Any], RoutingDecision]]
-    ) -> Dict[str, List[int]]:
+        self, routing_decisions: list[tuple[dict[str, Any], RoutingDecision]]
+    ) -> dict[str, list[int]]:
         """Calculate which steps will use which adapters."""
 
         allocation = {}
 
-        for i, (step, decision) in enumerate(routing_decisions):
+        for i, (_step, decision) in enumerate(routing_decisions):
             adapter_name = decision.adapter_name
             if adapter_name not in allocation:
                 allocation[adapter_name] = []
@@ -956,8 +951,8 @@ class Router:
         return allocation
 
     def _create_workflow_parallel_groups(
-        self, workflows: List[Dict[str, Any]]
-    ) -> List[List[str]]:
+        self, workflows: list[dict[str, Any]]
+    ) -> list[list[str]]:
         """Create parallel groups for multiple workflows."""
 
         # Simple implementation: group workflows by priority

@@ -8,7 +8,7 @@ type safety and catch type-related errors in the Codex pipeline.
 
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
@@ -25,8 +25,8 @@ class TypeCheckerAdapter(BaseAdapter):
 
     def execute(
         self,
-        step: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        step: dict[str, Any],
+        context: Optional[dict[str, Any]] = None,
         files: Optional[str] = None,
     ) -> AdapterResult:
         """Execute type checking."""
@@ -118,12 +118,12 @@ class TypeCheckerAdapter(BaseAdapter):
                 metadata={"exception_type": type(e).__name__}
             )
 
-    def validate_step(self, step: Dict[str, Any]) -> bool:
+    def validate_step(self, step: dict[str, Any]) -> bool:
         """Validate that this adapter can execute the given step."""
         with_params = self._extract_with_params(step)
         return "target_files" in with_params
 
-    def estimate_cost(self, step: Dict[str, Any]) -> int:
+    def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic operations)."""
         return 0
 
@@ -141,7 +141,7 @@ class TypeCheckerAdapter(BaseAdapter):
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
-    def _check_file_types(self, file_path: str, languages: List[str], strict_mode: bool, ignore_missing_imports: bool) -> Dict[str, Any]:
+    def _check_file_types(self, file_path: str, languages: list[str], strict_mode: bool, ignore_missing_imports: bool) -> dict[str, Any]:
         """Check types for a single file."""
         file_result = {
             "file_path": file_path,
@@ -207,7 +207,7 @@ class TypeCheckerAdapter(BaseAdapter):
 
         return language_map.get(extension, "unknown")
 
-    def _check_python_types(self, file_path: Path, result: Dict[str, Any], strict_mode: bool, ignore_missing_imports: bool) -> None:
+    def _check_python_types(self, file_path: Path, result: dict[str, Any], strict_mode: bool, ignore_missing_imports: bool) -> None:
         """Check Python types using mypy."""
         try:
             # Build mypy command
@@ -270,7 +270,7 @@ class TypeCheckerAdapter(BaseAdapter):
                 "message": f"mypy execution failed: {str(e)}"
             })
 
-    def _parse_mypy_output(self, output: str, result: Dict[str, Any]) -> None:
+    def _parse_mypy_output(self, output: str, result: dict[str, Any]) -> None:
         """Parse mypy output into structured errors and warnings."""
         lines = output.strip().split('\n')
 
@@ -282,7 +282,7 @@ class TypeCheckerAdapter(BaseAdapter):
             parts = line.split(':', 4)
             if len(parts) >= 4:
                 try:
-                    file_path = parts[0]
+                    parts[0]
                     line_num = int(parts[1])
                     col_num = int(parts[2]) if parts[2].isdigit() else None
                     severity_and_message = parts[3].strip()
@@ -332,7 +332,7 @@ class TypeCheckerAdapter(BaseAdapter):
                         "message": line.strip()
                     })
 
-    def _check_typescript_types(self, file_path: Path, result: Dict[str, Any], strict_mode: bool) -> None:
+    def _check_typescript_types(self, file_path: Path, result: dict[str, Any], strict_mode: bool) -> None:
         """Check TypeScript types using tsc."""
         try:
             # Build TypeScript compiler command
@@ -378,7 +378,7 @@ class TypeCheckerAdapter(BaseAdapter):
                 "message": f"tsc execution failed: {str(e)}"
             })
 
-    def _parse_tsc_output(self, output: str, result: Dict[str, Any]) -> None:
+    def _parse_tsc_output(self, output: str, result: dict[str, Any]) -> None:
         """Parse TypeScript compiler output into structured errors and warnings."""
         lines = output.strip().split('\n')
 
@@ -390,7 +390,7 @@ class TypeCheckerAdapter(BaseAdapter):
             if '(' in line and ')' in line and ': error TS' in line:
                 try:
                     # Extract file path
-                    file_part = line.split('(')[0]
+                    line.split('(')[0]
 
                     # Extract line and column
                     coords_part = line.split('(')[1].split(')')[0]

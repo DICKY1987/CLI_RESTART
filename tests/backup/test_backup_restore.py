@@ -2,11 +2,11 @@ import os
 import tempfile
 from pathlib import Path
 
-from alembic import command
 from alembic.config import Config
 
-from src.cli_multi_rapid.coordination.registry import create_workstream, get_workstream
+from alembic import command
 from scripts.backup_utils import backup_database, restore_database
+from src.cli_multi_rapid.coordination.registry import create_workstream, get_workstream
 
 
 def _migrate(db_url: str) -> None:

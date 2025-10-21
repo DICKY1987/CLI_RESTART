@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class JsonFormatter(logging.Formatter):
@@ -61,7 +61,7 @@ class StructuredLogger:
     def audit(
         self,
         action: str,
-        context: Dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
         result: str | None = None,
     ) -> None:
         payload = {
