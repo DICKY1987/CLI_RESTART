@@ -490,7 +490,9 @@ class WorkflowRunner:
             console.print(f"[dim]Actor: {actor}[/dim]")
 
             if dry_run:
-                console.print("[yellow]DRY RUN - step skipped[/yellow]")
+                # Generate detailed dry-run preview
+                preview = self._generate_step_preview(step, files)
+                self._display_step_preview(preview, step_id, step_name, actor)
                 completed_steps += 1
                 continue
 
@@ -562,6 +564,127 @@ class WorkflowRunner:
         self._save_workflow_manifest(run_id, workflow_name, result, start_time, git_snapshot_start, git_snapshot_end)
 
         return result
+
+    def _generate_step_preview(self, step: dict[str, Any], files: Optional[str] = None) -> dict[str, Any]:
+        """Generate a detailed preview of what a step would do."""
+        actor = step.get("actor", "unknown")
+        params = step.get("with", {})
+        emit_paths = step.get("emits", [])
+
+        # Get adapter to query its capabilities
+        adapter = self.router.registry.get_adapter(actor)
+
+        preview = {
+            "actor": actor,
+            "adapter_type": adapter.adapter_type.value if adapter else "unknown",
+            "description": adapter.description if adapter else "Unknown adapter",
+            "parameters": params,
+            "emit_paths": emit_paths,
+            "estimated_tokens": 0,
+            "expected_actions": []
+        }
+
+        # Estimate tokens if adapter available
+        if adapter:
+            try:
+                preview["estimated_tokens"] = adapter.estimate_cost(step)
+            except Exception:
+                preview["estimated_tokens"] = 0
+
+        # Generate expected actions based on adapter type
+        if adapter:
+            if actor == "code_fixers":
+                tools = params.get("tools", [])
+                preview["expected_actions"] = [
+                    f"Run {tool} on matching files" for tool in tools
+                ]
+                if files:
+                    preview["expected_actions"].append(f"Target files: {files}")
+
+            elif actor == "vscode_diagnostics":
+                analyzers = params.get("analyzers", [])
+                preview["expected_actions"] = [
+                    f"Run {analyzer} analysis" for analyzer in analyzers
+                ]
+                preview["expected_actions"].append(f"Generate diagnostics report at {emit_paths[0] if emit_paths else 'artifacts/'}")
+
+            elif actor == "pytest_runner":
+                preview["expected_actions"] = [
+                    "Execute pytest with coverage",
+                    "Generate test report",
+                    f"Save results to {emit_paths[0] if emit_paths else 'artifacts/'}"
+                ]
+
+            elif actor == "git_ops":
+                operation = params.get("operation", "unknown")
+                preview["expected_actions"] = [f"Perform Git operation: {operation}"]
+                if operation == "create_pr":
+                    preview["expected_actions"].append(f"Title: {params.get('title', 'Auto-generated PR')}")
+                elif operation == "create_issue":
+                    preview["expected_actions"].append(f"Create issue: {params.get('title', 'Untitled')}")
+
+            elif actor in ["ai_editor", "ai_analyst", "deepseek"]:
+                operation = params.get("operation", "edit")
+                prompt = params.get("prompt", "")
+                preview["expected_actions"] = [
+                    f"AI operation: {operation}",
+                    f"Prompt: {prompt[:100]}..." if len(prompt) > 100 else f"Prompt: {prompt}",
+                    "Use AI model to process request"
+                ]
+
+            else:
+                # Generic adapter preview
+                preview["expected_actions"] = [
+                    f"Execute {actor} adapter",
+                    f"Process with parameters: {list(params.keys())}"
+                ]
+        else:
+            preview["expected_actions"] = [f"Adapter '{actor}' not available"]
+
+        return preview
+
+    def _display_step_preview(self, preview: dict[str, Any], step_id: str, step_name: str, actor: str) -> None:
+        """Display a formatted dry-run preview of a step."""
+        from rich.panel import Panel
+        from rich.table import Table
+
+        # Create preview content
+        content_lines = []
+        content_lines.append(f"[bold yellow]DRY RUN PREVIEW[/bold yellow]")
+        content_lines.append(f"[bold]Adapter Type:[/bold] {preview['adapter_type']}")
+        content_lines.append(f"[bold]Description:[/bold] {preview['description']}")
+
+        if preview['estimated_tokens'] > 0:
+            content_lines.append(f"[bold]Estimated Tokens:[/bold] {preview['estimated_tokens']:,}")
+
+        # Display parameters if any
+        if preview['parameters']:
+            content_lines.append("\n[bold]Parameters:[/bold]")
+            for key, value in preview['parameters'].items():
+                value_str = str(value)
+                if len(value_str) > 60:
+                    value_str = value_str[:60] + "..."
+                content_lines.append(f"  • {key}: {value_str}")
+
+        # Display expected actions
+        if preview['expected_actions']:
+            content_lines.append("\n[bold]Expected Actions:[/bold]")
+            for action in preview['expected_actions']:
+                content_lines.append(f"  ✓ {action}")
+
+        # Display emit paths
+        if preview['emit_paths']:
+            content_lines.append("\n[bold]Output Artifacts:[/bold]")
+            for path in preview['emit_paths']:
+                content_lines.append(f"  📄 {path}")
+
+        # Display in panel
+        console.print(Panel(
+            "\n".join(content_lines),
+            title=f"Step {step_id}: {step_name}",
+            border_style="yellow",
+            padding=(1, 2)
+        ))
 
     def _execute_step(
         self, step: dict[str, Any], files: Optional[str] = None, timeout_seconds: Optional[int] = None
@@ -1139,15 +1262,37 @@ class WorkflowRunner:
         """Execute phases in parallel."""
 
         if dry_run:
-            # Simulate parallel execution for dry run
+            # Simulate parallel execution for dry run with detailed previews
+            console.print(f"[yellow]DRY RUN: Would execute {len(phases)} phases in parallel[/yellow]")
             results = []
+            total_estimated_tokens = 0
             for phase in phases:
+                phase_id = phase.get('id', 'unknown')
+                tasks = phase.get('tasks', [])
+                estimated_tokens = 0
+
+                # Estimate tokens for all tasks in phase
+                for task in tasks:
+                    if isinstance(task, dict) and 'actor' in task:
+                        adapter = self.router.registry.get_adapter(task.get('actor'))
+                        if adapter:
+                            try:
+                                estimated_tokens += adapter.estimate_cost(task)
+                            except Exception:
+                                pass
+
+                total_estimated_tokens += estimated_tokens
+                console.print(f"  [dim]• Phase {phase_id}: {len(tasks)} tasks, ~{estimated_tokens:,} tokens[/dim]")
+
                 results.append({
                     "success": True,
                     "tokens_used": 0,
+                    "estimated_tokens": estimated_tokens,
                     "artifacts": [],
-                    "output": f"DRY RUN: Phase {phase.get('id', 'unknown')}"
+                    "output": f"DRY RUN: Phase {phase_id}"
                 })
+
+            console.print(f"[dim]Total estimated tokens for parallel execution: {total_estimated_tokens:,}[/dim]")
             return results
 
         # Execute phases in parallel
@@ -1184,11 +1329,23 @@ class WorkflowRunner:
         tasks = phase.get('tasks', [])
 
         if dry_run:
+            # Generate preview for phase
+            console.print(f"[yellow]DRY RUN: Phase {phase_id} with {len(tasks)} tasks[/yellow]")
+            estimated_tokens = 0
+            for task in tasks:
+                if isinstance(task, dict) and 'actor' in task:
+                    adapter = self.router.registry.get_adapter(task.get('actor'))
+                    if adapter:
+                        try:
+                            estimated_tokens += adapter.estimate_cost(task)
+                        except Exception:
+                            pass
             return {
                 "success": True,
                 "tokens_used": 0,
+                "estimated_tokens": estimated_tokens,
                 "artifacts": [],
-                "output": f"DRY RUN: Phase {phase_id} with {len(tasks)} tasks"
+                "output": f"DRY RUN: Phase {phase_id} with {len(tasks)} tasks (estimated {estimated_tokens:,} tokens)"
             }
 
         # Execute tasks in the phase

@@ -9,10 +9,12 @@ cost model and emits a structured artifact.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from ..router import Router
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
+
+if TYPE_CHECKING:
+    from ..router import Router
 
 
 class CostEstimatorAdapter(BaseAdapter):
@@ -25,6 +27,17 @@ class CostEstimatorAdapter(BaseAdapter):
             description="Estimate workflow token/$$ cost and emit artifact",
         )
 
+    def validate_step(self, step: dict[str, Any]) -> bool:
+        """Validate that this adapter can execute the given step."""
+        # Cost estimator just needs a workflow parameter
+        params = step.get("with", {})
+        return "workflow" in params or True  # Has default workflow
+
+    def estimate_cost(self, step: dict[str, Any]) -> int:
+        """Estimate the token cost of executing this step."""
+        # Cost estimator itself uses no tokens (it's a deterministic tool)
+        return 0
+
     def execute(
         self,
         step: dict[str, Any],
@@ -33,6 +46,9 @@ class CostEstimatorAdapter(BaseAdapter):
     ) -> AdapterResult:
         self._log_execution_start(step)
         try:
+            # Lazy import to avoid circular dependency
+            from ..router import Router
+
             params = self._extract_with_params(step)
             emit_paths = self._extract_emit_paths(step)
             workflow_path = Path(

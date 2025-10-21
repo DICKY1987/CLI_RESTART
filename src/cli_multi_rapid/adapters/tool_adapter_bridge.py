@@ -18,13 +18,22 @@ class ToolAdapterBridge(BaseAdapter):
             description=f"Bridge adapter for {tool_type} tool integration"
         )
         self.tool_type = tool_type
+        self.dry_run = dry_run
 
-        # Import here to avoid circular imports
-        from integrations.process import ProcessRunner
-        from integrations.registry import load_config
+        # Import here to avoid circular imports - with graceful fallback
+        try:
+            from integrations.process import ProcessRunner
+            from integrations.registry import load_config
 
-        self.runner = ProcessRunner(dry_run=dry_run)
-        self.config = load_config("config/tool_adapters.yaml")
+            self.runner = ProcessRunner(dry_run=dry_run)
+            self.config = load_config("config/tool_adapters.yaml")
+            self.integrations_available = True
+        except (ImportError, FileNotFoundError) as e:
+            # Integrations not available, use fallback mode
+            self.runner = None
+            self.config = None
+            self.integrations_available = False
+            self.logger.warning(f"Tool integrations not available for {tool_type}: {e}")
 
     def get_actor_name(self) -> str:
         """Return the actor name for this bridge."""
@@ -32,6 +41,15 @@ class ToolAdapterBridge(BaseAdapter):
 
     def execute(self, task: dict[str, Any]) -> AdapterResult:
         """Execute a tool operation through the bridge."""
+        # Check if integrations are available
+        if not self.integrations_available:
+            return AdapterResult(
+                success=False,
+                error=f"Tool integrations not available for {self.tool_type}",
+                output="",
+                artifacts={},
+            )
+
         operation = task.get("operation", "version")
 
         try:
@@ -281,3 +299,27 @@ class ToolAdapterBridge(BaseAdapter):
     def estimate_cost(self, step: dict[str, Any]) -> int:
         """Estimate token cost (0 for deterministic tool operations)."""
         return 0
+
+    def is_available(self) -> bool:
+        """Check if the bridge and its integrations are available."""
+        if not self.integrations_available:
+            return False
+
+        # Check if the specific tool is available based on tool_type
+        import shutil
+
+        tool_checks = {
+            "vcs": "git",
+            "containers": "docker",
+            "editor": "code",
+            "js_runtime": "node",
+            "python_quality": "ruff",
+            "precommit": "pre-commit",
+        }
+
+        tool_command = tool_checks.get(self.tool_type)
+        if tool_command:
+            return shutil.which(tool_command) is not None
+
+        # Unknown tool type, assume available if integrations are available
+        return self.integrations_available

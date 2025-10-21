@@ -288,7 +288,55 @@ def cleanup(
         console.print(
             f"[yellow]DRY RUN: Would delete conversations older than {days} days[/yellow]"
         )
-        # TODO: Implement dry-run preview
+
+        # Preview files that would be deleted
+        import datetime
+        from pathlib import Path
+
+        cutoff_date = datetime.datetime.now() - datetime.timedelta(days=days)
+
+        log_files_to_delete = []
+        total_size = 0
+
+        for log_file in logger.log_dir.glob("*.jsonl"):
+            if log_file.name == ".gitkeep":
+                continue
+
+            # Check file modification time
+            file_mtime = datetime.datetime.fromtimestamp(log_file.stat().st_mtime)
+
+            if file_mtime < cutoff_date:
+                file_size = log_file.stat().st_size
+                log_files_to_delete.append((log_file, file_size, file_mtime))
+                total_size += file_size
+
+        if not log_files_to_delete:
+            console.print("[green]No files would be deleted[/green]")
+            return
+
+        # Display preview
+        from rich.table import Table
+
+        console.print()
+        table = Table(show_header=True, header_style="bold yellow")
+        table.add_column("File", style="cyan")
+        table.add_column("Size", justify="right", style="magenta")
+        table.add_column("Last Modified", style="dim")
+
+        for file_path, size, mtime in sorted(log_files_to_delete, key=lambda x: x[2]):
+            size_kb = size / 1024
+            table.add_row(
+                file_path.name,
+                f"{size_kb:.1f} KB",
+                mtime.strftime("%Y-%m-%d %H:%M:%S")
+            )
+
+        console.print(table)
+        console.print()
+        console.print(
+            f"[yellow]Would delete {len(log_files_to_delete)} file(s), "
+            f"freeing {total_size / 1024:.1f} KB[/yellow]"
+        )
         return
 
     # Confirm deletion

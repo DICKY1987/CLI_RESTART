@@ -109,6 +109,10 @@ class Router:
         self.performance_history = {}  # adapter_name -> performance metrics
         self._load_performance_history()
 
+        # Initialize deterministic engine for smart routing
+        from .deterministic_engine import DeterministicEngine
+        self.deterministic_engine = DeterministicEngine(mode="strict")
+
     def _initialize_adapters(self) -> None:
         """Initialize available adapters in the registry."""
         # Register deterministic adapters
@@ -151,6 +155,7 @@ class Router:
 
         # Register verification gate adapters
         from .adapters.certificate_generator import CertificateGeneratorAdapter
+        from .adapters.cost_estimator import CostEstimatorAdapter
         from .adapters.import_resolver import ImportResolverAdapter
         from .adapters.security_scanner import SecurityScannerAdapter
         from .adapters.syntax_validator import SyntaxValidatorAdapter
@@ -161,6 +166,7 @@ class Router:
         self.registry.register(TypeCheckerAdapter())
         self.registry.register(SecurityScannerAdapter())
         self.registry.register(CertificateGeneratorAdapter())
+        self.registry.register(CostEstimatorAdapter())
 
         # Register verifier adapter (quality gates)
         from .adapters.verifier_adapter import VerifierAdapter
@@ -248,6 +254,9 @@ class Router:
         # Perform complexity analysis
         complexity = self._analyze_step_complexity(step)
 
+        # Perform deterministic analysis using the engine
+        determinism_analysis = self.deterministic_engine.analyze_step(step, context=None)
+
         # Check if actor is available in registry
         if not self.registry.is_available(actor):
             fallback_decision = self._route_with_complexity_fallback(complexity, step_name)
@@ -266,19 +275,30 @@ class Router:
         # Early preference: if actor is AI and deterministic is preferred and feasible, switch
         if adapter_info.get("type") == "ai" and prefer_deterministic:
             try:
-                alt_adapter = self._find_deterministic_alternative(actor)
-                if alt_adapter and self.registry.is_available(alt_adapter):
-                    det_confidence = self._calculate_deterministic_confidence(complexity, alt_adapter)
-                    if det_confidence > 0.6 and complexity.score <= complexity_threshold:
-                        return RoutingDecision(
-                            adapter_name=alt_adapter,
-                            adapter_type="deterministic",
-                            reasoning=f"Prefer deterministic: routed {actor} -> {alt_adapter} (score: {complexity.score:.2f})",
-                            estimated_tokens=0,
-                            complexity_score=complexity.score,
-                            confidence=det_confidence,
-                            performance_hint="prefer_deterministic"
-                        )
+                # Use determinism analysis to inform routing
+                if determinism_analysis.deterministic or (not determinism_analysis.issues and complexity.score < complexity_threshold):
+                    alt_adapter = self._find_deterministic_alternative(actor)
+                    if alt_adapter and self.registry.is_available(alt_adapter):
+                        det_confidence = self._calculate_deterministic_confidence(complexity, alt_adapter)
+                        if det_confidence > 0.6 and complexity.score <= complexity_threshold:
+                            reasoning_parts = [
+                                f"Prefer deterministic: routed {actor} -> {alt_adapter}",
+                                f"complexity: {complexity.score:.2f}",
+                            ]
+                            if determinism_analysis.deterministic:
+                                reasoning_parts.append("deterministic analysis: PASS")
+                            if determinism_analysis.issues:
+                                reasoning_parts.append(f"issues: {', '.join(determinism_analysis.issues)}")
+
+                            return RoutingDecision(
+                                adapter_name=alt_adapter,
+                                adapter_type="deterministic",
+                                reasoning=" | ".join(reasoning_parts),
+                                estimated_tokens=0,
+                                complexity_score=complexity.score,
+                                confidence=det_confidence,
+                                performance_hint="prefer_deterministic"
+                            )
             except Exception:
                 # Non-fatal; continue with normal routing
                 pass

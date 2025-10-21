@@ -8,6 +8,7 @@ actual code modifications in the Codex pipeline.
 """
 
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -511,7 +512,3 @@ class EnhancedBundleApplierAdapter(BaseAdapter):
         from datetime import datetime
 
         return datetime.utcnow().isoformat() + "Z"
-
-
-# Import os for file operations
-import os
