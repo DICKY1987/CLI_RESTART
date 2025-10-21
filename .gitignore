@@ -154,5 +154,7 @@ tools/.dedup_logs/
 tools/atomic-workflow-system/.venv/
 .aider*
 .env
-.env
-.env
+
+# AI automation framework
+.ai-automation/runs/
+*.jsonl

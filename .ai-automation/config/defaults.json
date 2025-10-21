@@ -1,0 +1,50 @@
+{
+  "ollama": {
+    "api_base": "http://127.0.0.1:11434",
+    "default_model": "deepseek-coder",
+    "timeout_sec": 600
+  },
+  "tools": {
+    "aider": {
+      "default_model": "ollama_chat/deepseek-coder:latest",
+      "auto_commit": true
+    },
+    "openinterpreter": {
+      "auto_run": false,
+      "safe_mode": true
+    },
+    "opencode": {
+      "mode": "run"
+    },
+    "claude": {
+      "default_model": "claude-sonnet-4-5",
+      "max_tokens": 8000
+    },
+    "codex": {
+      "default_model": "gpt-4",
+      "temperature": 0.2
+    },
+    "gemini": {
+      "default_model": "gemini-pro",
+      "safety_settings": "default"
+    }
+  },
+  "execution": {
+    "default_timeout_sec": 600,
+    "log_runs": true,
+    "log_directory": ".ai-automation/runs",
+    "auto_cleanup_days": 30
+  },
+  "git": {
+    "auto_stage": true,
+    "require_checks": true,
+    "enforce_scope": true,
+    "commit_style": "conventional"
+  },
+  "validation": {
+    "require_scope": true,
+    "require_checks": false,
+    "require_artifacts": false,
+    "max_scope_dirs": 10
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Fix Failing Tests",
+  "description": "Repair broken test suite and restore passing state",
+  "tool": "aider",
+  "repo": ".",
+  "model": "ollama_chat/deepseek-coder:latest",
+  "prompt": "Task: Fix all failing tests in the test suite\nScope: tests/**; src/**\nConstraints: Preserve test intent; fix root cause not symptoms; maintain or improve coverage; avoid breaking changes to public APIs\nChecks: pytest -v; ruff check .; mypy src/ --ignore-missing-imports\nArtifacts: Updated test files with fixes; optional: docs/test-fixes-{DATE}.md documenting changes\nCommit: fix(tests): repair failing test suite\nContext: Run pytest -v first to identify all failures; analyze error messages and tracebacks; check for recent code changes that may have broken tests\nLimits: {\"max_iterations\": 10, \"soft_time\": \"20m\"}\nSuccess: All tests pass; no new test failures introduced; coverage not decreased; type checking passes",
+  "args": [],
+  "env": {
+    "OLLAMA_API_BASE": "http://127.0.0.1:11434"
+  },
+  "timeoutSec": 1200,
+  "placeholders": {
+    "DATE": "Current date in YYYY-MM-DD format"
+  },
+  "usage": "Run as-is to fix all failing tests, or customize Scope to target specific test files"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Improve Test Coverage",
+  "description": "Increase test coverage to target threshold by adding missing test cases",
+  "tool": "aider",
+  "repo": ".",
+  "model": "ollama_chat/deepseek-coder:latest",
+  "prompt": "Task: Improve test coverage to {TARGET_COVERAGE}% for {TARGET_SCOPE}\nScope: tests/**; {TARGET_SCOPE}\nConstraints: Add tests for uncovered lines/branches; prioritize critical paths and edge cases; maintain existing test quality standards; use pytest and follow project conventions\nChecks: pytest -q --cov={TARGET_SCOPE} --cov-report=term-missing --cov-fail-under={TARGET_COVERAGE}; ruff check tests/\nArtifacts: Updated test files with new test cases; coverage report showing improvement\nCommit: test: improve coverage for {TARGET_SCOPE} to {TARGET_COVERAGE}%\nContext: Run coverage report first: pytest --cov={TARGET_SCOPE} --cov-report=html; identify uncovered lines in htmlcov/index.html; focus on untested branches, exception handling, and edge cases\nLimits: {\"max_iterations\": 8, \"soft_time\": \"15m\"}\nSuccess: Coverage >= {TARGET_COVERAGE}%; all tests pass; no decrease in test quality or performance",
+  "args": [],
+  "env": {
+    "OLLAMA_API_BASE": "http://127.0.0.1:11434"
+  },
+  "timeoutSec": 900,
+  "placeholders": {
+    "TARGET_COVERAGE": "Desired coverage percentage (e.g., 90)",
+    "TARGET_SCOPE": "Module or package path (e.g., src/utils or src/core/engine.py)"
+  },
+  "usage": "Replace {TARGET_COVERAGE} and {TARGET_SCOPE} before execution. Run coverage analysis first to identify gaps."
+}
