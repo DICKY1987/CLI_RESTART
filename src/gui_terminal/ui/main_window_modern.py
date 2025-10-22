@@ -210,14 +210,14 @@ if PyQt6Available:
             # File menu
             file_menu = menubar.addMenu("&File")
 
-            refresh_action = QtWidgets.QAction("&Refresh Workflows", self)
+            refresh_action = QtGui.QAction("&Refresh Workflows", self)
             refresh_action.setShortcut("F5")
             refresh_action.triggered.connect(self.workflow_browser.refresh_workflows)
             file_menu.addAction(refresh_action)
 
             file_menu.addSeparator()
 
-            exit_action = QtWidgets.QAction("E&xit", self)
+            exit_action = QtGui.QAction("E&xit", self)
             exit_action.setShortcut("Ctrl+Q")
             exit_action.triggered.connect(self.close)
             file_menu.addAction(exit_action)
@@ -227,18 +227,18 @@ if PyQt6Available:
 
             for i in range(self.tabs.count()):
                 tab_name = self.tabs.tabText(i)
-                action = QtWidgets.QAction(f"Show {tab_name}", self)
+                action = QtGui.QAction(f"Show {tab_name}", self)
                 action.triggered.connect(lambda checked, idx=i: self.tabs.setCurrentIndex(idx))
                 view_menu.addAction(action)
 
             # Help menu
             help_menu = menubar.addMenu("&Help")
 
-            about_action = QtWidgets.QAction("&About", self)
+            about_action = QtGui.QAction("&About", self)
             about_action.triggered.connect(self._show_about)
             help_menu.addAction(about_action)
 
-            docs_action = QtWidgets.QAction("&Documentation", self)
+            docs_action = QtGui.QAction("&Documentation", self)
             docs_action.triggered.connect(self._show_documentation)
             help_menu.addAction(docs_action)
 
