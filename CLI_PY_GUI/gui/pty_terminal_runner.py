@@ -104,7 +104,8 @@ end tell"""
             elif term:
                 subprocess.Popen([term])
             else:
-                subprocess.Popen(["bash", "-lc", f"cd '{path}'; ${TERM:-xterm}"])
+                # Emit literal ${TERM:-xterm} inside f-string by doubling braces
+                subprocess.Popen(["bash", "-lc", f"cd '{path}'; ${{TERM:-xterm}}"])
     except Exception:
         pass
 

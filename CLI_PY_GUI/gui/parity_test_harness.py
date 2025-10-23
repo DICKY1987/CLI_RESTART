@@ -66,7 +66,10 @@ def test_stderr_interleave_order():
     assert rpc({"op":"start","cmd":cmd})["ok"]
     time.sleep(1.0)
     out = rpc({"op":"read","max":4096})["data"]
-    i1 = out.find("out1"); e1 = out.find("err1"); i2 = out.find("out2"); e2 = out.find("err2")
+    i1 = out.find("out1")
+    e1 = out.find("err1")
+    i2 = out.find("out2")
+    e2 = out.find("err2")
     assert -1 not in (i1,e1,i2,e2), f"Missing lines in output: {out}"
     assert i1 < e1 < i2 < e2, f"Order not preserved: {out}"
 

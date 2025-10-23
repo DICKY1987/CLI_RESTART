@@ -20,21 +20,20 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 try:
-    from PyQt6.QtCore import *
-    from PyQt6.QtGui import *
-    from PyQt6.QtWidgets import *
+    from PyQt6.QtCore import *  # noqa: F403, F405
+    from PyQt6.QtGui import *  # noqa: F403, F405
+    from PyQt6.QtWidgets import *  # noqa: F403, F405
     PYQT_VERSION = 6
 except ImportError:
-    from PyQt5.QtCore import *
-    from PyQt5.QtGui import *
-    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore import *  # noqa: F403, F405
+    from PyQt5.QtGui import *  # noqa: F403, F405
+    from PyQt5.QtWidgets import *  # noqa: F403, F405
     PYQT_VERSION = 5
 
 # Windows-specific imports
 if sys.platform == 'win32':
     try:
-        import ctypes
-        from ctypes import wintypes
+        from ctypes import wintypes  # noqa: F401
 
         import winpty
         WINDOWS_PTY_AVAILABLE = True

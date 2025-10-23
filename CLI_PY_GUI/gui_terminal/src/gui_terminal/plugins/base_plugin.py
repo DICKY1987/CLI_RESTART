@@ -5,7 +5,7 @@ Abstract base class for all GUI terminal plugins
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -72,37 +72,37 @@ class BasePlugin(ABC):
     # Event handlers (optional to override)
     def on_terminal_start(self, session_id: str, context: Dict[str, Any]):
         """Called when a terminal session starts"""
-        pass
+        return None
 
     def on_terminal_stop(self, session_id: str, context: Dict[str, Any]):
         """Called when a terminal session stops"""
-        pass
+        return None
 
     def on_command_executed(
         self, command: str, session_id: str, context: Dict[str, Any]
     ):
         """Called when a command is executed"""
-        pass
+        return None
 
     def on_output_received(self, output: str, session_id: str, context: Dict[str, Any]):
         """Called when output is received from terminal"""
-        pass
+        return None
 
     def on_error_occurred(self, error: str, session_id: str, context: Dict[str, Any]):
         """Called when an error occurs"""
-        pass
+        return None
 
     def on_platform_event(self, event: Dict[str, Any]):
         """Called when a platform event is received"""
-        pass
+        return None
 
     def on_cost_update(self, cost_data: Dict[str, Any]):
         """Called when cost data is updated"""
-        pass
+        return None
 
     def on_security_violation(self, violation: Dict[str, Any]):
         """Called when a security violation occurs"""
-        pass
+        return None
 
 
 class UIPlugin(BasePlugin):

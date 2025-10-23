@@ -272,7 +272,7 @@ class QuickActionsWidget(QWidget):
             """
             )
             button.clicked.connect(
-                lambda checked, cmd=command: self.button_clicked.emit(cmd)
+                lambda _, cmd=command: self.button_clicked.emit(cmd)
             )
             grid_layout.addWidget(button, i // 2, i % 2)
 
