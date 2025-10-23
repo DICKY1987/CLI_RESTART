@@ -76,8 +76,10 @@ This ensures consistent path resolution across all tools and workflows.
 - `tests/`: Test suite
   - `trading/`: Trading system tests
 - `workflows/`: Workflow templates and phase definitions
-- `CLI_PY_GUI/`: Python GUI components
-  - `gui_terminal/`: Terminal GUI with PTY backend
+- `src/gui_terminal/`: Python GUI components (active)
+  - `ui/`: Modern tabbed main window and widgets
+  - `gui_bridge.py`: Qt glue to backend orchestrator
+- `archive/legacy_cli_py_gui/`: Archived legacy GUI prototypes (read-only)
 - `tools/`: Development tools and utilities
   - `vscode-extension/`: VS Code extension for IDE integration
   - `atomic-workflow-system/`: Atomic workflow execution system

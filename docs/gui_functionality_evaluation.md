@@ -8,8 +8,8 @@ environment: ubuntu container (python 3.11)
 - Installed Python dependencies with `pip install PyQt6 psutil` (already satisfied).
 
 ## Test Procedure
-1. Attempted to launch headless GUI test server (`python CLI_PY_GUI/gui/gui_test_server.py`).
-2. Planned to run parity regression harness (`python CLI_PY_GUI/gui/parity_test_harness.py`).
+1. Attempted to launch GUI (`python -m gui_terminal.main`).
+2. Planned to run GUI tests (`pytest tests/gui -q`).
 
 ## Results
 - Server startup failed immediately with `ImportError: libEGL.so.1: cannot open shared object file` when PyQt6 attempted to import Qt GUI modules.
