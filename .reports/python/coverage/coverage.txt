@@ -1,0 +1,6 @@
+Name                                   Stmts   Miss Branch BrPart  Cover
+------------------------------------------------------------------------
+src/cli_multi_rapid/security/auth.py     109      1     28      1    99%
+src/cli_multi_rapid/security/rbac.py      47      0      4      0   100%
+------------------------------------------------------------------------
+TOTAL                                    156      1     32      1    99%

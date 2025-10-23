@@ -22,6 +22,10 @@ cli-orchestrator run .ai/workflows/PY_EDIT_TRIAGE.yaml --files "src/**/*.py"
 - [Configuration](docs/configuration.md) - Configuration and environment setup
 - Combined script utilities: see `scripts/Combined-PowerShell-Scripts.ps1` for discovery/setup helpers. Do not run destructive modules without review.
 
+## Testing
+
+- Review [docs/TESTING.md](docs/TESTING.md) for the unified Python/Pester test harness, coverage outputs, and CI expectations.
+
 ## Repository Location
 
 The repository is currently located at: `/home/runner/work/CLI_RESTART/CLI_RESTART`

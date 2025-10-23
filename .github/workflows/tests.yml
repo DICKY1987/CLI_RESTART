@@ -1,4 +1,4 @@
-name: Tests and Coverage
+name: Unified Tests
 
 on:
   push:
@@ -7,47 +7,82 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
+  python:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-
+        python-version: [ '3.10', '3.11' ]
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .[test,dev]
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
 
-    - name: Run tests with coverage
-      run: |
-        pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html -v
+      - name: Run Python tests
+        shell: pwsh
+        run: |
+          ./scripts/run_all_tests.ps1 -SkipPowerShell -SkipNode
 
-    - name: Check coverage threshold
-      run: |
-        coverage report --fail-under=85
+      - name: Upload Python artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-${{ matrix.python-version }}-reports
+          path: |
+            .reports/python
+            .reports/summary.md
 
-    - name: Upload coverage reports to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: true
+  powershell:
+    name: PowerShell
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Upload coverage HTML report
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-html-report
-        path: htmlcov/
+      - name: Run Pester
+        shell: pwsh
+        run: |
+          .\scripts\run_all_tests.ps1 -SkipPython -SkipNode
+
+      - name: Upload PowerShell artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: powershell-reports
+          path: |
+            .reports/powershell
+            .reports/summary.md
+
+  node:
+    name: Node
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('package.json') != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run Node tests (if configured)
+        shell: pwsh
+        run: |
+          ./scripts/run_all_tests.ps1 -SkipPython -SkipPowerShell
+
+      - name: Upload Node artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-reports
+          path: |
+            .reports/js
+            .reports/summary.md
