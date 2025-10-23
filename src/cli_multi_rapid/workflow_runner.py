@@ -1,36 +1,59 @@
 #!/usr/bin/env python3
 """
-CLI Orchestrator Workflow Runner
+CLI Orchestrator Workflow Runner - Backward-Compatible Facade
 
-Executes schema-validated YAML workflows with deterministic tool routing
-and AI escalation patterns.
+DEPRECATED: This module is maintained for backward compatibility.
+New code should use core.coordinator.WorkflowCoordinator directly.
+
+This facade delegates to the new core modules:
+- core.executor.StepExecutor for step execution
+- core.coordinator.WorkflowCoordinator for workflow orchestration
+- core.gate_manager.GateManager for verification gates
+- core.artifact_manager.ArtifactManager for artifact tracking
+
+Migration Guide: docs/guides/WORKFLOW-RUNNER-MIGRATION.md
 """
 
+import warnings
 import json
-import secrets
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-import yaml
 from rich.console import Console
 
+# New core modules
+from .core.executor import StepExecutor
+from .core.coordinator import WorkflowCoordinator as CoreWorkflowCoordinator
+from .core.coordinator import WorkflowResult as CoreWorkflowResult
+from .core.gate_manager import GateManager
+from .core.artifact_manager import ArtifactManager
+
+# Legacy coordination imports (maintained for backward compatibility)
 from .coordination import (
     CoordinationMode,
     CoordinationPlan,
     FileScopeManager,
-    WorkflowCoordinator,
+    WorkflowCoordinator as LegacyWorkflowCoordinator,
 )
 
 console = Console()
 
 
+# ============================================================================
+# Backward-Compatible Data Classes
+# ============================================================================
+
 @dataclass
 class WorkflowResult:
-    """Result from workflow execution."""
+    """
+    Result from workflow execution.
+
+    DEPRECATED: Use core.coordinator.WorkflowResult instead.
+    Maintained for backward compatibility.
+    """
 
     success: bool
     error: Optional[str] = None
@@ -50,7 +73,11 @@ class WorkflowResult:
 
 @dataclass
 class CoordinatedWorkflowResult:
-    """Result from coordinated multi-workflow execution."""
+    """
+    Result from coordinated multi-workflow execution.
+
+    DEPRECATED: Will be refactored in Phase 2 Week 4.
+    """
 
     success: bool
     coordination_id: str
@@ -65,22 +92,83 @@ class CoordinatedWorkflowResult:
             self.conflicts_detected = []
 
 
+# ============================================================================
+# Workflow Runner - Backward-Compatible Facade
+# ============================================================================
+
 class WorkflowRunner:
-    """Executes workflows with schema validation and cost tracking."""
+    """
+    DEPRECATED: Use core.coordinator.WorkflowCoordinator instead.
+
+    This class is maintained for backward compatibility and will be
+    removed in version 2.0 (estimated 6 months).
+
+    Migration:
+        # Old way
+        runner = WorkflowRunner()
+        result = runner.run(workflow_file)
+
+        # New way
+        from cli_multi_rapid.core.coordinator import WorkflowCoordinator
+        from cli_multi_rapid.core.executor import StepExecutor
+        from cli_multi_rapid.router import Router
+
+        router = Router()
+        executor = StepExecutor(router)
+        coordinator = WorkflowCoordinator(executor)
+        result = coordinator.execute_workflow(str(workflow_file))
+    """
 
     def __init__(self):
+        """Initialize workflow runner (deprecated)."""
+        warnings.warn(
+            "WorkflowRunner is deprecated. Use core.coordinator.WorkflowCoordinator instead. "
+            "See migration guide in docs/guides/WORKFLOW-RUNNER-MIGRATION.md",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         self.console = Console()
-        self.coordinator = WorkflowCoordinator()
-        self.scope_manager = FileScopeManager()
-        self._state_base = Path("state/coordination")
-        self.git_ops = None  # Lazy-loaded
-        self.activity_logger = None  # Lazy-loaded
+
+        # Initialize core modules
         try:
             from .router import Router
+            from .cost_tracker import CostTracker
 
             self.router = Router()
-        except Exception:
+            self.cost_tracker = CostTracker()
+            self.executor = StepExecutor(self.router, self.cost_tracker)
+            self.coordinator = CoreWorkflowCoordinator(self.executor)
+        except Exception as e:
+            console.print(f"[yellow]Warning: Failed to initialize core modules: {e}[/yellow]")
             self.router = None
+            self.executor = None
+            self.coordinator = None
+
+        # Initialize managers
+        self.gate_manager = GateManager()
+        self.artifact_manager = ArtifactManager()
+
+        # Legacy coordination (maintained for backward compatibility)
+        self.legacy_coordinator = LegacyWorkflowCoordinator()
+        self.scope_manager = FileScopeManager()
+        self._state_base = Path("state/coordination")
+
+        # Lazy-loaded components
+        self.git_ops = None
+        self.activity_logger = None
+
+    # ========================================================================
+    # Utility Methods
+    # ========================================================================
+
+    @staticmethod
+    def generate_run_id() -> str:
+        """Generate human-readable run ID."""
+        import secrets
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        random_hex = secrets.token_hex(3)
+        return f"{timestamp}-{random_hex}"
 
     def _get_git_ops(self):
         """Lazy-load GitOpsAdapter."""
@@ -103,242 +191,9 @@ class WorkflowRunner:
                 pass
         return self.activity_logger
 
-    @staticmethod
-    def generate_run_id() -> str:
-        """Generate human-readable run ID.
-
-        Format: yyyyMMdd-HHmmss-6hex (e.g., 20250930-142455-a1b2c3)
-        """
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        random_hex = secrets.token_hex(3)  # 6 hex chars
-        return f"{timestamp}-{random_hex}"
-
-    def display_workflow_banner(self, workflow_name: str, run_id: str, config: dict[str, Any]) -> None:
-        """Display startup banner with workflow info."""
-        cost_tracking = config.get("policy", {}).get("max_tokens") is not None
-        gates_enabled = len(config.get("gates", [])) > 0
-
-        banner = f"""
-+--------------------------------------------------------------+
-|                                                              |
-|   CLI ORCHESTRATOR - WORKFLOW EXECUTION                      |
-|                                                              |
-|   Workflow:      {workflow_name:<46}|
-|   Run ID:        {run_id:<46}|
-|   Cost Tracking: {'ENABLED' if cost_tracking else 'DISABLED':<46}|
-|   Verification:  {'ENABLED' if gates_enabled else 'DISABLED':<46}|
-|                                                              |
-+--------------------------------------------------------------+
-"""
-        self.console.print(banner)
-
-        # Log to activity logger
-        logger = self._get_activity_logger()
-        if logger:
-            logger.workflow_started(workflow_name, run_id, cost_tracking=cost_tracking, gates=gates_enabled)
-
-    def display_workflow_summary(self, run_id: str, workflow_name: str, result: "WorkflowResult", start_time: datetime) -> None:
-        """Display exit summary with statistics."""
-        duration = datetime.now() - start_time
-
-        # Get Git statistics if available
-        git_stats = {}
-        git_ops = self._get_git_ops()
-        if git_ops:
-            try:
-                git_stats = git_ops.get_session_statistics(start_time)
-            except Exception:
-                pass
-
-        summary = f"""
-+--------------------------------------------------------------+
-�   ?? WORKFLOW EXECUTION SUMMARY                             �
-�                                                              �
-�   Duration:          {str(duration).split('.')[0]:<42}�
-�   Steps Executed:    {result.steps_completed:<42}�
-�   Tokens Used:       {result.tokens_used:<42}�
-�                                                              �
-"""
-
-        if git_stats:
-            summary += f"""�   Git Changes:                                               �
-�   - Commits Created: {git_stats.get('commits_since_start', 0):<42}�
-�   - Unpushed:        {git_stats.get('unpushed', 0):<42}�
-�   - Branch:          {git_stats.get('final_branch', 'unknown'):<42}�
-�                                                              �
-"""
-
-        status = '? SUCCESS' if result.success else '? FAILED'
-        summary += f"""�   Status: {status:<50}�
-+--------------------------------------------------------------+
-"""
-        self.console.print(summary)
-
-        # Log to activity logger
-        logger = self._get_activity_logger()
-        if logger:
-            logger.workflow_completed(
-                workflow_name,
-                run_id,
-                result.success,
-                duration_seconds=duration.total_seconds(),
-                steps_completed=result.steps_completed,
-                tokens_used=result.tokens_used,
-                git_stats=git_stats
-            )
-
-    def _save_workflow_manifest(
-        self,
-        run_id: str,
-        workflow_name: str,
-        result: "WorkflowResult",
-        start_time: datetime,
-        git_snapshot_start: Optional[dict[str, Any]],
-        git_snapshot_end: Optional[dict[str, Any]]
-    ) -> None:
-        """Save workflow manifest with Git snapshots and statistics."""
-        manifest_dir = Path("artifacts") / run_id
-        manifest_dir.mkdir(parents=True, exist_ok=True)
-        manifest_path = manifest_dir / "manifest.json"
-
-        duration = datetime.now() - start_time
-
-        manifest = {
-            "run_id": run_id,
-            "workflow_name": workflow_name,
-            "created": start_time.isoformat(),
-            "ended": datetime.now().isoformat(),
-            "duration_seconds": duration.total_seconds(),
-            "git_snapshot_start": git_snapshot_start,
-            "git_snapshot_end": git_snapshot_end,
-            "statistics": {
-                "duration_seconds": duration.total_seconds(),
-                "steps_executed": result.steps_completed,
-                "tokens_used": result.tokens_used,
-                "success": result.success,
-                "artifacts_count": len(result.artifacts)
-            },
-            "artifacts": result.artifacts
-        }
-
-        # Add Git statistics if snapshots available
-        if git_snapshot_start and git_snapshot_end:
-            manifest["statistics"]["commits_created"] = (
-                git_snapshot_end.get("recent_commits", 0) -
-                git_snapshot_start.get("recent_commits", 0)
-            )
-            manifest["statistics"]["files_modified"] = len(
-                set(git_snapshot_end.get("uncommitted_files", [])) -
-                set(git_snapshot_start.get("uncommitted_files", []))
-            )
-
-        try:
-            with open(manifest_path, "w", encoding="utf-8") as f:
-                json.dump(manifest, f, indent=2)
-            console.print(f"[dim]?? Manifest saved: {manifest_path}[/dim]")
-        except Exception as e:
-            console.print(f"[yellow]Warning: Failed to save manifest: {e}[/yellow]")
-
-    # --- Coordination state helpers ---
-    def _state_dir(self) -> Path:
-        self._state_base.mkdir(parents=True, exist_ok=True)
-        return self._state_base
-
-    def _state_file(self, coordination_id: str) -> Path:
-        return self._state_dir() / f"{coordination_id}.json"
-
-    def _cancel_file(self, coordination_id: str) -> Path:
-        return self._state_dir() / f"{coordination_id}.cancel"
-
-    def _persist_coordination_state(self, coordination_id: str, state: dict[str, Any]) -> None:
-        try:
-            with self._state_file(coordination_id).open("w", encoding="utf-8") as f:
-                json.dump(state, f, indent=2)
-        except Exception:
-            # Non-fatal if persistence fails
-            pass
-
-    def _load_coordination_state(self, coordination_id: str) -> Optional[dict[str, Any]]:
-        path = self._state_file(coordination_id)
-        if not path.exists():
-            return None
-        try:
-            with path.open("r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return None
-
-    def _is_cancelled(self, coordination_id: str) -> bool:
-        return self._cancel_file(coordination_id).exists()
-
-    # --- 400-atom pipeline integration (scaffolding) ---
-    def execute_400_atom_pipeline(
-        self,
-        atom_catalog_path: str,
-        classification_config: dict[str, Any],
-        execution_mode: str = "production",
-    ) -> "CoordinatedWorkflowResult":
-        """Execute the 400-atom pipeline with deterministic classification.
-
-        Minimal scaffolding: classifies atoms, maps them into 6 phases, and
-        computes a coordinated summary without invoking external tools.
-        """
-        # Local import to avoid heavy dependencies at import time
-        from .deterministic_engine import AtomClassifier, PipelineOrchestrator
-
-        classifier = AtomClassifier(classification_config)
-        orchestrator = PipelineOrchestrator(self.coordinator, self.scope_manager)
-
-        atoms = self._load_atom_catalog(atom_catalog_path)
-        classification_result = classifier.classify_atoms(atoms)
-
-        coordination_id = f"400atom-{int(time.time())}"
-        result = orchestrator.execute_phases(
-            classification_result,
-            coordination_id=coordination_id,
-            execution_mode=execution_mode,
-        )
-
-        return result
-
-    def _load_atom_catalog(self, catalog_path: str) -> list[dict[str, Any]]:
-        """Load atom catalog from YAML; return list of atoms.
-
-        Expected minimal structure: { atoms: [ { id, type, files?, deterministic? }, ... ] }
-        Validates against .ai/schemas/atom_catalog.schema.json when available.
-        """
-        import yaml
-
-        p = Path(catalog_path)
-        if not p.exists():
-            raise FileNotFoundError(f"Atom catalog not found: {catalog_path}")
-        with p.open("r", encoding="utf-8") as f:
-            data = yaml.safe_load(f) or {}
-
-        # Optional schema validation
-        schema_path = Path(".ai/schemas/atom_catalog.schema.json")
-        if schema_path.exists():
-            try:
-                import json
-
-                import jsonschema
-
-                schema = json.loads(schema_path.read_text(encoding="utf-8"))
-                jsonschema.validate(instance=data, schema=schema)
-            except ImportError:
-                console.print(
-                    "[yellow]Atom catalog schema validation skipped (jsonschema not installed)[/yellow]"
-                )
-            except Exception as e:
-                raise ValueError(f"Atom catalog schema validation failed: {e}")
-
-        atoms = data.get("atoms") or []
-        # Normalize to list[dict]
-        norm: list[dict[str, Any]] = []
-        for a in atoms:
-            if isinstance(a, dict):
-                norm.append(a)
-        return norm
+    # ========================================================================
+    # Main Execution Methods (Facade Pattern)
+    # ========================================================================
 
     def run(
         self,
@@ -349,492 +204,115 @@ class WorkflowRunner:
         max_tokens: Optional[int] = None,
         coordination_mode: str = "sequential",
     ) -> WorkflowResult:
-        """Run a workflow with the given parameters."""
+        """
+        Run a workflow with the given parameters.
 
+        DEPRECATED: Use WorkflowCoordinator.execute_workflow() instead.
+        """
         try:
-            # Load and validate workflow
-            workflow = self._load_workflow(workflow_file)
-            if not workflow:
-                return WorkflowResult(
-                    success=False, error=f"Failed to load workflow: {workflow_file}"
+            # Set dry-run mode
+            if self.executor:
+                self.executor.dry_run = dry_run
+
+            # Generate run ID
+            run_id = self.generate_run_id()
+            start_time = datetime.now()
+
+            # Execute via core coordinator
+            if self.coordinator:
+                core_result: CoreWorkflowResult = self.coordinator.execute_workflow(
+                    str(workflow_file),
+                    files=files,
+                    extra_context={"lane": lane, "max_tokens": max_tokens}
                 )
 
-            # Validate schema
-            if not self._validate_schema(workflow):
-                return WorkflowResult(
-                    success=False, error="Workflow schema validation failed"
-                )
+                # Convert to legacy format
+                result = self._convert_core_result_to_legacy(core_result)
+                result.execution_time = (datetime.now() - start_time).total_seconds()
 
-            # Check coordination mode and execute accordingly
-            coordination_mode_enum = CoordinationMode(coordination_mode)
+                # Register artifacts
+                for artifact_path in result.artifacts:
+                    self.artifact_manager.register_artifact(
+                        artifact_path,
+                        step_id="unknown"
+                    )
 
-            if coordination_mode_enum == CoordinationMode.PARALLEL:
-                return self._execute_parallel_workflow(
-                    workflow, dry_run=dry_run, files=files, lane=lane, max_tokens=max_tokens
-                )
-            elif coordination_mode_enum == CoordinationMode.IPT_WT:
-                return self._execute_ipt_wt_workflow(
-                    workflow, dry_run=dry_run, files=files, lane=lane, max_tokens=max_tokens
-                )
+                return result
             else:
-                # Sequential execution (default)
-                return self._execute_workflow(
-                    workflow, dry_run=dry_run, files=files, lane=lane, max_tokens=max_tokens
+                return WorkflowResult(
+                    success=False,
+                    error="Core modules not initialized"
                 )
 
         except Exception as e:
             return WorkflowResult(
-                success=False, error=f"Workflow execution error: {str(e)}"
+                success=False,
+                error=f"Workflow execution error: {str(e)}"
             )
 
-    def _load_workflow(self, workflow_file: Path) -> Optional[dict[str, Any]]:
-        """Load YAML workflow file."""
-        try:
-            if not workflow_file.exists():
-                console.print(f"[red]Workflow file not found: {workflow_file}[/red]")
-                return None
-
-            with open(workflow_file, encoding="utf-8") as f:
-                workflow = yaml.safe_load(f)
-
-            console.print(
-                f"[green]Loaded workflow: {workflow.get('name', 'Unnamed')}[/green]"
-            )
-            return workflow
-
-        except Exception as e:
-            console.print(f"[red]Error loading workflow: {e}[/red]")
-            return None
-
-    def _validate_schema(self, workflow: dict[str, Any]) -> bool:
-        """Validate workflow against JSON schema."""
-        try:
-            # Import jsonschema only when needed
-            import jsonschema
-
-            schema_path = Path(".ai/schemas/workflow.schema.json")
-            if not schema_path.exists():
-                console.print(
-                    "[yellow]Schema validation skipped - schema file not found[/yellow]"
-                )
-                return True
-
-            with open(schema_path, encoding="utf-8") as f:
-                schema = json.load(f)
-
-            jsonschema.validate(workflow, schema)
-            console.print("[green]OK Workflow schema validation passed[/green]")
-            return True
-
-        except ImportError:
-            console.print(
-                "[yellow]Schema validation skipped - jsonschema not available[/yellow]"
-            )
-            return True
-        except Exception as e:
-            console.print(f"[red]Schema validation failed: {e}[/red]")
-            return False
-
-    def _execute_workflow(
+    def execute_workflow(
         self,
         workflow: dict[str, Any],
-        dry_run: bool = False,
         files: Optional[str] = None,
-        lane: Optional[str] = None,
-        max_tokens: Optional[int] = None,
-    ) -> WorkflowResult:
-        """Execute workflow steps with routing and cost tracking."""
+        dry_run: bool = False
+    ) -> dict[str, Any]:
+        """
+        Execute workflow and return a legacy dict structure for compatibility.
 
-        # Generate run ID and display banner
-        run_id = self.generate_run_id()
-        workflow_name = workflow.get("name", "Unnamed Workflow")
-        start_time = datetime.now()
-
-        self.display_workflow_banner(workflow_name, run_id, workflow)
-
-        # Capture Git snapshot at start
-        git_snapshot_start = None
-        git_ops = self._get_git_ops()
-        if git_ops:
-            try:
-                git_snapshot_start = git_ops.capture_git_snapshot()
-                logger = self._get_activity_logger()
-                if logger:
-                    logger.git_snapshot(git_snapshot_start, event_type="pre-workflow")
-                console.print(f"[dim]?? Git snapshot: {git_snapshot_start['branch']} @ {git_snapshot_start['commit_hash']}[/dim]")
-            except Exception:
-                pass
-
-        steps = workflow.get("steps", [])
-        if not steps:
-            result = WorkflowResult(success=True, steps_completed=0)
-            self.display_workflow_summary(run_id, workflow_name, result, start_time)
-            return result
-
-        console.print(f"[blue]Executing {len(steps)} workflow steps[/blue]")
-
-        total_tokens = 0
-        artifacts = []
-        completed_steps = 0
-
-        # Optional per-phase timeout configuration
-        timeouts = (workflow.get("timeouts") or {})
-        per_phase_seconds = timeouts.get("per_phase_seconds")
-
-        for i, step in enumerate(steps):
-            step_id = step.get("id", f"step-{i+1}")
-            step_name = step.get("name", f"Step {i+1}")
-            actor = step.get("actor", "unknown")
-
-            console.print(f"[cyan]Step {step_id}: {step_name}[/cyan]")
-            console.print(f"[dim]Actor: {actor}[/dim]")
-
-            if dry_run:
-                # Generate detailed dry-run preview
-                preview = self._generate_step_preview(step, files)
-                self._display_step_preview(preview, step_id, step_name, actor)
-                completed_steps += 1
-                continue
-
-            # Execute step (adapter-backed)
-            time.time()
-            if per_phase_seconds:
-                # Soft timeout: if exceeded, mark failure gracefully
-                try:
-                    step_result = self._execute_step(step, files=files, timeout_seconds=per_phase_seconds)
-                except TimeoutError as te:
-                    return WorkflowResult(
-                        success=False,
-                        error=f"Step {step_id} timed out: {te}",
-                        tokens_used=total_tokens,
-                        steps_completed=completed_steps,
-                    )
-            else:
-                step_result = self._execute_step(step, files=files)
-
-            total_tokens += step_result.get("tokens_used", 0)
-            artifacts.extend(step_result.get("artifacts", []))
-
-            if not step_result.get("success", False):
-                error = step_result.get("error", "Step execution failed")
-                return WorkflowResult(
-                    success=False,
-                    error=f"Step {step_id} failed: {error}",
-                    tokens_used=total_tokens,
-                    steps_completed=completed_steps,
-                )
-
-            completed_steps += 1
-
-            # Check token limit
-            if max_tokens and total_tokens > max_tokens:
-                return WorkflowResult(
-                    success=False,
-                    error=f"Token limit exceeded: {total_tokens} > {max_tokens}",
-                    tokens_used=total_tokens,
-                    steps_completed=completed_steps,
-                )
-
-        console.print(f"[green]OK Workflow completed: {completed_steps} steps[/green]")
-
-        # Capture Git snapshot at end
-        git_snapshot_end = None
-        if git_ops:
-            try:
-                git_snapshot_end = git_ops.capture_git_snapshot()
-                logger = self._get_activity_logger()
-                if logger:
-                    logger.git_snapshot(git_snapshot_end, event_type="post-workflow")
-                console.print(f"[dim]?? Git snapshot: {git_snapshot_end['branch']} @ {git_snapshot_end['commit_hash']}[/dim]")
-            except Exception:
-                pass
-
-        # Create result
-        result = WorkflowResult(
-            success=True,
-            artifacts=artifacts,
-            tokens_used=total_tokens,
-            steps_completed=completed_steps,
+        DEPRECATED: Use WorkflowCoordinator.execute_workflow_from_dict() instead.
+        """
+        warnings.warn(
+            "execute_workflow() is deprecated. Use WorkflowCoordinator.execute_workflow_from_dict()",
+            DeprecationWarning,
+            stacklevel=2
         )
 
-        # Display summary
-        self.display_workflow_summary(run_id, workflow_name, result, start_time)
+        if self.executor:
+            self.executor.dry_run = dry_run
 
-        # Save manifest with Git snapshots
-        self._save_workflow_manifest(run_id, workflow_name, result, start_time, git_snapshot_start, git_snapshot_end)
+        if self.coordinator:
+            core_result = self.coordinator.execute_workflow_from_dict(
+                workflow,
+                files=files
+            )
 
-        return result
-
-    def _generate_step_preview(self, step: dict[str, Any], files: Optional[str] = None) -> dict[str, Any]:
-        """Generate a detailed preview of what a step would do."""
-        actor = step.get("actor", "unknown")
-        params = step.get("with", {})
-        emit_paths = step.get("emits", [])
-
-        # Get adapter to query its capabilities
-        adapter = self.router.registry.get_adapter(actor)
-
-        preview = {
-            "actor": actor,
-            "adapter_type": adapter.adapter_type.value if adapter else "unknown",
-            "description": adapter.description if adapter else "Unknown adapter",
-            "parameters": params,
-            "emit_paths": emit_paths,
-            "estimated_tokens": 0,
-            "expected_actions": []
-        }
-
-        # Estimate tokens if adapter available
-        if adapter:
-            try:
-                preview["estimated_tokens"] = adapter.estimate_cost(step)
-            except Exception:
-                preview["estimated_tokens"] = 0
-
-        # Generate expected actions based on adapter type
-        if adapter:
-            if actor == "code_fixers":
-                tools = params.get("tools", [])
-                preview["expected_actions"] = [
-                    f"Run {tool} on matching files" for tool in tools
-                ]
-                if files:
-                    preview["expected_actions"].append(f"Target files: {files}")
-
-            elif actor == "vscode_diagnostics":
-                analyzers = params.get("analyzers", [])
-                preview["expected_actions"] = [
-                    f"Run {analyzer} analysis" for analyzer in analyzers
-                ]
-                preview["expected_actions"].append(f"Generate diagnostics report at {emit_paths[0] if emit_paths else 'artifacts/'}")
-
-            elif actor == "pytest_runner":
-                preview["expected_actions"] = [
-                    "Execute pytest with coverage",
-                    "Generate test report",
-                    f"Save results to {emit_paths[0] if emit_paths else 'artifacts/'}"
-                ]
-
-            elif actor == "git_ops":
-                operation = params.get("operation", "unknown")
-                preview["expected_actions"] = [f"Perform Git operation: {operation}"]
-                if operation == "create_pr":
-                    preview["expected_actions"].append(f"Title: {params.get('title', 'Auto-generated PR')}")
-                elif operation == "create_issue":
-                    preview["expected_actions"].append(f"Create issue: {params.get('title', 'Untitled')}")
-
-            elif actor in ["ai_editor", "ai_analyst", "deepseek"]:
-                operation = params.get("operation", "edit")
-                prompt = params.get("prompt", "")
-                preview["expected_actions"] = [
-                    f"AI operation: {operation}",
-                    f"Prompt: {prompt[:100]}..." if len(prompt) > 100 else f"Prompt: {prompt}",
-                    "Use AI model to process request"
-                ]
-
-            else:
-                # Generic adapter preview
-                preview["expected_actions"] = [
-                    f"Execute {actor} adapter",
-                    f"Process with parameters: {list(params.keys())}"
-                ]
-        else:
-            preview["expected_actions"] = [f"Adapter '{actor}' not available"]
-
-        return preview
-
-    def _display_step_preview(self, preview: dict[str, Any], step_id: str, step_name: str, actor: str) -> None:
-        """Display a formatted dry-run preview of a step."""
-        from rich.panel import Panel
-        from rich.table import Table
-
-        # Create preview content
-        content_lines = []
-        content_lines.append(f"[bold yellow]DRY RUN PREVIEW[/bold yellow]")
-        content_lines.append(f"[bold]Adapter Type:[/bold] {preview['adapter_type']}")
-        content_lines.append(f"[bold]Description:[/bold] {preview['description']}")
-
-        if preview['estimated_tokens'] > 0:
-            content_lines.append(f"[bold]Estimated Tokens:[/bold] {preview['estimated_tokens']:,}")
-
-        # Display parameters if any
-        if preview['parameters']:
-            content_lines.append("\n[bold]Parameters:[/bold]")
-            for key, value in preview['parameters'].items():
-                value_str = str(value)
-                if len(value_str) > 60:
-                    value_str = value_str[:60] + "..."
-                content_lines.append(f"  • {key}: {value_str}")
-
-        # Display expected actions
-        if preview['expected_actions']:
-            content_lines.append("\n[bold]Expected Actions:[/bold]")
-            for action in preview['expected_actions']:
-                content_lines.append(f"  ✓ {action}")
-
-        # Display emit paths
-        if preview['emit_paths']:
-            content_lines.append("\n[bold]Output Artifacts:[/bold]")
-            for path in preview['emit_paths']:
-                content_lines.append(f"  📄 {path}")
-
-        # Display in panel
-        console.print(Panel(
-            "\n".join(content_lines),
-            title=f"Step {step_id}: {step_name}",
-            border_style="yellow",
-            padding=(1, 2)
-        ))
-
-    def _execute_step(
-        self, step: dict[str, Any], files: Optional[str] = None, timeout_seconds: Optional[int] = None
-    ) -> dict[str, Any]:
-        """Execute a single workflow step via adapter registry routing."""
-        actor = step.get("actor", "unknown")
-        console.print(f"[dim]Executing actor: {actor}[/dim]")
-
-
-        # Idempotency: skip if already executed with same context
-        try:
-            from src.idempotency.storage import get_store, make_step_key
-
-            store = get_store()
-            key = make_step_key(step, files)
-            if store.seen(key):
-                return {
-                    "success": True,
-                    "tokens_used": 0,
-                    "artifacts": [],
-                    "output": f"Skipped (idempotent) {actor}",
-                    "metadata": {"skipped": True, "reason": "idempotent"},
-                }
-        except Exception:
-            # Proceed without idempotency if store not available
-            store = None
-            key = None
-
-        # Resolve adapter
-        adapter = None
-        if self.router is not None:
-            try:
-                adapter = self.router.registry.get_adapter(actor)
-            except Exception:
-                adapter = None
-        if adapter is None:
-            # Fallback to direct registry import
-            try:
-                from .adapters.adapter_registry import registry as global_registry
-
-                adapter = global_registry.get_adapter(actor)
-            except Exception:
-                adapter = None
-
-        if adapter is None:
             return {
+                "execution_id": f"exec-{int(time.time())}",
+                "success": core_result.success,
+                "steps": core_result.steps_executed,
+                "tokens_used": core_result.total_tokens_used,
+                "artifacts": core_result.artifacts,
+                "error": core_result.error,
+            }
+        else:
+            return {
+                "execution_id": f"exec-{int(time.time())}",
                 "success": False,
-                "error": f"Adapter not found: {actor}",
-                "artifacts": [],
+                "error": "Core modules not initialized",
+                "steps": 0,
                 "tokens_used": 0,
+                "artifacts": []
             }
 
-        # Validate step
-        if hasattr(adapter, "validate_step") and not adapter.validate_step(step):
-            return {"success": False, "error": f"Invalid step for adapter {actor}", "artifacts": [], "tokens_used": 0}
+    # ========================================================================
+    # Helper Methods
+    # ========================================================================
 
-        # Cancellation token via file
-        cancel_token = None
-        try:
-            from .cancellation import CancellationToken
+    def _convert_core_result_to_legacy(self, core_result: CoreWorkflowResult) -> WorkflowResult:
+        """Convert core WorkflowResult to legacy WorkflowResult format."""
+        return WorkflowResult(
+            success=core_result.success,
+            error=core_result.error,
+            artifacts=core_result.artifacts,
+            tokens_used=core_result.total_tokens_used,
+            steps_completed=core_result.steps_executed,
+            execution_time=core_result.total_execution_time_seconds
+        )
 
-            cancel_token = CancellationToken()
-        except Exception:
-            cancel_token = None
-
-        # Execute with soft timeout
-        start = time.time()
-        try:
-            context = {"cancel_token": cancel_token}
-            result_obj = adapter.execute(step, context=context, files=files)
-        except Exception as e:
-            return {"success": False, "error": str(e), "artifacts": [], "tokens_used": 0}
-
-        elapsed = time.time() - start
-        if timeout_seconds and elapsed > timeout_seconds:
-            return {"success": False, "error": f"timeout exceeded after {elapsed:.2f}s", "artifacts": [], "tokens_used": 0}
-
-        # Mark idempotency key after success
-        try:
-            if store and key and getattr(result_obj, "success", False):
-                store.mark(key)
-        except Exception:
-            pass
-
-        # Normalize result
-        if hasattr(result_obj, "to_dict"):
-            return result_obj.to_dict()
-        if isinstance(result_obj, dict):
-            return result_obj
-        return {"success": True, "tokens_used": 0, "artifacts": [], "output": str(result_obj)}
-
-    # Compatibility wrapper used by some integration tests
-    def execute_workflow(self, workflow: dict[str, Any], files: Optional[str] = None, dry_run: bool = False) -> dict[str, Any]:
-        """Execute workflow and return a legacy dict structure for compatibility."""
-        result = self._execute_workflow(workflow, dry_run=dry_run, files=files)
-        return {
-            "execution_id": f"exec-{int(time.time())}",
-            "success": result.success,
-            "steps": result.steps_completed,
-            "tokens_used": result.tokens_used,
-            "artifacts": result.artifacts,
-            "error": result.error,
-        }
-
-    # --- IPT/WT integration (minimal scaffolding) ---
-    def run_ipt_wt_workflow(
-        self,
-        workflow_file: Path,
-        request: Optional[str] = None,
-        budget: Optional[int] = None,
-    ) -> WorkflowResult:
-        """Execute a lightweight IPT/WT-style workflow.
-
-        This scaffolding loads the workflow, checks structure, and performs
-        a budget-aware routing decision for a representative step without
-        executing external tools.
-        """
-        try:
-            workflow = self._load_workflow(workflow_file)
-            if not workflow:
-                return WorkflowResult(success=False, error="workflow not found")
-
-            roles = (workflow.get("roles") or {})
-            phases = (workflow.get("phases") or [])
-            if not roles or not phases:
-                return WorkflowResult(success=False, error="invalid IPT/WT workflow structure")
-
-            # Make a simple routing decision to validate configuration
-            from .router import Router
-
-            router = Router()
-            sample_step = {"actor": "ai_analyst", "with": {"analysis_type": "code_review", "detail_level": "low"}}
-            decision = router.route_with_budget_awareness(sample_step, role="ipt", budget_remaining=budget or 0)
-
-            artifact_path = Path("artifacts/ipt-wt/decision.json")
-            artifact_path.parent.mkdir(parents=True, exist_ok=True)
-            with artifact_path.open("w", encoding="utf-8") as f:
-                json.dump({
-                    "router_decision": {
-                        "adapter_name": decision.adapter_name,
-                        "adapter_type": decision.adapter_type,
-                        "estimated_tokens": decision.estimated_tokens,
-                        "reasoning": decision.reasoning,
-                    },
-                    "request": request,
-                }, f, indent=2)
-
-            return WorkflowResult(success=True, artifacts=[str(artifact_path)], steps_completed=len(phases))
-        except Exception as e:
-            return WorkflowResult(success=False, error=f"ipt/wt workflow error: {e}")
+    # ========================================================================
+    # Legacy Complex Methods (Maintained for Backward Compatibility)
+    # NOTE: These will be refactored in Phase 2 Week 4
+    # ========================================================================
 
     def run_coordinated_workflows(
         self,
@@ -844,561 +322,90 @@ class WorkflowRunner:
         total_budget: Optional[float] = None,
         dry_run: bool = False,
     ) -> CoordinatedWorkflowResult:
-        """Run multiple workflows with coordination."""
+        """
+        Run multiple workflows with coordination.
 
-        start_time = time.time()
-        coordination_id = f"coord-{self.generate_run_id()}"
+        NOTE: This method maintains legacy coordination logic.
+        Will be refactored to use core modules in Phase 2 Week 4.
+        """
+        # Import on-demand to avoid circular dependencies
+        from .workflow_runner_legacy import LegacyWorkflowRunner
 
-        try:
-            # Load all workflows
-            workflows = []
-            for workflow_file in workflow_files:
-                workflow = self._load_workflow(workflow_file)
-                if workflow:
-                    workflow['_file_path'] = str(workflow_file)
-                    workflows.append(workflow)
-
-            if not workflows:
-                return CoordinatedWorkflowResult(
-                    success=False,
-                    coordination_id=coordination_id,
-                    workflow_results={},
-                    conflicts_detected=["No valid workflows loaded"]
-                )
-
-            # Create coordination plan
-            coordination_plan = self.coordinator.create_coordination_plan(workflows)
-
-            if coordination_plan.conflicts:
-                conflict_descriptions = [
-                    f"Conflict between {', '.join(c.workflow_ids)} on {', '.join(c.conflicting_patterns)}"
-                    for c in coordination_plan.conflicts
-                ]
-                return CoordinatedWorkflowResult(
-                    success=False,
-                    coordination_id=coordination_id,
-                    workflow_results={},
-                    conflicts_detected=conflict_descriptions
-                )
-
-            # Initialize and persist coordination state
-            state: dict[str, Any] = {
-                "coordination_id": coordination_id,
-                "status": "running" if not dry_run else "dry_run",
-                "started_at": datetime.now().isoformat(),
-                "mode": coordination_mode,
-                "max_parallel": max_parallel,
-                "budget": total_budget,
-                "input_files": [str(p) for p in workflow_files],
-                "workflow_results": {},
-                "conflicts_detected": [],
-            }
-            self._persist_coordination_state(coordination_id, state)
-
-            if self._is_cancelled(coordination_id):
-                return CoordinatedWorkflowResult(
-                    success=False,
-                    coordination_id=coordination_id,
-                    workflow_results={},
-                    conflicts_detected=["Coordination cancelled before start"],
-                )
-
-            # Execute workflows based on coordination mode
-            if coordination_mode == "parallel" and coordination_plan.parallel_groups:
-                workflow_results = self._execute_parallel_groups(
-                    workflows, coordination_plan, max_parallel, dry_run, coordination_id
-                )
-            else:
-                # Sequential execution
-                workflow_results = self._execute_sequential_workflows(
-                    workflows, coordination_plan, dry_run, coordination_id
-                )
-
-            # Calculate summary metrics
-            total_tokens = sum(result.tokens_used for result in workflow_results.values())
-            execution_time = time.time() - start_time
-            success = all(result.success for result in workflow_results.values())
-
-            final = CoordinatedWorkflowResult(
-                success=success,
-                coordination_id=coordination_id,
-                workflow_results=workflow_results,
-                total_tokens_used=total_tokens,
-                total_execution_time=execution_time,
-                parallel_efficiency=self._calculate_parallel_efficiency(workflow_results, execution_time)
-            )
-            # Persist final state
-            state.update(
-                {
-                    "status": "completed" if success else "failed",
-                    "total_tokens_used": final.total_tokens_used,
-                    "total_execution_time": final.total_execution_time,
-                    "parallel_efficiency": final.parallel_efficiency,
-                    "workflow_results": {
-                        k: {
-                            "success": v.success,
-                            "tokens_used": v.tokens_used,
-                            "steps_completed": v.steps_completed,
-                            "execution_time": v.execution_time,
-                            "error": v.error,
-                            "artifacts": v.artifacts,
-                        }
-                        for k, v in workflow_results.items()
-                    },
-                }
-            )
-            self._persist_coordination_state(coordination_id, state)
-            return final
-
-        except Exception as e:
-            return CoordinatedWorkflowResult(
-                success=False,
-                coordination_id=coordination_id,
-                workflow_results={},
-                conflicts_detected=[f"Coordination error: {str(e)}"]
-            )
-
-    def _execute_parallel_workflow(
-        self,
-        workflow: dict[str, Any],
-        dry_run: bool = False,
-        files: Optional[str] = None,
-        lane: Optional[str] = None,
-        max_tokens: Optional[int] = None,
-    ) -> WorkflowResult:
-        """Execute workflow with parallel phase support."""
-
-        start_time = time.time()
-
-        # Check for parallel phases
-        phases = workflow.get('phases', [])
-        parallel_phases = [phase for phase in phases if phase.get('parallel', False)]
-
-        if parallel_phases:
-            # Execute with parallel coordination
-            coordination_plan = self.coordinator.create_coordination_plan([workflow])
-
-            if coordination_plan.conflicts:
-                return WorkflowResult(
-                    success=False,
-                    error=f"File scope conflicts detected: {coordination_plan.conflicts}",
-                    execution_time=time.time() - start_time
-                )
-
-            # Execute parallel phases
-            results = self._execute_parallel_phases(phases, dry_run, files, max_tokens)
-
-            total_tokens = sum(r.get("tokens_used", 0) for r in results)
-            total_artifacts = []
-            for r in results:
-                total_artifacts.extend(r.get("artifacts", []))
-
-            success = all(r.get("success", False) for r in results)
-
-            return WorkflowResult(
-                success=success,
-                tokens_used=total_tokens,
-                artifacts=total_artifacts,
-                steps_completed=len(results),
-                execution_time=time.time() - start_time,
-                parallel_groups=[str(i) for i in range(len(parallel_phases))]
-            )
-        else:
-            # Fall back to sequential execution
-            return self._execute_workflow(
-                workflow, dry_run=dry_run, files=files, lane=lane, max_tokens=max_tokens
-            )
-
-    def _execute_ipt_wt_workflow(
-        self,
-        workflow: dict[str, Any],
-        dry_run: bool = False,
-        files: Optional[str] = None,
-        lane: Optional[str] = None,
-        max_tokens: Optional[int] = None,
-    ) -> WorkflowResult:
-        """Execute IPT-WT pattern workflow with enhanced coordination."""
-
-        start_time = time.time()
-
-        # Check for IPT-WT structure
-        roles = workflow.get("roles", {})
-        phases = workflow.get("phases", [])
-
-        if not roles or not phases:
-            return WorkflowResult(
-                success=False,
-                error="Invalid IPT-WT workflow structure",
-                execution_time=time.time() - start_time
-            )
-
-        # Execute phases with role-based coordination
-        ipt_phases = [p for p in phases if p.get('role') == 'ipt']
-        wt_phases = [p for p in phases if p.get('role') == 'wt']
-
-        results = []
-
-        # Execute IPT phases first (planning)
-        for phase in ipt_phases:
-            phase_result = self._execute_phase(phase, dry_run, files)
-            results.append(phase_result)
-
-        # Execute WT phases (potentially in parallel)
-        wt_parallel = any(p.get('parallel', False) for p in wt_phases)
-        if wt_parallel and not dry_run:
-            wt_results = self._execute_parallel_phases(wt_phases, dry_run, files, max_tokens)
-            results.extend(wt_results)
-        else:
-            for phase in wt_phases:
-                phase_result = self._execute_phase(phase, dry_run, files)
-                results.append(phase_result)
-
-        total_tokens = sum(r.get("tokens_used", 0) for r in results)
-        total_artifacts = []
-        for r in results:
-            total_artifacts.extend(r.get("artifacts", []))
-
-        success = all(r.get("success", False) for r in results)
-
-        return WorkflowResult(
-            success=success,
-            tokens_used=total_tokens,
-            artifacts=total_artifacts,
-            steps_completed=len(results),
-            execution_time=time.time() - start_time
+        legacy_runner = LegacyWorkflowRunner()
+        return legacy_runner.run_coordinated_workflows(
+            workflow_files,
+            coordination_mode,
+            max_parallel,
+            total_budget,
+            dry_run
         )
 
-    def _execute_parallel_groups(
+    def execute_400_atom_pipeline(
         self,
-        workflows: list[dict[str, Any]],
-        coordination_plan: CoordinationPlan,
-        max_parallel: int,
-        dry_run: bool,
-        coordination_id: Optional[str] = None,
-    ) -> dict[str, WorkflowResult]:
-        """Execute workflows in parallel groups."""
+        atom_catalog_path: str,
+        classification_config: dict[str, Any],
+        execution_mode: str = "production",
+    ) -> CoordinatedWorkflowResult:
+        """
+        Execute the 400-atom pipeline.
 
-        workflow_results = {}
+        NOTE: This method maintains legacy pipeline logic.
+        Will be refactored in Phase 3.
+        """
+        from .workflow_runner_legacy import LegacyWorkflowRunner
 
-        for group in coordination_plan.parallel_groups:
-            if coordination_id and self._is_cancelled(coordination_id):
-                break
-            if len(group) == 1:
-                # Single workflow, execute normally
-                workflow_name = group[0]
-                workflow = next((w for w in workflows if w.get('name') == workflow_name), None)
-                if workflow:
-                    result = self._execute_workflow(workflow, dry_run=dry_run)
-                    workflow_results[workflow_name] = result
-                    if coordination_id:
-                        self._update_partial_state(coordination_id, workflow_name, result)
-            else:
-                # Multiple workflows, execute in parallel
-                with ThreadPoolExecutor(max_workers=min(max_parallel, len(group))) as executor:
-                    future_to_workflow = {}
-
-                    for workflow_name in group:
-                        workflow = next((w for w in workflows if w.get('name') == workflow_name), None)
-                        if workflow:
-                            future = executor.submit(self._execute_workflow, workflow, dry_run)
-                            future_to_workflow[future] = workflow_name
-
-                    for future in as_completed(future_to_workflow):
-                        workflow_name = future_to_workflow[future]
-                        try:
-                            result = future.result()
-                            workflow_results[workflow_name] = result
-                            if coordination_id:
-                                self._update_partial_state(coordination_id, workflow_name, result)
-                        except Exception as e:
-                            workflow_results[workflow_name] = WorkflowResult(
-                                success=False,
-                                error=f"Parallel execution error: {str(e)}"
-                            )
-                            if coordination_id:
-                                self._update_partial_state(coordination_id, workflow_name, workflow_results[workflow_name])
-
-        return workflow_results
-
-    def _execute_sequential_workflows(
-        self,
-        workflows: list[dict[str, Any]],
-        coordination_plan: CoordinationPlan,
-        dry_run: bool,
-        coordination_id: Optional[str] = None,
-    ) -> dict[str, WorkflowResult]:
-        """Execute workflows sequentially."""
-
-        workflow_results = {}
-
-        for workflow_name in coordination_plan.execution_order:
-            if coordination_id and self._is_cancelled(coordination_id):
-                self.console.print("[yellow]Coordination cancelled — stopping sequential execution[/yellow]")
-                break
-            workflow = next((w for w in workflows if w.get('name') == workflow_name), None)
-            if workflow:
-                result = self._execute_workflow(workflow, dry_run=dry_run)
-                workflow_results[workflow_name] = result
-                if coordination_id:
-                    self._update_partial_state(coordination_id, workflow_name, result)
-
-                # Stop on failure if configured
-                if not result.success:
-                    self.console.print(f"[red]Workflow {workflow_name} failed, stopping execution[/red]")
-                    break
-
-        return workflow_results
-
-    def _update_partial_state(self, coordination_id: str, workflow_name: str, result: WorkflowResult) -> None:
-        state = self._load_coordination_state(coordination_id) or {}
-        wf = state.get("workflow_results", {})
-        wf[workflow_name] = {
-            "success": result.success,
-            "tokens_used": result.tokens_used,
-            "steps_completed": result.steps_completed,
-            "execution_time": result.execution_time,
-            "error": result.error,
-            "artifacts": result.artifacts,
-        }
-        state["workflow_results"] = wf
-        self._persist_coordination_state(coordination_id, state)
-
-    def resume_coordination(self, coordination_id: str) -> CoordinatedWorkflowResult:
-        """Resume a coordination session from persisted state (best-effort)."""
-        state = self._load_coordination_state(coordination_id)
-        if not state:
-            return CoordinatedWorkflowResult(
-                success=False,
-                coordination_id=coordination_id,
-                workflow_results={},
-                conflicts_detected=["No persisted state found"],
-            )
-
-        try:
-            input_files = [Path(p) for p in state.get("input_files", [])]
-            completed = set((state.get("workflow_results") or {}).keys())
-            # Reload workflows
-            workflows = []
-            for wf in input_files:
-                data = self._load_workflow(wf)
-                if data:
-                    workflows.append(data)
-
-            if not workflows:
-                return CoordinatedWorkflowResult(
-                    success=False,
-                    coordination_id=coordination_id,
-                    workflow_results={},
-                    conflicts_detected=["No valid workflows to resume"],
-                )
-
-            plan = self.coordinator.create_coordination_plan(workflows)
-            # Filter execution order to remaining workflows
-            remaining_order = [w for w in plan.execution_order if w not in completed]
-            plan.execution_order = remaining_order
-
-            # Execute remaining sequentially for simplicity
-            results = self._execute_sequential_workflows(workflows, plan, dry_run=False, coordination_id=coordination_id)
-            # Merge with previous results
-            merged: dict[str, WorkflowResult] = {}
-            for name, prev in (state.get("workflow_results") or {}).items():
-                merged[name] = WorkflowResult(
-                    success=bool(prev.get("success")),
-                    tokens_used=int(prev.get("tokens_used", 0)),
-                    steps_completed=int(prev.get("steps_completed", 0)),
-                    execution_time=float(prev.get("execution_time")) if prev.get("execution_time") is not None else 0.0,
-                    error=prev.get("error"),
-                    artifacts=prev.get("artifacts") or [],
-                )
-            merged.update(results)
-
-            total_tokens = sum(r.tokens_used for r in merged.values())
-            execution_time = sum((r.execution_time or 0.0) for r in merged.values())
-            success = all(r.success for r in merged.values())
-
-            final = CoordinatedWorkflowResult(
-                success=success,
-                coordination_id=coordination_id,
-                workflow_results=merged,
-                total_tokens_used=total_tokens,
-                total_execution_time=execution_time,
-                parallel_efficiency=0.0,
-            )
-            # Persist final
-            self._persist_coordination_state(
-                coordination_id,
-                {
-                    **(state or {}),
-                    "status": "completed" if success else "failed",
-                    "workflow_results": {
-                        k: {
-                            "success": v.success,
-                            "tokens_used": v.tokens_used,
-                            "steps_completed": v.steps_completed,
-                            "execution_time": v.execution_time,
-                            "error": v.error,
-                            "artifacts": v.artifacts,
-                        }
-                        for k, v in merged.items()
-                    },
-                },
-            )
-            return final
-        except Exception as e:
-            return CoordinatedWorkflowResult(
-                success=False,
-                coordination_id=coordination_id,
-                workflow_results={},
-                conflicts_detected=[f"Resume error: {e}"],
-            )
-
-    def _execute_parallel_phases(
-        self,
-        phases: list[dict[str, Any]],
-        dry_run: bool,
-        files: Optional[str],
-        max_tokens: Optional[int]
-    ) -> list[dict[str, Any]]:
-        """Execute phases in parallel."""
-
-        if dry_run:
-            # Simulate parallel execution for dry run with detailed previews
-            console.print(f"[yellow]DRY RUN: Would execute {len(phases)} phases in parallel[/yellow]")
-            results = []
-            total_estimated_tokens = 0
-            for phase in phases:
-                phase_id = phase.get('id', 'unknown')
-                tasks = phase.get('tasks', [])
-                estimated_tokens = 0
-
-                # Estimate tokens for all tasks in phase
-                for task in tasks:
-                    if isinstance(task, dict) and 'actor' in task:
-                        adapter = self.router.registry.get_adapter(task.get('actor'))
-                        if adapter:
-                            try:
-                                estimated_tokens += adapter.estimate_cost(task)
-                            except Exception:
-                                pass
-
-                total_estimated_tokens += estimated_tokens
-                console.print(f"  [dim]• Phase {phase_id}: {len(tasks)} tasks, ~{estimated_tokens:,} tokens[/dim]")
-
-                results.append({
-                    "success": True,
-                    "tokens_used": 0,
-                    "estimated_tokens": estimated_tokens,
-                    "artifacts": [],
-                    "output": f"DRY RUN: Phase {phase_id}"
-                })
-
-            console.print(f"[dim]Total estimated tokens for parallel execution: {total_estimated_tokens:,}[/dim]")
-            return results
-
-        # Execute phases in parallel
-        with ThreadPoolExecutor(max_workers=min(3, len(phases))) as executor:
-            future_to_phase = {
-                executor.submit(self._execute_phase, phase, dry_run, files): phase
-                for phase in phases
-            }
-
-            results = []
-            for future in as_completed(future_to_phase):
-                try:
-                    result = future.result()
-                    results.append(result)
-                except Exception as e:
-                    results.append({
-                        "success": False,
-                        "error": f"Phase execution error: {str(e)}",
-                        "tokens_used": 0,
-                        "artifacts": []
-                    })
-
-        return results
-
-    def _execute_phase(
-        self,
-        phase: dict[str, Any],
-        dry_run: bool,
-        files: Optional[str]
-    ) -> dict[str, Any]:
-        """Execute a single workflow phase."""
-
-        phase_id = phase.get('id', 'unknown')
-        tasks = phase.get('tasks', [])
-
-        if dry_run:
-            # Generate preview for phase
-            console.print(f"[yellow]DRY RUN: Phase {phase_id} with {len(tasks)} tasks[/yellow]")
-            estimated_tokens = 0
-            for task in tasks:
-                if isinstance(task, dict) and 'actor' in task:
-                    adapter = self.router.registry.get_adapter(task.get('actor'))
-                    if adapter:
-                        try:
-                            estimated_tokens += adapter.estimate_cost(task)
-                        except Exception:
-                            pass
-            return {
-                "success": True,
-                "tokens_used": 0,
-                "estimated_tokens": estimated_tokens,
-                "artifacts": [],
-                "output": f"DRY RUN: Phase {phase_id} with {len(tasks)} tasks (estimated {estimated_tokens:,} tokens)"
-            }
-
-        # Execute tasks in the phase
-        total_tokens = 0
-        artifacts = []
-
-        for task in tasks:
-            # Convert task to step format for execution
-            if isinstance(task, str):
-                step = {"id": task, "actor": "unknown", "name": task}
-            else:
-                step = task
-
-            step_result = self._execute_step(step, files=files)
-            total_tokens += step_result.get("tokens_used", 0)
-            artifacts.extend(step_result.get("artifacts", []))
-
-            if not step_result.get("success", False):
-                return {
-                    "success": False,
-                    "error": f"Task {task} failed",
-                    "tokens_used": total_tokens,
-                    "artifacts": artifacts
-                }
-
-        return {
-            "success": True,
-            "tokens_used": total_tokens,
-            "artifacts": artifacts,
-            "output": f"Phase {phase_id} completed successfully"
-        }
-
-    def _calculate_parallel_efficiency(
-        self,
-        workflow_results: dict[str, WorkflowResult],
-        total_time: float
-    ) -> float:
-        """Calculate parallelization efficiency."""
-
-        if not workflow_results or total_time <= 0:
-            return 0.0
-
-        # Sum individual execution times
-        individual_times = sum(
-            result.execution_time or 0.0 for result in workflow_results.values()
+        legacy_runner = LegacyWorkflowRunner()
+        return legacy_runner.execute_400_atom_pipeline(
+            atom_catalog_path,
+            classification_config,
+            execution_mode
         )
 
-        if individual_times <= 0:
-            return 0.0
+    def run_ipt_wt_workflow(
+        self,
+        workflow_file: Path,
+        request: Optional[str] = None,
+        budget: Optional[int] = None,
+    ) -> WorkflowResult:
+        """
+        Execute a lightweight IPT/WT-style workflow.
 
-        # Efficiency = (sum of individual times) / (total parallel time * number of workflows)
-        # Values closer to 1.0 indicate better parallel efficiency
-        expected_parallel_time = individual_times / len(workflow_results)
-        efficiency = expected_parallel_time / total_time if total_time > 0 else 0.0
+        NOTE: This method maintains legacy IPT/WT logic.
+        Will be refactored in Phase 3.
+        """
+        from .workflow_runner_legacy import LegacyWorkflowRunner
 
-        return min(efficiency, 1.0)  # Cap at 100% efficiency
+        legacy_runner = LegacyWorkflowRunner()
+        return legacy_runner.run_ipt_wt_workflow(
+            workflow_file,
+            request,
+            budget
+        )
+
+
+# ============================================================================
+# Convenience Functions (Deprecated)
+# ============================================================================
+
+def run_workflow(workflow_path: str, **kwargs) -> dict[str, Any]:
+    """
+    DEPRECATED: Use WorkflowCoordinator.execute_workflow() instead.
+
+    Convenience function maintained for backward compatibility.
+    """
+    warnings.warn(
+        "run_workflow() is deprecated. Use WorkflowCoordinator.execute_workflow() instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+
+    runner = WorkflowRunner()
+    result = runner.run(Path(workflow_path), **kwargs)
+
+    return {
+        "success": result.success,
+        "error": result.error,
+        "artifacts": result.artifacts,
+        "tokens_used": result.tokens_used,
+        "steps_completed": result.steps_completed,
+    }

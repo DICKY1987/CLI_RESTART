@@ -1,6 +1,22 @@
 """CLI command modules."""
 
 # Explicitly import command modules to make them available
-from . import git_commands, replay, repo_init, rollback, scripts, state
+# Legacy commands
+from . import git_commands, replay, repo_init, scripts, state
 
-__all__ = ["git_commands", "repo_init", "state", "scripts", "rollback", "replay"]
+# Phase 3 modular commands
+from . import workflow_commands, verify_commands, pr_commands, cost_commands
+
+__all__ = [
+    # Legacy commands
+    "git_commands",
+    "repo_init",
+    "state",
+    "scripts",
+    "replay",
+    # Phase 3 modular commands
+    "workflow_commands",
+    "verify_commands",
+    "pr_commands",
+    "cost_commands",
+]
