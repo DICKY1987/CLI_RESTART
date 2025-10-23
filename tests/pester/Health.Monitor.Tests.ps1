@@ -51,10 +51,10 @@ Describe 'Health.Monitor' -Tag 'Health' {
     # Run health monitor
     & $healthMonitorScript -OutputPath $healthOutput -IntervalSeconds 1 -MaxChecks 1
 
-    # Read and parse JSON
+    # Read and parse JSON (assign outside of Should to avoid scope issues)
+    Start-Sleep -Milliseconds 50
     $content = Get-Content -LiteralPath $healthOutput -Raw
-    $health = $null
-    { $health = $content | ConvertFrom-Json } | Should -Not -Throw
+    $health = $content | ConvertFrom-Json
 
     # Verify required fields
     $health.timestamp | Should -Not -BeNullOrEmpty

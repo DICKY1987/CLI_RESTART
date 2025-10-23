@@ -128,7 +128,16 @@ function Write-HealthStatus {
 
   try {
     $json = $Status | ConvertTo-Json -Depth 10
-    $json | Out-File -FilePath $Path -Encoding UTF8 -Force
+    # Write atomically to reduce chances of partially-read files in tests
+    $dir = Split-Path -Parent $Path
+    if ($dir -and -not (Test-Path -LiteralPath $dir)) {
+      New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+    $tmp = "$Path.tmp"
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($tmp, $json, $utf8NoBom)
+    if (Test-Path -LiteralPath $Path) { Remove-Item -LiteralPath $Path -Force }
+    Move-Item -LiteralPath $tmp -Destination $Path -Force
     Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Health status written to: $Path" -ForegroundColor Green
   }
   catch {
