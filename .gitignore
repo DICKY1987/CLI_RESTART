@@ -158,3 +158,11 @@ tools/atomic-workflow-system/.venv/
 # AI automation framework
 .ai-automation/runs/
 *.jsonl
+
+# Merge system audit logs
+# Keep audit logs in repo (exception to *.jsonl)
+!.runs/audit/*.jsonl
+
+# Temporary merge artifacts (CI only, don't commit)
+.git/merge-audit.jsonl
+.git/merge-fallback.log

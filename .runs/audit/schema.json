@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/DICKY1987/CLI_RESTART/schemas/merge-audit.schema.json",
+  "title": "Merge Audit Record",
+  "description": "Schema for merge train audit log records (JSONL format)",
+  "type": "object",
+  "required": [
+    "timestamp",
+    "run_id",
+    "branch_source",
+    "branch_target",
+    "policy_version",
+    "outcome"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the merge operation started"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier for this merge run (GitHub run ID or local timestamp)"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["merge", "rollback", "quarantine", "revert"],
+      "description": "Type of merge event",
+      "default": "merge"
+    },
+    "branch_source": {
+      "type": "string",
+      "description": "Source branch being merged (e.g., workstream/ai-refactor/20251023-103000)"
+    },
+    "branch_target": {
+      "type": "string",
+      "description": "Target branch receiving the merge (typically 'main')"
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Version of .merge-policy.yaml used for this merge"
+    },
+    "strategies_applied": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "merge-drivers",
+          "json-struct",
+          "yaml-struct",
+          "theirs",
+          "ours",
+          "union",
+          "manual",
+          "rerere",
+          "weighted-resolution"
+        ]
+      },
+      "description": "List of merge strategies actually applied during merge"
+    },
+    "fallbacks_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "File that required fallback strategy"
+          },
+          "strategy": {
+            "type": "string",
+            "description": "Fallback strategy used"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why fallback was needed"
+          }
+        }
+      },
+      "description": "Fallback strategies used when primary strategies failed"
+    },
+    "conflicts_found": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of conflicts detected during merge"
+    },
+    "conflict_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of files with conflicts"
+    },
+    "verification_gates": {
+      "type": "object",
+      "description": "Results of verification gates",
+      "properties": {
+        "pre_commit": {
+          "type": "string",
+          "enum": ["pass", "fail", "error", "skipped"]
+        },
+        "integration_tests": {
+          "type": "string",
+          "enum": ["pass", "fail", "error", "skipped"]
+        },
+        "security_checks": {
+          "type": "string",
+          "enum": ["pass", "fail", "error", "skipped"]
+        },
+        "static_analysis": {
+          "type": "string",
+          "enum": ["pass", "fail", "error", "skipped"]
+        },
+        "skipped": {
+          "type": "boolean",
+          "description": "True if all verification was skipped via --skip-verification"
+        }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["merged", "quarantined", "failed", "rolled_back"],
+      "description": "Final outcome of the merge operation"
+    },
+    "quarantine_reason": {
+      "type": ["string", "null"],
+      "description": "Reason for quarantine if outcome is 'quarantined'"
+    },
+    "quarantine_branch": {
+      "type": "string",
+      "description": "Name of quarantine branch if created"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Paths to artifact files generated during merge (logs, diffs, etc.)"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Errors encountered during merge process"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "description": "Duration of merge operation in seconds"
+    },
+    "git_sha_before": {
+      "type": "string",
+      "description": "Git SHA of main branch before merge"
+    },
+    "git_sha_after": {
+      "type": "string",
+      "description": "Git SHA of main branch after merge"
+    },
+    "rerere_cache_hits": {
+      "type": "integer",
+      "description": "Number of conflicts resolved by rerere cache"
+    }
+  }
+}
