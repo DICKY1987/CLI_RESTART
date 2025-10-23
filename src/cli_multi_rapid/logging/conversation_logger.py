@@ -1,6 +1,9 @@
 """
 Conversation Logger - AI conversation capture with replay capability.
 
+DEPRECATED: This module is deprecated and will be removed in a future version.
+Use unified_logger.UnifiedLogger instead for all logging needs.
+
 Captures all AI interactions including prompts, responses, context, and metadata
 for debugging, compliance, and auditing purposes.
 """
@@ -9,12 +12,21 @@ import hashlib
 import json
 import logging
 import re
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
+
+# Emit deprecation warning on import
+warnings.warn(
+    "ConversationLogger is deprecated. Use unified_logger.UnifiedLogger or "
+    "unified_logger.get_logger() instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class ConversationLogger:

@@ -5,6 +5,8 @@ Git Operations Adapter with GitHub API Integration
 Automates git operations and GitHub API interactions, emitting structured artifacts
 suitable for downstream gates and reporting. Supports both basic git operations
 and advanced GitHub features like repository analysis, issue management, and PR automation.
+
+Refactored to use unified GitHubClient from domain layer.
 """
 
 from __future__ import annotations
@@ -17,8 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import requests
-
+from ..domain.github_client import GitHubClient
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
 
@@ -39,8 +40,8 @@ class GitOpsAdapter(BaseAdapter):
             adapter_type=AdapterType.DETERMINISTIC,
             description="Enhanced git operations with GitHub API integration (repos, issues, PRs, releases)",
         )
-        self.github_token = os.environ.get("GITHUB_TOKEN")
-        self.github_api_base = "https://api.github.com"
+        # Use unified GitHub client from domain layer
+        self.github = GitHubClient()
 
     def execute(
         self,
@@ -297,59 +298,8 @@ class GitOpsAdapter(BaseAdapter):
     # GitHub API Integration Methods
 
     def _get_github_repo(self) -> str:
-        """Extract GitHub repo name from git remote origin."""
-        try:
-            result = self._git(["remote", "get-url", "origin"])
-            if result.success:
-                url = result.stdout.strip()
-                # Handle both SSH and HTTPS formats
-                if url.startswith("git@github.com:"):
-                    repo = url.replace("git@github.com:", "").replace(".git", "")
-                elif "github.com/" in url:
-                    repo = url.split("github.com/")[-1].replace(".git", "")
-                else:
-                    return "unknown/unknown"
-                return repo
-        except Exception:
-            pass
-        return "unknown/unknown"
-
-    def _github_api_request(
-        self, endpoint: str, method: str = "GET", data: dict | None = None
-    ) -> dict[str, Any]:
-        """Make authenticated GitHub API request."""
-        if not self.github_token:
-            return {"error": "GitHub token not found in environment"}
-
-        headers = {
-            "Authorization": f"token {self.github_token}",
-            "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "CLI-Orchestrator/1.0",
-        }
-
-        url = f"{self.github_api_base}/{endpoint.lstrip('/')}"
-
-        try:
-            if method == "GET":
-                response = requests.get(url, headers=headers, timeout=30)
-            elif method == "POST":
-                response = requests.post(url, headers=headers, json=data, timeout=30)
-            elif method == "PUT":
-                response = requests.put(url, headers=headers, json=data, timeout=30)
-            elif method == "PATCH":
-                response = requests.patch(url, headers=headers, json=data, timeout=30)
-            else:
-                return {"error": f"Unsupported HTTP method: {method}"}
-
-            if response.status_code < 400:
-                return response.json() if response.content else {"success": True}
-            else:
-                return {
-                    "error": f"GitHub API error {response.status_code}: {response.text}"
-                }
-
-        except Exception as e:
-            return {"error": f"GitHub API request failed: {str(e)}"}
+        """Extract GitHub repo name from git remote origin (uses unified GitHubClient)."""
+        return self.github.get_repository_from_remote(fallback_repo="unknown/unknown")
 
     def _analyze_repository(self, repo: str) -> dict[str, Any]:
         """Analyze GitHub repository structure and metadata."""
@@ -363,7 +313,7 @@ class GitOpsAdapter(BaseAdapter):
         }
 
         # Get repository information
-        repo_data = self._github_api_request(f"repos/{repo}")
+        repo_data = self.github.get(f"repos/{repo}")
         if "error" not in repo_data:
             analysis["repository_info"] = {
                 "name": repo_data.get("name"),
@@ -379,7 +329,7 @@ class GitOpsAdapter(BaseAdapter):
             analysis["topics"] = repo_data.get("topics", [])
 
         # Get language breakdown
-        languages = self._github_api_request(f"repos/{repo}/languages")
+        languages = self.github.get(f"repos/{repo}/languages")
         if "error" not in languages:
             total_bytes = sum(languages.values())
             analysis["languages"] = (
@@ -395,7 +345,7 @@ class GitOpsAdapter(BaseAdapter):
             )
 
         # Get recent commits
-        commits = self._github_api_request(f"repos/{repo}/commits?per_page=10")
+        commits = self.github.get(f"repos/{repo}/commits?per_page=10")
         if "error" not in commits and isinstance(commits, list):
             analysis["recent_activity"]["recent_commits"] = len(commits)
             analysis["recent_activity"]["last_commit"] = (
@@ -405,7 +355,7 @@ class GitOpsAdapter(BaseAdapter):
             )
 
         # Get open pull requests
-        prs = self._github_api_request(f"repos/{repo}/pulls?state=open&per_page=5")
+        prs = self.github.get(f"repos/{repo}/pulls?state=open&per_page=5")
         if "error" not in prs and isinstance(prs, list):
             analysis["recent_activity"]["open_prs"] = len(prs)
             analysis["recent_activity"]["pr_titles"] = [
@@ -420,9 +370,7 @@ class GitOpsAdapter(BaseAdapter):
         """Create a new GitHub issue."""
         data = {"title": title, "body": body, "labels": labels, "assignees": assignees}
 
-        result = self._github_api_request(
-            f"repos/{repo}/issues", method="POST", data=data
-        )
+        result = self.github.post(f"repos/{repo}/issues", data=data)
 
         if "error" not in result:
             return {
@@ -446,7 +394,7 @@ class GitOpsAdapter(BaseAdapter):
         if labels:
             params += f"&labels={','.join(labels)}"
 
-        issues = self._github_api_request(f"repos/{repo}/issues?{params}")
+        issues = self.github.get(f"repos/{repo}/issues?{params}")
 
         if "error" not in issues and isinstance(issues, list):
             return [
@@ -472,13 +420,13 @@ class GitOpsAdapter(BaseAdapter):
         if not pr_number:
             return {"error": "PR number is required"}
 
-        pr_data = self._github_api_request(f"repos/{repo}/pulls/{pr_number}")
+        pr_data = self.github.get(f"repos/{repo}/pulls/{pr_number}")
 
         if "error" in pr_data:
             return pr_data
 
         # Get PR files
-        files = self._github_api_request(f"repos/{repo}/pulls/{pr_number}/files")
+        files = self.github.get(f"repos/{repo}/pulls/{pr_number}/files")
 
         analysis = {
             "pr_number": pr_number,
@@ -518,7 +466,7 @@ class GitOpsAdapter(BaseAdapter):
         else:
             endpoint = f"repos/{repo}/releases/tags/{tag}"
 
-        release = self._github_api_request(endpoint)
+        release = self.github.get(endpoint)
 
         if "error" not in release:
             return {
@@ -545,7 +493,7 @@ class GitOpsAdapter(BaseAdapter):
 
     def _list_github_workflows(self, repo: str) -> list[dict[str, Any]]:
         """List GitHub Actions workflows."""
-        workflows = self._github_api_request(f"repos/{repo}/actions/workflows")
+        workflows = self.github.get(f"repos/{repo}/actions/workflows")
 
         if "error" not in workflows and "workflows" in workflows:
             return [

@@ -4,9 +4,13 @@ CLI Orchestrator Router System
 
 Routes workflow steps between deterministic tools and AI adapters based on
 configured policies and step requirements.
+
+Refactored to use AdapterFactory for lazy loading and plugin discovery,
+eliminating circular dependencies and enabling runtime adapter extension.
 """
 
 import glob
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -14,11 +18,6 @@ from typing import Any, Optional
 from rich.console import Console
 
 from .adapters import AdapterRegistry
-from .adapters.ai_analyst import AIAnalystAdapter
-from .adapters.ai_editor import AIEditorAdapter
-from .adapters.code_fixers import CodeFixersAdapter
-from .adapters.pytest_runner import PytestRunnerAdapter
-from .adapters.vscode_diagnostics import VSCodeDiagnosticsAdapter
 from .coordination import FileScopeManager
 
 
@@ -114,67 +113,24 @@ class Router:
         self.deterministic_engine = DeterministicEngine(mode="strict")
 
     def _initialize_adapters(self) -> None:
-        """Initialize available adapters in the registry."""
-        # Register deterministic adapters
-        self.registry.register(CodeFixersAdapter())
-        self.registry.register(PytestRunnerAdapter())
-        self.registry.register(VSCodeDiagnosticsAdapter())
-        from .adapters.git_ops import GitOpsAdapter
+        """
+        Initialize available adapters in the registry.
 
-        self.registry.register(GitOpsAdapter())
-        from .adapters.github_integration import GitHubIntegrationAdapter
+        Refactored to use AdapterFactory for lazy loading - adapters are
+        registered by module path and loaded only when needed, eliminating
+        circular dependencies and reducing startup time.
+        """
 
-        self.registry.register(GitHubIntegrationAdapter())
+        # All core adapters are now registered via AdapterFactory automatically
+        # No direct imports needed - adapters are loaded lazily on first use
 
-        # Register tool adapter bridges
-        from .adapters.tool_adapter_bridge import ToolAdapterBridge
+        # The registry now uses the factory pattern which already has all core
+        # adapters registered via module paths in factory._register_core_adapters()
 
-        self.registry.register(ToolAdapterBridge("vcs"))
-        self.registry.register(ToolAdapterBridge("containers"))
-        self.registry.register(ToolAdapterBridge("editor"))
-        self.registry.register(ToolAdapterBridge("js_runtime"))
-        self.registry.register(ToolAdapterBridge("ai_cli"))
-        self.registry.register(ToolAdapterBridge("python_quality"))
-        self.registry.register(ToolAdapterBridge("precommit"))
-
-        # Register AI-powered adapters
-        self.registry.register(AIEditorAdapter())
-        self.registry.register(AIAnalystAdapter())
-        from .adapters.deepseek_adapter import DeepSeekAdapter
-
-        self.registry.register(DeepSeekAdapter())
-
-        # Register Codex pipeline adapters
-        from .adapters.bundle_loader import BundleLoaderAdapter
-        from .adapters.contract_validator import ContractValidatorAdapter
-        from .adapters.enhanced_bundle_applier import EnhancedBundleApplierAdapter
-
-        self.registry.register(ContractValidatorAdapter())
-        self.registry.register(BundleLoaderAdapter())
-        self.registry.register(EnhancedBundleApplierAdapter())
-
-        # Register verification gate adapters
-        from .adapters.certificate_generator import CertificateGeneratorAdapter
-        from .adapters.cost_estimator import CostEstimatorAdapter
-        from .adapters.import_resolver import ImportResolverAdapter
-        from .adapters.security_scanner import SecurityScannerAdapter
-        from .adapters.syntax_validator import SyntaxValidatorAdapter
-        from .adapters.type_checker import TypeCheckerAdapter
-
-        self.registry.register(SyntaxValidatorAdapter())
-        self.registry.register(ImportResolverAdapter())
-        self.registry.register(TypeCheckerAdapter())
-        self.registry.register(SecurityScannerAdapter())
-        self.registry.register(CertificateGeneratorAdapter())
-        self.registry.register(CostEstimatorAdapter())
-
-        # Register verifier adapter (quality gates)
-        from .adapters.verifier_adapter import VerifierAdapter
-
-        self.registry.register(VerifierAdapter())
-
+        # Report adapter count (includes factory-registered adapters)
+        adapter_count = len(self.registry.list_adapters())
         self.console.print(
-            f"[dim]Initialized {len(self.registry.list_adapters())} adapters[/dim]"
+            f"[dim]Initialized {adapter_count} adapters (lazy-loaded via factory)[/dim]"
         )
 
     # Minimal helper used by tests to fetch the adapter for a step
@@ -265,6 +221,9 @@ class Router:
         # Get adapter metadata
         adapter_info = self.adapters.get(actor, {})
 
+        # Ensure adapter_info has required keys (backward compatibility)
+        adapter_type = adapter_info.get("type") or adapter_info.get("adapter_type", "unknown")
+
         # Apply routing policy with complexity awareness
         prefer_deterministic = True
         complexity_threshold = 0.7  # Above this, prefer AI
@@ -273,7 +232,7 @@ class Router:
             prefer_deterministic = policy.get("prefer_deterministic", True)
             complexity_threshold = policy.get("complexity_threshold", 0.7)
         # Early preference: if actor is AI and deterministic is preferred and feasible, switch
-        if adapter_info.get("type") == "ai" and prefer_deterministic:
+        if adapter_type == "ai" and prefer_deterministic:
             try:
                 # Use determinism analysis to inform routing
                 if determinism_analysis.deterministic or (not determinism_analysis.issues and complexity.score < complexity_threshold):
@@ -304,7 +263,7 @@ class Router:
                 pass
 
         # Enhanced routing logic with complexity scoring
-        if adapter_info["type"] == "deterministic":
+        if adapter_type == "deterministic":
             # Check if deterministic tool can handle complexity
             confidence = self._calculate_deterministic_confidence(complexity, actor)
 
@@ -326,14 +285,14 @@ class Router:
             return RoutingDecision(
                 adapter_name=actor,
                 adapter_type="deterministic",
-                reasoning=f"Deterministic tool: {adapter_info['description']} (complexity: {complexity.score:.2f})",
+                reasoning=f"Deterministic tool: {adapter_info.get('description', actor)} (complexity: {complexity.score:.2f})",
                 estimated_tokens=0,
                 complexity_score=complexity.score,
                 confidence=confidence,
                 performance_hint=self._get_performance_hint(actor, complexity)
             )
 
-        elif adapter_info["type"] == "ai":
+        elif adapter_type == "ai":
             if prefer_deterministic and complexity.score < (1.0 - complexity_threshold):
                 # Simple task - check for deterministic alternative
                 alt_adapter = self._find_deterministic_alternative(actor)
@@ -356,7 +315,7 @@ class Router:
             return RoutingDecision(
                 adapter_name=actor,
                 adapter_type="ai",
-                reasoning=f"AI tool: {adapter_info['description']} (complexity: {complexity.score:.2f})",
+                reasoning=f"AI tool: {adapter_info.get('description', actor)} (complexity: {complexity.score:.2f})",
                 estimated_tokens=ai_tokens,
                 complexity_score=complexity.score,
                 confidence=ai_confidence,

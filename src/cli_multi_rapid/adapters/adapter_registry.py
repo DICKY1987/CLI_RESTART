@@ -4,9 +4,12 @@ Adapter Registry
 
 Central registry for managing and discovering available adapters.
 Integrates with the Router system to provide dynamic adapter availability.
+
+Enhanced with AdapterFactory integration for lazy loading and plugin discovery.
 """
 
 import logging
+import warnings
 from typing import Optional
 
 from .base_adapter import AdapterType, BaseAdapter
@@ -15,27 +18,89 @@ logger = logging.getLogger(__name__)
 
 
 class AdapterRegistry:
-    """Central registry for all available adapters."""
+    """
+    Central registry for all available adapters.
 
-    def __init__(self):
+    Enhanced to use AdapterFactory for lazy loading while maintaining
+    backward compatibility with direct registration.
+    """
+
+    def __init__(self, use_factory: bool = True):
+        """
+        Initialize the adapter registry.
+
+        Args:
+            use_factory: If True, use AdapterFactory for lazy loading (recommended).
+                        If False, use legacy eager loading (deprecated).
+        """
         self._adapters: dict[str, BaseAdapter] = {}
         self._adapter_classes: dict[str, type[BaseAdapter]] = {}
-        self._auto_register_core_adapters()
+        self._use_factory = use_factory
+
+        # Import factory lazily to avoid circular dependency
+        if self._use_factory:
+            from .factory import factory as adapter_factory
+            self._factory = adapter_factory
+        else:
+            self._factory = None
+            # Legacy mode - auto-register core adapters eagerly
+            self._auto_register_core_adapters()
 
     def register(self, adapter: BaseAdapter) -> None:
-        """Register an adapter instance."""
+        """
+        Register an adapter instance.
+
+        Note: Direct instance registration bypasses factory lazy loading.
+        Consider using factory.register_instance() for better control.
+        """
         self._adapters[adapter.name] = adapter
+
+        # Also register with factory if available
+        if self._factory:
+            self._factory.register_instance(adapter.name, adapter)
+
         logger.info(
             f"Registered adapter: {adapter.name} ({adapter.adapter_type.value})"
         )
 
     def register_class(self, name: str, adapter_class: type[BaseAdapter]) -> None:
-        """Register an adapter class for lazy instantiation."""
+        """
+        Register an adapter class for lazy instantiation.
+
+        Deprecated: Use AdapterFactory.register_class() or register_module() instead.
+        """
+        warnings.warn(
+            "AdapterRegistry.register_class() is deprecated. "
+            "Use AdapterFactory.register_class() or register_module() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         self._adapter_classes[name] = adapter_class
+
+        # Also register with factory if available
+        if self._factory:
+            self._factory.register_class(name, adapter_class)
+
         logger.debug(f"Registered adapter class: {name}")
 
     def get_adapter(self, name: str) -> Optional[BaseAdapter]:
-        """Get an adapter by name, instantiating if necessary."""
+        """
+        Get an adapter by name, instantiating if necessary.
+
+        Uses AdapterFactory for lazy loading when available.
+        """
+
+        # Use factory if available (recommended path)
+        if self._factory:
+            # Try factory first
+            adapter = self._factory.create(name)
+            if adapter:
+                # Cache locally for fast access
+                self._adapters[name] = adapter
+                return adapter
+
+        # Fallback to legacy direct instantiation
         # Check if already instantiated
         if name in self._adapters:
             return self._adapters[name]
@@ -48,7 +113,7 @@ class AdapterRegistry:
                 # More complex adapters may need factory methods
                 adapter = adapter_class()
                 self._adapters[name] = adapter
-                logger.info(f"Instantiated adapter: {name}")
+                logger.info(f"Instantiated adapter (legacy): {name}")
                 return adapter
             except Exception as e:
                 logger.error(f"Failed to instantiate adapter {name}: {e}")
@@ -61,7 +126,18 @@ class AdapterRegistry:
         """Get metadata for all available adapters."""
         available = {}
 
-        # Check instantiated adapters
+        # Use factory if available
+        if self._factory:
+            # Get all registered adapter names from factory
+            for name in self._factory.list_registered():
+                # Try to get adapter metadata (will instantiate if needed)
+                adapter = self.get_adapter(name)
+                if adapter and adapter.is_available():
+                    available[name] = adapter.get_metadata()
+
+            return available
+
+        # Legacy mode - check instantiated adapters
         for name, adapter in self._adapters.items():
             if adapter.is_available():
                 available[name] = adapter.get_metadata()
@@ -109,8 +185,13 @@ class AdapterRegistry:
         return adapter.estimate_cost(step)
 
     def list_adapters(self) -> list[str]:
-        """List all registered adapter names."""
+        """List all registered adapter names (including factory-registered adapters)."""
         all_names = set(self._adapters.keys()) | set(self._adapter_classes.keys())
+
+        # Include factory-registered adapters
+        if self._factory:
+            all_names.update(self._factory.list_registered())
+
         return sorted(all_names)
 
     # Backwards-compatibility alias expected by some tests

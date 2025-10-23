@@ -4,6 +4,8 @@ GitHub Integration Adapter
 
 Specialized adapter for comprehensive GitHub repository analysis, issue management,
 PR reviews, and release operations with Claude AI integration.
+
+Refactored to use unified GitHubClient from domain layer.
 """
 
 from __future__ import annotations
@@ -16,8 +18,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import requests
-
+from ..domain.github_client import GitHubClient
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
 
@@ -47,8 +48,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
             adapter_type=AdapterType.DETERMINISTIC,
             description="GitHub repository analysis, issue automation, PR reviews, and release management",
         )
-        self.github_token = os.environ.get("GITHUB_TOKEN")
-        self.github_api_base = "https://api.github.com"
+        # Use unified GitHub client from domain layer
+        self.github = GitHubClient()
 
     def execute(
         self,
@@ -129,69 +130,17 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
     def is_available(self) -> bool:
         """Check if this adapter is available."""
-        return bool(self.github_token)
+        return self.github.is_authenticated()
 
     # GitHub API Helper Methods
 
     def _get_github_repo(self, params: dict[str, Any]) -> str:
-        """Get GitHub repository from params or git remote."""
+        """Get GitHub repository from params or git remote (uses unified GitHubClient)."""
         repo = params.get("repo")
         if repo:
             return repo
 
-        try:
-            result = subprocess.run(
-                ["git", "remote", "get-url", "origin"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if result.returncode == 0:
-                url = result.stdout.strip()
-                if url.startswith("git@github.com:"):
-                    return url.replace("git@github.com:", "").replace(".git", "")
-                elif "github.com/" in url:
-                    return url.split("github.com/")[-1].replace(".git", "")
-        except Exception:
-            pass
-        return "unknown/unknown"
-
-    def _github_api_request(
-        self, endpoint: str, method: str = "GET", data: dict | None = None
-    ) -> dict[str, Any]:
-        """Make authenticated GitHub API request."""
-        if not self.github_token:
-            return {"error": "GitHub token not found in environment"}
-
-        headers = {
-            "Authorization": f"token {self.github_token}",
-            "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "CLI-Orchestrator-GitHub-Integration/1.0",
-        }
-
-        url = f"{self.github_api_base}/{endpoint.lstrip('/')}"
-
-        try:
-            if method == "GET":
-                response = requests.get(url, headers=headers, timeout=30)
-            elif method == "POST":
-                response = requests.post(url, headers=headers, json=data, timeout=30)
-            elif method == "PUT":
-                response = requests.put(url, headers=headers, json=data, timeout=30)
-            elif method == "PATCH":
-                response = requests.patch(url, headers=headers, json=data, timeout=30)
-            else:
-                return {"error": f"Unsupported HTTP method: {method}"}
-
-            if response.status_code < 400:
-                return response.json() if response.content else {"success": True}
-            else:
-                return {
-                    "error": f"GitHub API error {response.status_code}: {response.text}"
-                }
-
-        except Exception as e:
-            return {"error": f"GitHub API request failed: {str(e)}"}
+        return self.github.get_repository_from_remote(fallback_repo="unknown/unknown")
 
     # Analysis Methods
 
@@ -211,7 +160,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Repository overview
-        repo_data = self._github_api_request(f"repos/{repo}")
+        repo_data = self.github.get(f"repos/{repo}")
         if "error" not in repo_data:
             analysis_data["overview"] = {
                 "name": repo_data.get("name"),
@@ -232,7 +181,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
             }
 
         # Recent activity analysis
-        commits = self._github_api_request(f"repos/{repo}/commits?per_page=50")
+        commits = self.github.get(f"repos/{repo}/commits?per_page=50")
         if "error" not in commits and isinstance(commits, list):
             commit_dates = [
                 c.get("commit", {}).get("committer", {}).get("date")
@@ -253,8 +202,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
             }
 
         # Health metrics
-        prs = self._github_api_request(f"repos/{repo}/pulls?state=all&per_page=20")
-        issues = self._github_api_request(f"repos/{repo}/issues?state=all&per_page=20")
+        prs = self.github.get(f"repos/{repo}/pulls?state=all&per_page=20")
+        issues = self.github.get(f"repos/{repo}/issues?state=all&per_page=20")
 
         if "error" not in prs and "error" not in issues:
             analysis_data["health_metrics"] = {
@@ -299,18 +248,18 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Check vulnerability alerts
-        alerts = self._github_api_request(f"repos/{repo}/vulnerability-alerts")
+        alerts = self.github.get(f"repos/{repo}/vulnerability-alerts")
         if "error" not in alerts:
             security_data["vulnerability_alerts"] = alerts
 
         # Check security advisories
-        advisories = self._github_api_request(f"repos/{repo}/security-advisories")
+        advisories = self.github.get(f"repos/{repo}/security-advisories")
         if "error" not in advisories:
             security_data["security_advisories"] = advisories
 
         # Branch protection analysis
         default_branch = params.get("branch", "main")
-        branch_protection = self._github_api_request(
+        branch_protection = self.github.get(
             f"repos/{repo}/branches/{default_branch}/protection"
         )
         if "error" not in branch_protection:
@@ -343,7 +292,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Language breakdown
-        languages = self._github_api_request(f"repos/{repo}/languages")
+        languages = self.github.get(f"repos/{repo}/languages")
         if "error" not in languages:
             total_bytes = sum(languages.values())
             quality_data["languages"] = (
@@ -359,7 +308,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
             )
 
         # Check for documentation files
-        contents = self._github_api_request(f"repos/{repo}/contents")
+        contents = self.github.get(f"repos/{repo}/contents")
         if "error" not in contents and isinstance(contents, list):
             quality_data["documentation"] = self._analyze_documentation(contents)
             quality_data["file_structure"] = self._analyze_file_structure(contents)
@@ -388,7 +337,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Analyze workflow runs
-        workflow_runs = self._github_api_request(
+        workflow_runs = self.github.get(
             f"repos/{repo}/actions/runs?per_page=50"
         )
         if "error" not in workflow_runs and "workflow_runs" in workflow_runs:
@@ -420,12 +369,12 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Get dependency graph (requires special permissions)
-        dependencies = self._github_api_request(f"repos/{repo}/dependency-graph/sbom")
+        dependencies = self.github.get(f"repos/{repo}/dependency-graph/sbom")
         if "error" not in dependencies:
             dependency_data["dependencies"] = dependencies
 
         # Check for known vulnerabilities
-        alerts = self._github_api_request(f"repos/{repo}/dependabot/alerts")
+        alerts = self.github.get(f"repos/{repo}/dependabot/alerts")
         if "error" not in alerts:
             dependency_data["vulnerabilities"] = alerts
 
@@ -453,7 +402,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Get all workflows
-        workflows = self._github_api_request(f"repos/{repo}/actions/workflows")
+        workflows = self.github.get(f"repos/{repo}/actions/workflows")
         if "error" not in workflows and "workflows" in workflows:
             for workflow in workflows["workflows"]:
                 workflow_analysis = self._analyze_single_workflow(repo, workflow["id"])
@@ -481,7 +430,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Get recent issues
-        issues = self._github_api_request(f"repos/{repo}/issues?state=open&per_page=50")
+        issues = self.github.get(f"repos/{repo}/issues?state=open&per_page=50")
         if "error" not in issues and isinstance(issues, list):
             for issue in issues:
                 if "pull_request" not in issue:  # Filter out PRs
@@ -510,7 +459,7 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Get open PRs
-        prs = self._github_api_request(f"repos/{repo}/pulls?state=open&per_page=20")
+        prs = self.github.get(f"repos/{repo}/pulls?state=open&per_page=20")
         if "error" not in prs and isinstance(prs, list):
             for pr in prs:
                 pr_analysis = self._analyze_pr_for_automation(repo, pr)
@@ -540,12 +489,12 @@ class GitHubIntegrationAdapter(BaseAdapter):
         }
 
         # Get latest release
-        latest = self._github_api_request(f"repos/{repo}/releases/latest")
+        latest = self.github.get(f"repos/{repo}/releases/latest")
         if "error" not in latest:
             release_data["latest_release"] = latest
 
         # Get all releases for cadence analysis
-        releases = self._github_api_request(f"repos/{repo}/releases?per_page=10")
+        releases = self.github.get(f"repos/{repo}/releases?per_page=10")
         if "error" not in releases and isinstance(releases, list):
             release_data["release_cadence"] = self._analyze_release_cadence(releases)
 
@@ -688,10 +637,10 @@ class GitHubIntegrationAdapter(BaseAdapter):
 
     def _analyze_single_workflow(self, repo: str, workflow_id: int) -> dict[str, Any]:
         """Analyze a single workflow."""
-        workflow = self._github_api_request(
+        workflow = self.github.get(
             f"repos/{repo}/actions/workflows/{workflow_id}"
         )
-        runs = self._github_api_request(
+        runs = self.github.get(
             f"repos/{repo}/actions/workflows/{workflow_id}/runs?per_page=20"
         )
 
@@ -753,8 +702,8 @@ class GitHubIntegrationAdapter(BaseAdapter):
         pr_number = pr.get("number")
 
         # Get PR details
-        files = self._github_api_request(f"repos/{repo}/pulls/{pr_number}/files")
-        reviews = self._github_api_request(f"repos/{repo}/pulls/{pr_number}/reviews")
+        files = self.github.get(f"repos/{repo}/pulls/{pr_number}/files")
+        reviews = self.github.get(f"repos/{repo}/pulls/{pr_number}/reviews")
 
         analysis = {
             "number": pr_number,
