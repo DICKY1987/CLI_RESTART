@@ -7,7 +7,7 @@ This project is in early development. We aim to address security issues on the l
 ## Reporting a Vulnerability
 
 - Please do not open public issues for suspected vulnerabilities.
-- Instead, email the maintainer at: security@example.com with the subject line: `[SECURITY] <short description>`.
+- Preferred: Open a private advisory using GitHub Security Advisories: https://github.com/DICKY1987/CLI_RESTART/security/advisories/new
 - Include details to reproduce the issue, affected versions, and potential impact.
 - We will acknowledge receipt within 72 hours and provide a timeline for resolution.
 

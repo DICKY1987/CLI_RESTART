@@ -1,5 +1,7 @@
 # Testing Guide
 
+Note: For test suite structure and local patterns, see `tests/README.md`.
+
 This repository uses a unified PowerShell runner to execute all automated test suites and enforce language-specific coverage thresholds. The workflow is designed to be idempotent and portable across Windows and POSIX hosts that have [PowerShell 7+](https://learn.microsoft.com/powershell/scripting/install/installing-powershell) available.
 
 ## Prerequisites

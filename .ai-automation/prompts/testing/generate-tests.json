@@ -4,7 +4,7 @@
   "tool": "aider",
   "repo": ".",
   "model": "ollama_chat/deepseek-coder:latest",
-  "prompt": "Task: Generate comprehensive test suite for the specified module\nScope: tests/**; {TARGET_MODULE}\nConstraints: Use pytest; aim for 80%+ coverage; include edge cases and error conditions; follow AAA pattern (Arrange-Act-Assert)\nChecks: pytest -q --cov={TARGET_MODULE} --cov-report=term-missing; ruff check tests/\nArtifacts: tests/test_{TARGET_FILE}.py\nCommit: test: add comprehensive test suite for {TARGET_MODULE}\nContext: Review existing test patterns in tests/ directory; maintain consistency with project test style\nLimits: {\"max_iterations\": 5, \"soft_time\": \"15m\"}\nSuccess: All new tests pass; coverage >= 80% on target module; no linting errors",
+  "prompt": "Task: Generate comprehensive test suite for the specified module\nScope: tests/**; {TARGET_MODULE}\nConstraints: Use pytest; aim for 85%+ coverage; include edge cases and error conditions; follow AAA pattern (Arrange-Act-Assert)\nChecks: pytest -q --cov={TARGET_MODULE} --cov-report=term-missing; ruff check tests/\nArtifacts: tests/test_{TARGET_FILE}.py\nCommit: test: add comprehensive test suite for {TARGET_MODULE}\nContext: Review existing test patterns in tests/ directory; maintain consistency with project test style\nLimits: {\"max_iterations\": 5, \"soft_time\": \"15m\"}\nSuccess: All new tests pass; coverage >= 85% on target module; no linting errors",
   "args": [],
   "env": {
     "OLLAMA_API_BASE": "http://127.0.0.1:11434"

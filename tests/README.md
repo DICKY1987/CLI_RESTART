@@ -1,5 +1,7 @@
 # Tests Directory
 
+Note: For the canonical CI runner and thresholds, see `docs/TESTING.md`.
+
 ## Overview
 
 This directory contains the test suite for the CLI Orchestrator project. We maintain ≥85% code coverage and comprehensive test categories.

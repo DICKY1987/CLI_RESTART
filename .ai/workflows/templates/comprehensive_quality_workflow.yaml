@@ -133,7 +133,7 @@ steps:
       capture_output: true
       fail_fast: false
       coverage_enabled: true
-      coverage_threshold: 80
+      coverage_threshold: 85
       performance_profiling: true
       test_categories: ["unit", "integration", "security"]
 
@@ -147,7 +147,7 @@ steps:
       - type: "test_pass_rate"
         minimum: 0.95  # 95% of tests must pass
       - type: "coverage_threshold"
-        minimum: 0.80  # 80% code coverage required
+        minimum: 0.85  # 85% code coverage required
 
   # Step 5: Advanced Security and Type Validation
   - id: "1.005"
@@ -434,7 +434,7 @@ gates:
 
   - name: "coverage_validation"
     type: "advisory"
-    condition: "code coverage >= 80% OR coverage delta >= 0"
+    condition: "code coverage >= 85% OR coverage delta >= 0"
     warning_threshold: 75
 
   - name: "ai_review_quality"
