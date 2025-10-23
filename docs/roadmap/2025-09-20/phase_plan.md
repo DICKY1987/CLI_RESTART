@@ -16,7 +16,7 @@ Acceptance Criteria
 
 ## Phase B – Core Feature Development (Week 3–6)
 - Shared contracts: Define CLI↔VS Code API (e.g., `docs/contracts/INTERFACE_GUIDE.md`) and ensure extension parity.
-- GUI integration: Wire `CLI_PY_GUI` to orchestration; add server stubs and tests.
+- GUI integration: Wire `src/gui_terminal` to orchestration; add server stubs and tests.
 - LangGraph bridge: Implement `langgraph_cli.py` and `langgraph_git_integration.py` for git‑aware flows.
 - Contract & integration tests: Add `tests/contracts/` and `tests/integration/` suites; Playwright for extension path.
 

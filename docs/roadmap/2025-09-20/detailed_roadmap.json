@@ -118,7 +118,7 @@
           ],
           "estimate_h": 18,
           "artifacts": [
-            "CLI_PY_GUI/**",
+            "src/gui_terminal/**",
             "server.py"
           ]
         },
