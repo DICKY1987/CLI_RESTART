@@ -1,7 +1,12 @@
 # CLI Multi-Rapid Development Makefile
 # Cross-platform development commands for Python/TypeScript/MQL4
 
-.PHONY: help install install-dev test test-integration lint format type-check security-check clean build package ci docs
+.PHONY: help install install-dev test test\:py test\:ps test\:js test-integration lint format type-check security-check clean build package ci docs coverage
+
+POWERSHELL := pwsh
+ifeq ($(OS),Windows_NT)
+POWERSHELL := powershell
+endif
 
 # Default target
 help:
@@ -13,9 +18,12 @@ help:
 	@echo "  install-dev      Install development dependencies"
 	@echo ""
 	@echo "Testing:"
-	@echo "  test             Run unit tests"
-	@echo "  test-integration Run integration tests"
-	@echo "  test-all         Run all tests with coverage"
+        @echo "  test             Run all automated test suites"
+        @echo "  test:py          Run only Python unit tests"
+        @echo "  test:ps          Run only PowerShell tests"
+        @echo "  test:js          Run only JavaScript tests (if configured)"
+        @echo "  test-integration Run integration tests"
+        @echo "  coverage        Generate coverage reports"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  lint             Run linting (ruff, eslint)"
@@ -44,13 +52,21 @@ install-dev:
 
 # Testing targets
 test:
-	pytest tests/ -v --tb=short
+        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1
+
+test\:py:
+        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPowerShell -SkipNode
+
+test\:ps:
+        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipNode
+
+test\:js:
+        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipPowerShell
 
 test-integration:
-	pytest tests/integration/ -v --tb=short -m "not slow"
+        pytest tests/integration/ -v --tb=short -m "not slow"
 
-test-all:
-	pytest tests/ -v --cov=src --cov-report=html --cov-report=term-missing
+coverage: test
 
 # Code quality targets
 lint:
@@ -107,7 +123,7 @@ package:
 	@echo "Packaging complete"
 
 # CI pipeline
-ci: lint type-check security-check test-all build
+ci: lint type-check security-check test build
 	@echo "CI pipeline completed successfully"
 
 # Development helpers
