@@ -21,12 +21,34 @@ The project is multi-faceted, combining:
 - **Node.js**: 16+ (for VS Code extension development)
 - **Git**: 2.30+ (for git operations and GitHub integration)
 
+## Repository Location Detection
+
+The repository uses automatic location detection to determine the project root:
+
+1. **Primary**: Git root detection via `git rev-parse --show-toplevel`
+2. **Fallback**: Current working directory (`Path.cwd()`)
+
+All components use this unified detection mechanism. To verify the detected location:
+
+```bash
+python scripts/show_directory_detection.py
+```
+
+This ensures consistent path resolution across all tools and workflows.
+
 ## Core Architecture
 
 ### Key Components
 - **Workflow Runner**: Executes schema-validated YAML workflows (`src/cli_multi_rapid/workflow_runner.py:1`)
+  - **Note**: The WorkflowRunner is now a backward-compatible facade that delegates to new core modules
+  - New code should use `core.coordinator.WorkflowCoordinator` directly
+  - Core modules: `core.executor.StepExecutor`, `core.gate_manager.GateManager`, `core.artifact_manager.ArtifactManager`
 - **Router System**: Routes steps between deterministic tools and AI adapters (`src/cli_multi_rapid/router.py:1`)
+  - Uses `AdapterFactory` for lazy loading and plugin discovery
+  - Eliminates circular dependencies and enables runtime adapter extension
 - **Adapter Framework**: Unified interface for tools and AI services (`src/cli_multi_rapid/adapters/`)
+  - All adapters registered in `AdapterRegistry`
+  - Lazy loading via `AdapterFactory` pattern
 - **Schema Validation**: JSON Schema validation for workflows and artifacts (`.ai/schemas/`)
 - **Cost Tracking**: Token usage and budget enforcement (`src/cli_multi_rapid/cost_tracker.py:1`)
 - **Gate System**: Verification and quality gates (`src/cli_multi_rapid/verifier.py:1`)
@@ -299,6 +321,19 @@ The Router can **auto-select** adapters or **validate** explicit actor choices a
 4. **Auditable**: Every step emits structured artifacts and logs
 5. **Cost-Aware**: Track token spend, enforce budgets
 6. **Git Integration**: Lane-based development, signed commits
+7. **Modular Core**: Refactored architecture with separation of concerns (coordinator, executor, gate manager, artifact manager)
+8. **Plugin Architecture**: Lazy-loaded adapters via factory pattern for extensibility
+
+## Coordination System
+
+The CLI Orchestrator includes a sophisticated coordination system for managing multi-workflow execution and file scope conflicts:
+
+- **CoordinationMode**: Defines execution strategies (SERIAL, PARALLEL, SMART_PARALLEL)
+- **FileScopeManager**: Manages file access across concurrent workflow steps to prevent conflicts
+- **CoordinationPlan**: Plans parallel execution groups and resource allocation
+- **Conflict Detection**: Automatically detects and resolves file access conflicts between steps
+
+This system enables safe parallel execution of workflow steps while maintaining deterministic results.
 
 ## Extending the System
 
@@ -1069,7 +1104,7 @@ Key environment variables:
 
 ## Entry Points
 
-The CLI provides three main commands (defined in `pyproject.toml`):
+The CLI provides four main commands (defined in `pyproject.toml`):
 
 1. **cli-orchestrator** - Main orchestrator CLI
    ```bash
@@ -1079,12 +1114,18 @@ The CLI provides three main commands (defined in `pyproject.toml`):
    cli-orchestrator cost report --last-run
    ```
 
-2. **simplified-run** - Quick workflow execution
+2. **cli-orchestrator-gui** - PyQt6-based GUI terminal
+   ```bash
+   cli-orchestrator-gui
+   # Requires PyQt6 installation: pip install -e .[gui]
+   ```
+
+3. **simplified-run** - Quick workflow execution
    ```bash
    simplified-run --workflow .ai/workflows/SIMPLE_PY_FIX.yaml
    ```
 
-3. **cost-check** - Budget and cost verification
+4. **cost-check** - Budget and cost verification
    ```bash
    cost-check
    ```
@@ -1111,3 +1152,8 @@ The CLI provides three main commands (defined in `pyproject.toml`):
 - **VS Code extension build fails**: Run `npm ci` in `tools/vscode-extension/` first
 - **Type checking errors**: Check Python 3.9+ compatibility (use `typing-extensions` for backports)
 - **Linting conflicts**: Run `black` before `ruff` (black formats, ruff checks)
+
+### GUI Issues
+- **PyQt6 QAction import error**: In PyQt6, `QAction` moved from `QtWidgets` to `QtGui`. Import from `PyQt6.QtGui` instead of `PyQt6.QtWidgets`
+- **GUI won't start**: Ensure PyQt6 is installed with `pip install -e .[gui]`
+- **Missing GUI dependencies**: Install with `pip install PyQt6>=6.4.0`
