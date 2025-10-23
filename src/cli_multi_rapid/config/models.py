@@ -3,6 +3,7 @@
 """Pydantic settings models for application configuration."""
 
 
+from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -64,7 +65,8 @@ class Settings(BaseSettings):
         # Prevent unexpected fields from passing silently
         extra = "forbid"
 
-    @validator("app")
+    @field_validator("app")
+    @classmethod
     def _normalize_log_level(cls, v: AppConfig) -> AppConfig:
         v.log_level = v.log_level.upper()
         return v
