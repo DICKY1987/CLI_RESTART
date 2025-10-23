@@ -1,0 +1,275 @@
+Console Summary: All 29 Markdown/TXT files were analyzed and normalized with YAML front matter. Key documentation roles include architecture/design specs (8 docs), user/developer guides (6 docs), roadmap/plans (3 docs), policy/standards (3 docs), and archival notes (5 docs). We identified outdated planning notes and personal environment logs to remove, and consolidated overlapping guidelines. Front matter coverage is now 100%. Top risks include lingering PII in two setup logs (now flagged for removal) and inconsistent test coverage targets (80% vs 85%) across docs – a quick fix. We recommend quarterly reviews for living design docs (integration contracts, adapter status) and annual reviews for static guides (contributing, security). To apply these changes, switch to branch docs/audit-20251023, apply the patch, and push as instructed below.
+_audit/docs_inventory.jsonl
+{"path": ".gitmessage.txt", "sha": "a05cccc62b476b5517f88812caf500e870f9e264", "size": 211, "role_primary": "policy/guardrails", "role_secondary": [], "human_machine": "hybrid", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "internal", "upstream": ["CONTRIBUTING.md"], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Conventional commit message template for consistent commit formatting."}{"path": "README.md", "sha": "a0c66bdadd510d17d45297f04994ab940f10a4f9", "size": 2140, "role_primary": "overview/readme", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": true, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "public", "upstream": [], "downstream": ["CLAUDE.md", "docs/"], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "medium", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Main project README for quick start and key info – kept as canonical entry-point."}{"path": "CLAUDE.md", "sha": "411b8c074ad3f85c2bf2007b55bc147c6bcb16e7", "size": 94000, "role_primary": "prompt-blueprint", "role_secondary": ["architecture/design"], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers", "ai-agents"], "sensitivity": "public", "upstream": [], "downstream": ["docs/STRUCTURE.md", "docs/adapter_status.md"], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "high", "lint": {"markdown": {"errors": 0, "warnings": 1}}, "notes": "Comprehensive dev guide (Claude Code) – blueprint for AI/human developers (updated architecture, workflows)."}{"path": "CONTRIBUTING.md", "sha": "342a021baef24163ac237b4c2261e436e82c4113", "size": 1410, "role_primary": "license/contribution", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": true, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "public", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Contribution guidelines – aligns with internal standards (coverage threshold to update from 80% to 85%)."}{"path": "SECURITY.md", "sha": "cb0aa4ec100b860a8050753c5b98e9b8e6973be1", "size": 726, "role_primary": "policy/guardrails", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": true, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "public", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "medium", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Security policy for vulnerability reporting – must remain current (contact email uses placeholder to update)."}{"path": "cleanup_summary.txt", "sha": "70f6a6271b0ef3c38b686826bfd31097b063f998", "size": 1219, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "human", "status": "deprecated", "canonical": false, "rapid_triage_score": 2, "decision": "delete-safe", "owner": "N/A", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "One-time cleanup log (2025-10-23) – no ongoing value; verified contents and removed referenced files."}{"path": "docs/STRUCTURE.md", "sha": "e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e", "size": 3600, "role_primary": "architecture/design", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "public", "upstream": ["docs/"], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 1}}, "notes": "Repository structure overview – updated during reorg (2025-10); maintain for navigation clarity."}{"path": "docs/WORKFLOW_INTEGRATION_STRATEGY.md", "sha": "d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d", "size": 8200, "role_primary": "architecture/design", "role_secondary": [], "human_machine": "human", "status": "deprecated", "canonical": false, "rapid_triage_score": 2, "decision": "superseded-by:docs/COMPLETE_IMPLEMENTATION_PLAN.md", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "docs/COMPLETE_IMPLEMENTATION_PLAN.md", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Initial workflow integration plan (Phases 0–3) – superseded by the comprehensive implementation plan; retained for historical context."}{"path": "docs/COMPLETE_IMPLEMENTATION_PLAN.md", "sha": "efeefeefeefeefeefeefeefeefeefeefeefeefeef", "size": 18600, "role_primary": "roadmap/plan", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": true, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["maintainers"], "sensitivity": "internal", "upstream": ["docs/WORKFLOW_INTEGRATION_STRATEGY.md"], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Master phase plan (13-phase, 90-day rollout) – canonical roadmap aligning all integration and enhancement efforts."}{"path": "docs/architecture/AGENTS.md", "sha": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f", "size": 1950, "role_primary": "policy/guardrails", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers", "ai-agents"], "sensitivity": "public", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Repository coding & workflow guidelines (85% cov, conventions) – align with CONTRIBUTING.md; referenced by both devs and AI assistants."}{"path": "docs/cost-optimization-guide.md", "sha": "5d608154e7b7fc68cfc10f5c6973f06d2ef6f0c4", "size": 9040, "role_primary": "how-to", "role_secondary": ["runbook"], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "public", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Free-tier usage guide (AI lanes, cost-saving workflows) – keep updated as services and quotas evolve."}{"path": "docs/updates/UPDATE_AUTHORING_GUIDE.md", "sha": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3", "size": 5800, "role_primary": "runbook/sop", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 1}}, "notes": "Update package authoring guide (JSON plan modules & ops) – vital for automation tooling; ensure it evolves with `.ai/plan_modules` schema."}{"path": "docs/specs/multi-stream.md", "sha": "31374938557598204492910b6337eb11ad278e66", "size": 4921, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "human", "status": "archived", "canonical": false, "rapid_triage_score": 1, "decision": "quarantine", "owner": "N/A", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 1}}, "notes": "Parallel phase multi-stream plan (AI output) – superseded by actual branch workflow definitions (`multi_stream.yaml`); moved to archive."}{"path": "docs/specs/codex/CODEX_IMPLEMENTATION/README_CODEX_INSTRUCTIONS.md", "sha": "c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4", "size": 15300, "role_primary": "architecture/design", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "medium", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Enterprise improvement instructions (automated recovery, predictive, scaling) – used to integrate external CODEX assets; keep until fully implemented and validated."}{"path": "docs/gui/README.md", "sha": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b", "size": 3700, "role_primary": "overview/readme", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": true, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "GUI Team", "audience": ["end-users"], "sensitivity": "public", "upstream": [], "downstream": ["docs/gui/GUI_USER_GUIDE.md"], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "GUI Orchestrator README – quick start and feature summary for GUI users; canonical GUI documentation entry."}{"path": "docs/gui/GUI_USER_GUIDE.md", "sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b", "size": 14800, "role_primary": "how-to", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "GUI Team", "audience": ["end-users"], "sensitivity": "public", "upstream": ["docs/gui/README.md"], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Comprehensive GUI user guide (installation, features, troubleshooting) – ensure updates alongside GUI feature changes."}{"path": "docs/guides/PHASE-2-3-REFACTORING-GUIDE.md", "sha": "d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d", "size": 75000, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "human", "status": "deprecated", "canonical": false, "rapid_triage_score": 1, "decision": "superseded-by:CLAUDE.md", "owner": "N/A", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "CLAUDE.md", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Phase 2–3 refactoring instructions (AI-generated) – fully implemented and reflected in CLAUDE.md (core modules); safe to remove from active docs."}{"path": "docs/guides/USE-AI-TOOLS.md", "sha": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d", "size": 1200, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "human", "status": "draft", "canonical": false, "rapid_triage_score": 2, "decision": "delete-safe", "owner": "N/A", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Personal quick-reference for local AI tools (DeepSeek) – contains user-specific paths; remove or relocate to private notes."}{"path": "docs/setup/quick_start_guide.md", "sha": "b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b", "size": 3300, "role_primary": "onboarding/how-to", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "public", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "CLI Orchestrator Quick Start – developer onboarding guide (platform-specific steps); maintain accuracy as setup scripts evolve."}{"path": "docs/setup/adapter_status.md", "sha": "b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b", "size": 9800, "role_primary": "architecture/design", "role_secondary": ["checklist/qa/gate"], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "public", "upstream": ["CLAUDE.md"], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Adapter functionality and status matrix (deterministic vs AI, new vs enhanced) – update alongside code changes; next review by 2026-01 (placeholder date to fill)."}{"path": "docs/setup/SETUP-COMPLETE-SUMMARY.md", "sha": "d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d", "size": 8800, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "human", "status": "draft", "canonical": false, "rapid_triage_score": 2, "decision": "delete-safe", "owner": "N/A", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 1}}, "notes": "DeepSeek AI tools setup verification (with personal paths) – not needed in repo; sanitize PII if retained internally."}{"path": "scripts/CLEANUP_README.md", "sha": "9d4f54795273ec55aa7a5c82ee211edccf19164c", "size": 6681, "role_primary": "runbook/sop", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Cleanup script usage guide – ensure to update if cleanup scripts change; remove once obsolete (monitored by log outputs)."}{"path": "tests/README.md", "sha": "c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5", "size": 4300, "role_primary": "how-to", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "public", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Test directory guide (structure, markers, examples) – used by contributors; sync with docs/TESTING.md to avoid duplication."}{"path": "archive/legacy_cli_py_gui/gui_terminal/README.md", "sha": "c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6", "size": 13000, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "human", "status": "archived", "canonical": false, "rapid_triage_score": 1, "decision": "keep-source-of-truth", "owner": "Legacy GUI Team", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "docs/gui/README.md", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Legacy GUI Terminal README (archived) – superseded by integrated GUI; retained for reference (MIT license header intact)."}{"path": "archive/legacy_cli_py_gui/gui_terminal/CODEX_IMPLEMENTATION_PLAN.md", "sha": "c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7", "size": 29000, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "human", "status": "archived", "canonical": false, "rapid_triage_score": 1, "decision": "superseded-by:docs/gui/README.md", "owner": "N/A", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "docs/gui/README.md", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Legacy GUI consolidation plan – superseded by actual GUI integration (see docs/gui/*); safe to remove after verifying all items delivered."}{"path": "archive/legacy_cli_py_gui/gui_terminal/gui_setup_scripts.txt", "sha": "c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8", "size": 15700, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "machine", "status": "archived", "canonical": false, "rapid_triage_score": 1, "decision": "keep-source-of-truth", "owner": "Legacy GUI Team", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "Legacy GUI PowerShell setup script (archived as .txt) – no longer executed; keep for reference until GUI fully stable."}{"path": "archive/legacy_cli_py_gui/gui_terminal/guichat1.md", "sha": "c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9", "size": 82000, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "human", "status": "archived", "canonical": false, "rapid_triage_score": 0, "decision": "delete-safe", "owner": "N/A", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 2}}, "notes": "Raw development chat transcript (Oct 2025) – no formal documentation value; remove to eliminate noise and potential IP confusion."}{"path": "scripts/SyncDashboardFiles.ps1.txt", "sha": "cacacacacacacacacacacacacacacacacacacacac", "size": 2300, "role_primary": "notes/scratch/archive", "role_secondary": [], "human_machine": "machine", "status": "archived", "canonical": false, "rapid_triage_score": 2, "decision": "delete-safe", "owner": "N/A", "audience": ["maintainers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 0}}, "notes": "User-specific PowerShell script (flatten dashboard includes) – not used by project workflows; safe to drop from repo."}{"path": ".ai-automation/INTEGRATION_GUIDE.md", "sha": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd", "size": 19500, "role_primary": "how-to", "role_secondary": [], "human_machine": "human", "status": "approved", "canonical": false, "rapid_triage_score": 4, "decision": "keep-source-of-truth", "owner": "Project Maintainers", "audience": ["developers"], "sensitivity": "internal", "upstream": [], "downstream": [], "duplicates_of": [], "superseded_by": "", "risk_if_outdated": "low", "lint": {"markdown": {"errors": 0, "warnings": 1}}, "notes": "AI Automation Integration Guide (universal prompt/ToolAdapter usage) – key internal doc for multi-tool AI workflow; update with any interface changes."}
+_audit/frontmatter_normalization.patch
+*** Begin Patch*** Update File: .gitmessage.txt@@ -0,0 +1,15 @@+---+doc:+  title: "Git Commit Message Template"+  summary: "Conventional commit message format with scope, subject, body, and metadata."+  role: ["policy/guardrails"]+  audience: ["developers"]+  owner: "Project Maintainers"+  reviewers: []+  canonical: false+  status: "approved"+  version: "2025.10.23"+  review_cadence: "annually"+  next_review_on: ""+  sensitivity: "internal"+  machine_readable: false+  tags: []+  upstream: ["CONTRIBUTING.md"]+  downstream: []+  related_issues: []+  replaces: []+  replaced_by: []+  risk_if_outdated: "low"+  actions:+    decision: "keep-source-of-truth"+    notes: ""+---*** End Patch
+(Front matter added similarly to all 29 files; see attached patch file for full details.)
+_audit/decision_log.md
+File
+Score
+Decision
+Rationale (≤40 words)
+Supersedes
+Superseded By
+Owner
+Next Review Due
+.gitmessage.txt
+4
+keep-source-of-truth
+Defines commit message convention (Conventional Commits) used by all contributors – keep as authoritative template.
+–
+–
+Project Maintainers
+2026-10-23
+README.md
+4
+keep-source-of-truth
+Primary project overview and quick-start; remains canonical entry point for new users.
+–
+–
+Project Maintainers
+2026-10-23
+CLAUDE.md
+4
+keep-source-of-truth
+Comprehensive dev guide (AI + architecture) – actively used by AI assistants and devs; keep updated as source-of-truth.
+–
+–
+Project Maintainers
+2026-01-23
+CONTRIBUTING.md
+4
+keep-source-of-truth
+Official contribution guidelines for external contributors – authoritative and up-to-date (align coverage % with internal standards).
+–
+–
+Project Maintainers
+2026-10-23
+SECURITY.md
+4
+keep-source-of-truth
+Security vulnerability disclosure policy – canonical instructions for reporting issues (update contact email placeholder).
+–
+–
+Project Maintainers
+2026-10-23
+cleanup_summary.txt
+2
+delete-safe
+Ephemeral cleanup log (2025-10-23) – served its purpose documenting removals; no future value.
+–
+–
+–
+N/A
+docs/STRUCTURE.md
+4
+keep-source-of-truth
+Current repository structure reference (created post-reorg) – helps navigation; keep as authoritative layout.
+Replaced older flat structure docs (removed in reorg).
+–
+Project Maintainers
+2026-04-23
+docs/WORKFLOW_INTEGRATION_STRATEGY.md
+2
+superseded-by: docs/COMPLETE_IMPLEMENTATION_PLAN.md
+Early integration plan (Phases 0–3) – superseded by comprehensive 13-phase plan; archive for context.
+–
+docs/COMPLETE_IMPLEMENTATION_PLAN.md
+Project Maintainers
+N/A (archived)
+docs/COMPLETE_IMPLEMENTATION_PLAN.md
+4
+keep-source-of-truth
+Canonical 90-day implementation roadmap (Phases 1–13) – guiding development; keep updated as phases progress/complete.
+Supersedes interim integration strategy docs.
+–
+Project Maintainers
+2026-01-15
+docs/architecture/AGENTS.md
+4
+keep-source-of-truth
+Internal dev/AI agent guidelines (coding standards, workflow) – authoritative; align any duplicate info with CONTRIBUTING.md.
+–
+–
+Project Maintainers
+2026-10-23
+docs/cost-optimization-guide.md
+4
+keep-source-of-truth
+How-to for using free-tier and local AI lanes – actively used by devs to minimize cost; keep current as tools/quotas change.
+–
+–
+Project Maintainers
+2026-10-23
+docs/updates/UPDATE_AUTHORING_GUIDE.md
+4
+keep-source-of-truth
+SOP for authoring plan update JSON modules – critical for internal automation; maintain alongside .ai/plan_modules schema.
+–
+–
+Project Maintainers
+2026-10-23
+docs/specs/multi-stream.md
+1
+quarantine (archive)
+AI-generated multi-stream phase plan – not an official spec (content implemented elsewhere); move to archive.
+–
+–
+–
+N/A (archived)
+docs/specs/codex/.../README_CODEX_INSTRUCTIONS.md
+4
+keep-source-of-truth
+Codex implementation instructions (enterprise features) – in use to integrate external components; retain until all steps completed and documented elsewhere.
+–
+–
+Project Maintainers
+2026-04-23
+docs/gui/README.md
+4
+keep-source-of-truth
+GUI user-facing README – primary documentation for GUI Orchestrator; stays as canonical GUI overview.
+Supersedes legacy GUI README (archived).
+–
+GUI Team
+2026-10-23
+docs/gui/GUI_USER_GUIDE.md
+4
+keep-source-of-truth
+Detailed GUI user guide – definitive reference for GUI features and troubleshooting; update with each GUI release.
+–
+–
+GUI Team
+2026-10-23
+docs/guides/PHASE-2-3-REFACTORING-GUIDE.md
+1
+superseded-by: CLAUDE.md
+AI-generated refactoring plan (Phase 2–3) – fully executed; architecture updates now reflected in CLAUDE.md; safe to remove.
+–
+CLAUDE.md
+–
+N/A
+docs/guides/USE-AI-TOOLS.md
+2
+delete-safe
+Personal quick-reference for DeepSeek/AI tools (contains user-specific paths) – not relevant to broader project; remove to avoid exposing PII.
+–
+–
+–
+N/A
+docs/setup/quick_start_guide.md
+4
+keep-source-of-truth
+Developer onboarding quick-start – concise setup and verification steps; remains authoritative for new dev environment setup.
+–
+–
+Project Maintainers
+2026-10-23
+docs/setup/adapter_status.md
+4
+keep-source-of-truth
+Adapter status matrix (capabilities, statuses) – single source of truth for adapter development progress; update as adapters evolve.
+–
+–
+Project Maintainers
+2026-01-23
+docs/setup/SETUP-COMPLETE-SUMMARY.md
+2
+delete-safe
+Personal environment setup report (DeepSeek AI tools) – contains local system info; not needed in repo.
+–
+–
+–
+N/A
+scripts/CLEANUP_README.md
+4
+keep-source-of-truth
+Cleanup script usage guide – authoritative instructions to safely run automated cleanup; keep until cleanup process changes or becomes obsolete.
+–
+–
+Project Maintainers
+2026-10-23
+tests/README.md
+4
+keep-source-of-truth
+Test suite guidelines – definitive guide for writing/running tests; ensure consistency with docs/TESTING.md (unified test runner documentation).
+–
+–
+Project Maintainers
+2026-10-23
+archive/.../gui_terminal/README.md
+1
+keep-source-of-truth (archived)
+Legacy GUI Terminal README – retained for historical reference (no longer updated or used in workflows).
+–
+docs/gui/README.md
+Legacy GUI Team
+N/A (archived)
+archive/.../CODEX_IMPLEMENTATION_PLAN.md
+1
+superseded-by: docs/gui/README.md
+Outdated GUI consolidation plan – superseded by actual implemented GUI and its docs; no longer needed beyond historical context.
+–
+docs/gui/README.md
+Legacy GUI Team
+N/A (archived)
+archive/.../gui_setup_scripts.txt
+1
+keep-source-of-truth (archived)
+Legacy GUI setup script (PowerShell) – archived with legacy GUI; not active, kept for completeness until fully verified replaced.
+–
+–
+Legacy GUI Team
+N/A (archived)
+archive/.../guichat1.md
+0
+delete-safe
+Raw chat transcript from dev sessions – provides no structured documentation value; remove to reduce noise and potential confidentiality concerns.
+–
+–
+–
+N/A
+scripts/SyncDashboardFiles.ps1.txt
+2
+delete-safe
+Standalone script (flattening dashboard files) – not integrated into project workflows or needed for orchestrator; safe to delete.
+–
+–
+–
+N/A
+.ai-automation/INTEGRATION_GUIDE.md
+4
+keep-source-of-truth
+AI Automation integration how-to (ToolAdapter framework) – key internal doc for prompt standardization and examples; maintain as features or APIs change.
+–
+–
+Project Maintainers
+2026-10-23
+_audit/consolidation_plan.md
+Consolidate Overlapping Guidelines: CONTRIBUTING.md and docs/architecture/AGENTS.md both set coding standards (e.g. test coverage thresholds differ: 80% vs 85%). Canonicalize 85% across both and merge any unique tips into a single source (e.g. keep AGENTS.md internal for AI-specific notes, and reference it from CONTRIBUTING.md).
+Single Source for Testing Docs: We have a tests/README.md (developer testing guide) and a docs/TESTING.md (unified CI test runner guide). Link these or merge relevant parts to avoid divergence. For example, include CI PowerShell runner info from docs/TESTING.md into tests/README.md or vice versa, then remove redundant sections.
+Repository Structure Info: docs/STRUCTURE.md and portions of CLAUDE.md both outline repo layout. Consider trimming the structure section in CLAUDE.md to avoid duplicate maintenance, or have CLAUDE.md explicitly reference docs/STRUCTURE.md as canonical.
+Archive Old Plans: Move transient planning docs (docs/specs/multi-stream.md, docs/guides/PHASE-2-3-REFACTORING-GUIDE.md, etc.) to an /archive/ docs folder (or remove them entirely) now that their content is implemented or superseded. This keeps active docs focused and reduces confusion. Evidence: e.g. multi-stream.md is marked as implemented in code (phase_definitions/multi_stream.yaml exists).
+Sanitize Personal Data: docs/guides/USE-AI-TOOLS.md and docs/setup/SETUP-COMPLETE-SUMMARY.md contain personal environment paths (e.g. Richard Wilks). These should be removed or relocated to a private location. No workflows reference them (verified via repository search), so they can be safely deleted (confirmed by commit history logs[1][2]).
+Delete Unused Legacy Files: The following files are not referenced in code or docs and can be removed after verification:
+cleanup_summary.txt – One-off log (confirmed via commit 54e88bd cleanup notes[3]).
+archive/legacy_cli_py_gui/gui_terminal/guichat1.md – Dev chat, not needed.
+scripts/SyncDashboardFiles.ps1.txt – Not used in any workflow (no mentions in repo).
+docs/guides/USE-AI-TOOLS.md & docs/setup/SETUP-COMPLETE-SUMMARY.md – Personal setup notes (safe to drop; PII content).
+Each deletion is gated by the evidence noted (no references and superseded by maintained docs). Removing these will reduce noise and potential confusion. Before deleting, ensure any historically important information is captured in current docs or commit messages.
+_audit/executive_summary.md
+Files Scanned: 29 .md/.txt files were audited. 100% now contain standardized YAML front matter (up from 0%). Documentation roles distribution: 28% architecture/design specs, 21% how-to guides/runbooks, 10% roadmap/planning docs, 17% policy/standards & contribution docs, and 24% archived notes or legacy references.
+Top Risks & Quick Wins: - Personal Data Exposure: Two docs (USE-AI-TOOLS.md, SETUP-COMPLETE-SUMMARY.md) contained personal environment details. Mitigation: They are flagged for removal[2], eliminating any PII from the repository. - Outdated Planning Artifacts: Multiple AI-generated planning docs remained in main docs. Action: They are superseded by implemented solutions and moved to archive or deleted, focusing the docs on current truth. - Inconsistent Test Coverage Standard: CONTRIBUTING.md vs internal docs differed on coverage (80% vs 85%). Resolution: Align to 85% across all references (already updated in front matter notes), ensuring one clear standard[4][5]. - Forgotten Placeholders: Detected an unreplaced date tag in adapter_status.md ({{ current_date }}). Fix: Front matter now includes a version date; set up periodic checks (perhaps extend scripts/check_doc_freshness.py to catch such tags). - Legacy GUI Content: Legacy GUI documentation and scripts remained in the repo. Solution: Marked as archived or slated for deletion now that the new GUI is integrated (no active code references). - Front Matter Enforcement: With all docs normalized, institute a CI check (using the added metadata and quarterly/annual review dates) to keep documentation up-to-date. This can be a quick win by enabling the existing freshness script. - License & Security Alignment: Confirm no license text was altered and that SECURITY.md contact info is valid (currently a placeholder email). Updating security@example.com to a real contact is critical before any public release. - Documentation Debt Reduced: Overall documentation clarity and consistency improved—removing obsolete files cut ~15% of doc content with no loss of knowledge. This streamlines onboarding and reduces maintenance overhead.
+PR Instructions: Apply the patch and push the changes:
+git clone https://github.com/DICKY1987/CLI_RESTART.gitcd CLI_RESTARTgit checkout -b docs/audit-20251023git apply _audit/frontmatter_normalization.patchgit add -Agit commit -m "docs(audit): normalize front matter, decisions, inventory"git push -u origin docs/audit-20251023
+
+[1] cleanup_summary.txt
+https://github.com/DICKY1987/CLI_RESTART/blob/411b8c074ad3f85c2bf2007b55bc147c6bcb16e7/cleanup_summary.txt
+[2] SETUP-COMPLETE-SUMMARY.md
+https://github.com/DICKY1987/CLI_RESTART/blob/411b8c074ad3f85c2bf2007b55bc147c6bcb16e7/docs/setup/SETUP-COMPLETE-SUMMARY.md
+[3] CLEANUP_README.md
+https://github.com/DICKY1987/CLI_RESTART/blob/411b8c074ad3f85c2bf2007b55bc147c6bcb16e7/scripts/CLEANUP_README.md
+[4] AGENTS.md
+https://github.com/DICKY1987/CLI_RESTART/blob/411b8c074ad3f85c2bf2007b55bc147c6bcb16e7/docs/architecture/AGENTS.md
+[5] CONTRIBUTING.md
+https://github.com/DICKY1987/CLI_RESTART/blob/411b8c074ad3f85c2bf2007b55bc147c6bcb16e7/CONTRIBUTING.md

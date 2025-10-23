@@ -54,6 +54,7 @@ This ensures consistent path resolution across all tools and workflows.
 - **Gate System**: Verification and quality gates (`src/cli_multi_rapid/verifier.py:1`)
 
 ### Directory Structure
+Note: The canonical repository layout is maintained in `docs/STRUCTURE.md`.
 - `src/`: All source code
   - `cli_multi_rapid/`: Core orchestrator implementation
     - `adapters/`: Adapter implementations (AI, code fixers, git ops, etc.)

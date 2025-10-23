@@ -16,7 +16,7 @@ Thanks for your interest in improving `cli_multi_rapid_DEV`!
 
 - Keep changes focused and include tests for new behavior.
 - Run formatting, linting, type checks, and tests locally before pushing.
-- Ensure CI passes; coverage is gated at 80%.
+- Ensure CI passes; coverage is gated at 85%.
 
 ## Code Quality and Error Handling
 
