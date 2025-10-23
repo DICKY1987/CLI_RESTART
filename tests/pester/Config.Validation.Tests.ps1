@@ -54,7 +54,7 @@ Describe 'Config Validation' {
     Start-Sleep -Milliseconds 200
     Write-Host "Expecting error file at: $errorFile"
     (Test-Path $errorFile) | Should -Be $true
-    (Get-Content -LiteralPath $errorFile -Raw) | Should -Match 'repository\\.url is required'
+    (Get-Content -LiteralPath $errorFile -Raw) | Should -Match 'repository\.url is required'
   }
 
   It 'Invalid types in toggles -> error surfaced' {
@@ -79,7 +79,7 @@ Describe 'Config Validation' {
     Write-Host "Expecting error file at: $errorFile"
     (Test-Path $errorFile) | Should -Be $true
     $content = Get-Content -LiteralPath $errorFile -Raw
-    $content | Should -Match 'toggles\\.launchPanes must be boolean'
-    $content | Should -Match 'toggles\\.dryRun must be boolean'
+    $content | Should -Match 'toggles\.launchPanes must be boolean'
+    $content | Should -Match 'toggles\.dryRun must be boolean'
   }
 }

@@ -1,10 +1,14 @@
 Import-Module Pester -ErrorAction Stop
 
-$repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..' )
+# Resolve repo root as plain string to avoid provider-qualified paths
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' | Join-Path -ChildPath '..')).Path
 $modulePath = Join-Path $repoRoot 'scripts/TradingOps/TradingOps.psm1'
 
 Describe 'TradingOps module' {
     BeforeAll {
+        $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' | Join-Path -ChildPath '..')).Path
+        $modulePath = Join-Path $repoRoot 'scripts/TradingOps/TradingOps.psm1'
+        if (-not (Test-Path $modulePath)) { throw "TradingOps module not found: $modulePath" }
         Import-Module $modulePath -Force | Out-Null
     }
 
