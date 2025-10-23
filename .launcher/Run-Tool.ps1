@@ -62,8 +62,8 @@ function Invoke-ToolSafe {
   # Quote the path if it contains spaces
   $quotedPath = if ($Path -match '\s') { "`"$Path`"" } else { $Path }
 
-  # Escape all arguments
-  $escapedArgs = $Args | ForEach-Object { Escape-Argument $_ }
+  # Escape all arguments. Wrap in @() so single-item or empty results are arrays.
+  $escapedArgs = @($Args | ForEach-Object { Escape-Argument $_ })
 
   if ($UseWT) {
     # Windows Terminal launch with proper quoting
