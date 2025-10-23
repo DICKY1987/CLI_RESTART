@@ -37,6 +37,10 @@ artifacts/
 logs/
 .sessions/
 .tmp-tests/
+.reports/
+workflow_executions.db
+error_report.json
+ruff_raw.json
 
 # Docker
 *.local.yml
