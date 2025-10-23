@@ -1,6 +1,0 @@
-{
-  "name": "sample-plan",
-  "steps": [
-    {"name": "echo", "args": ["hello"]}
-  ]
-}

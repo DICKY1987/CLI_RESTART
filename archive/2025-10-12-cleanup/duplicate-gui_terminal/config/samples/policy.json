@@ -1,7 +1,0 @@
-{
-  "command_filtering": {
-    "mode": "whitelist",
-    "allowed_commands": ["echo", "dir", "ls"],
-    "blocked_commands": ["rm -rf", "del /f /s /q"]
-  }
-}
