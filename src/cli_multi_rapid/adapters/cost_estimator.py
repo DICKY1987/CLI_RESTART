@@ -9,12 +9,12 @@ cost model and emits a structured artifact.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 
 if TYPE_CHECKING:
-    from ..router import Router
+    pass
 
 
 class CostEstimatorAdapter(BaseAdapter):

@@ -14,9 +14,8 @@ This facade delegates to the new core modules:
 Migration Guide: docs/guides/WORKFLOW-RUNNER-MIGRATION.md
 """
 
-import warnings
-import json
 import time
+import warnings
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -24,20 +23,18 @@ from typing import Any, Optional
 
 from rich.console import Console
 
-# New core modules
-from .core.executor import StepExecutor
-from .core.coordinator import WorkflowCoordinator as CoreWorkflowCoordinator
-from .core.coordinator import WorkflowResult as CoreWorkflowResult
-from .core.gate_manager import GateManager
-from .core.artifact_manager import ArtifactManager
-
 # Legacy coordination imports (maintained for backward compatibility)
 from .coordination import (
-    CoordinationMode,
-    CoordinationPlan,
     FileScopeManager,
-    WorkflowCoordinator as LegacyWorkflowCoordinator,
 )
+from .coordination import WorkflowCoordinator as LegacyWorkflowCoordinator
+from .core.artifact_manager import ArtifactManager
+from .core.coordinator import WorkflowCoordinator as CoreWorkflowCoordinator
+from .core.coordinator import WorkflowResult as CoreWorkflowResult
+
+# New core modules
+from .core.executor import StepExecutor
+from .core.gate_manager import GateManager
 
 console = Console()
 
@@ -132,8 +129,8 @@ class WorkflowRunner:
 
         # Initialize core modules
         try:
-            from .router import Router
             from .cost_tracker import CostTracker
+            from .router import Router
 
             self.router = Router()
             self.cost_tracker = CostTracker()

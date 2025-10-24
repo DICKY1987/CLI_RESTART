@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-from .executor import StepExecutor, StepExecutionResult
+from .executor import StepExecutionResult, StepExecutor
 
 
 @dataclass
@@ -209,7 +209,7 @@ class WorkflowCoordinator:
         if not workflow_file.exists():
             raise FileNotFoundError(f"Workflow file not found: {workflow_path}")
 
-        with open(workflow_file, "r", encoding="utf-8") as f:
+        with open(workflow_file, encoding="utf-8") as f:
             workflow = yaml.safe_load(f)
 
         if not workflow:

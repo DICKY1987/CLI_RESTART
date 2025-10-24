@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from ..adapters.base_adapter import AdapterResult
-from ..router import Router
 from ..cost_tracker import CostTracker
+from ..router import Router
 
 
 @dataclass

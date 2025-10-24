@@ -5,14 +5,14 @@ Tests for core.gate_manager module
 Test coverage for GateManager class and verification gate logic.
 """
 
-import pytest
 import json
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from src.cli_multi_rapid.core.gate_manager import GateManager, GateResult, GateType
+import pytest
 
+from src.cli_multi_rapid.core.gate_manager import GateManager, GateResult, GateType
 
 # Fixtures
 

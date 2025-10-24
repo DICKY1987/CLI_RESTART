@@ -6,10 +6,10 @@ Provides commands for verifying artifacts against schemas and running quality ga
 Part of Phase 3 CLI modularization.
 """
 
-import typer
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
 
+import typer
 from rich.console import Console
 from rich.table import Table
 
@@ -71,11 +71,11 @@ def verify_artifact(
         if result.get("valid", False):
             console.print("[green]Artifact is valid[/green]")
             if verbose and "details" in result:
-                console.print(f"\n[bold]Details:[/bold]")
+                console.print("\n[bold]Details:[/bold]")
                 for key, value in result["details"].items():
                     console.print(f"  {key}: {value}")
         else:
-            console.print(f"[red]Artifact is invalid[/red]")
+            console.print("[red]Artifact is invalid[/red]")
             if "errors" in result:
                 console.print("\n[bold]Validation errors:[/bold]")
                 for error in result["errors"]:
@@ -124,7 +124,7 @@ def run_gates(
         console.print(f"[red]Error: Gates file not found: {gates_file}[/red]")
         raise typer.Exit(1)
 
-    console.print(f"[bold]Running verification gates[/bold]")
+    console.print("[bold]Running verification gates[/bold]")
     console.print(f"[dim]Artifact directory:[/dim] {artifact_dir}")
 
     # Import gate manager
@@ -166,7 +166,7 @@ def run_gates(
         results = gate_manager.execute_gates(gates, artifacts)
 
         # Display results
-        console.print(f"\n[bold]Gate Results:[/bold]")
+        console.print("\n[bold]Gate Results:[/bold]")
         table = Table()
         table.add_column("Gate", style="cyan")
         table.add_column("Type", style="dim")
@@ -187,7 +187,7 @@ def run_gates(
         # Aggregate results
         summary = gate_manager.aggregate_gate_results(results)
 
-        console.print(f"\n[bold]Summary:[/bold]")
+        console.print("\n[bold]Summary:[/bold]")
         console.print(f"  Total gates: {summary['total_gates']}")
         console.print(f"  Passed: {summary['gates_passed']}")
         console.print(f"  Failed: {summary['gates_failed']}")
@@ -279,7 +279,7 @@ def verify_manifest(
         console.print(f"  All {total_artifacts} artifacts verified")
 
         if verbose:
-            console.print(f"\n[bold]Manifest metadata:[/bold]")
+            console.print("\n[bold]Manifest metadata:[/bold]")
             console.print(f"  Generated at: {manifest.get('generated_at', 'unknown')}")
             console.print(f"  Artifacts dir: {manifest.get('artifacts_dir', 'unknown')}")
 
@@ -355,7 +355,7 @@ def verify_batch(
                 results.append(("fail", artifact_path.name, result.get("errors", [])))
 
                 if stop_on_error:
-                    console.print(f"[red]Stopping on error (--stop-on-error)[/red]")
+                    console.print("[red]Stopping on error (--stop-on-error)[/red]")
                     break
         except Exception as e:
             console.print(f"[red]ERROR: {e}[/red]")
@@ -369,7 +369,7 @@ def verify_batch(
     failed = sum(1 for r in results if r[0] == "fail")
     errors = sum(1 for r in results if r[0] == "error")
 
-    console.print(f"\n[bold]Batch Verification Summary:[/bold]")
+    console.print("\n[bold]Batch Verification Summary:[/bold]")
     console.print(f"  Passed: {passed}")
     console.print(f"  Failed: {failed}")
     console.print(f"  Errors: {errors}")

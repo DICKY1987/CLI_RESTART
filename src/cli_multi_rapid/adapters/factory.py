@@ -9,7 +9,6 @@ until adapters are actually needed.
 
 import importlib
 import logging
-from pathlib import Path
 from typing import Optional, Type
 
 from .base_adapter import BaseAdapter
