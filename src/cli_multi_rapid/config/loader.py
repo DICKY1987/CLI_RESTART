@@ -88,6 +88,17 @@ def load_config(explicit_env: str | None = None) -> dict[str, Any]:
     base = _load_yaml(BASE_FILE)
     env_file = CONFIG_DIR / f"{env}.yaml"
     overrides = _load_yaml(env_file)
+
+    # Temporary compatibility shim for legacy profiles path
+    # If CONFIG_LEGACY_PATHS is truthy and the primary env file is missing,
+    # try config/profiles/<env>.yaml as a fallback.
+    if (
+        (not overrides)
+        and os.getenv("CONFIG_LEGACY_PATHS", "").strip().lower() in {"1", "true", "yes", "on"}
+    ):
+        legacy_file = CONFIG_DIR / "profiles" / f"{env}.yaml"
+        if legacy_file.exists():
+            overrides = _load_yaml(legacy_file)
     merged = _deep_merge(base, overrides)
     return _expand_env(merged)
 
@@ -97,4 +108,3 @@ __all__ = [
     "resolve_environment",
     "load_config",
 ]
-

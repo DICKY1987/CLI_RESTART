@@ -1,0 +1,247 @@
+[
+  {
+    "dir": ".\\docs",
+    "count": 47,
+    "size_mb": 0.14
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\GIT",
+    "count": 12,
+    "size_mb": 0.16
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\DOC & REF",
+    "count": 9,
+    "size_mb": 0.21
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\Atomic workflows\\ATOMIZED_PROCESSES",
+    "count": 7,
+    "size_mb": 0.08
+  },
+  {
+    "dir": ".\\scripts",
+    "count": 6,
+    "size_mb": 0.05
+  },
+  {
+    "dir": ".\\docs\\setup",
+    "count": 6,
+    "size_mb": 0.04
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system",
+    "count": 4,
+    "size_mb": 0.02
+  },
+  {
+    "dir": ".\\docs\\development",
+    "count": 4,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".",
+    "count": 4,
+    "size_mb": 0.04
+  },
+  {
+    "dir": ".\\docs\\gui",
+    "count": 4,
+    "size_mb": 0.02
+  },
+  {
+    "dir": ".\\docs\\guides",
+    "count": 4,
+    "size_mb": 0.02
+  },
+  {
+    "dir": ".\\docs\\specs",
+    "count": 4,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".github\\ISSUE_TEMPLATE",
+    "count": 4,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\ATOMIZED_PROCESSES",
+    "count": 3,
+    "size_mb": 0.03
+  },
+  {
+    "dir": ".\\docs\\architecture",
+    "count": 3,
+    "size_mb": 0.06
+  },
+  {
+    "dir": ".\\docs\\specs\\codex\\CODEX_IMPLEMENTATION\\integration_specs",
+    "count": 2,
+    "size_mb": 0.04
+  },
+  {
+    "dir": ".\\docs\\updates",
+    "count": 2,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\operations\\runbooks",
+    "count": 2,
+    "size_mb": 0.04
+  },
+  {
+    "dir": ".\\docs\\integration",
+    "count": 2,
+    "size_mb": 0.02
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\WORKFLOWS",
+    "count": 2,
+    "size_mb": 0.03
+  },
+  {
+    "dir": ".ai-automation",
+    "count": 2,
+    "size_mb": 0.03
+  },
+  {
+    "dir": ".github",
+    "count": 2,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\scripts",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\tools",
+    "count": 1,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\GIT\\deterministic_merge_system",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\examples",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".ai\\prompts",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".pytest_cache",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".quarantine",
+    "count": 1,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\tests\\fixtures",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": "",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\specs\\codex\\CODEX_IMPLEMENTATION\\vscode_configuration",
+    "count": 1,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".\\tools",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\artifacts",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\_templates",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\api",
+    "count": 1,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".\\docs\\api\\examples",
+    "count": 1,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".\\docs\\contracts",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\coordination",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\tools\\atomic-workflow-system\\Atomic workflows\\DOC & REF",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\feature-flags",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\roadmap\\2025-09-20",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\runbooks",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\docs\\specs\\codex\\CODEX_IMPLEMENTATION",
+    "count": 1,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".\\docs\\specs\\codex\\CODEX_IMPLEMENTATION\\implementation_plans",
+    "count": 1,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".runs",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".\\tests",
+    "count": 1,
+    "size_mb": 0.01
+  },
+  {
+    "dir": ".\\docs\\reference",
+    "count": 1,
+    "size_mb": 0.0
+  },
+  {
+    "dir": ".runs\\audit",
+    "count": 1,
+    "size_mb": 0.01
+  }
+]

@@ -15,7 +15,7 @@ Acceptance Criteria
 - `docker compose up -d` and `/healthz` returns 200 in <2s in CI.
 
 ## Phase B – Core Feature Development (Week 3–6)
-- Shared contracts: Define CLI↔VS Code API (e.g., `docs/contracts/INTERFACE_GUIDE.md`) and ensure extension parity.
+- Shared contracts: Define CLI↔VS Code API (e.g., `docs/reference/cli-vscode-interface-contract\.md`) and ensure extension parity.
 - GUI integration: Wire `src/gui_terminal` to orchestration; add server stubs and tests.
 - LangGraph bridge: Implement `langgraph_cli.py` and `langgraph_git_integration.py` for git‑aware flows.
 - Contract & integration tests: Add `tests/contracts/` and `tests/integration/` suites; Playwright for extension path.
@@ -60,3 +60,4 @@ Acceptance Criteria
 - Compose: `docker compose up -d && python scripts/healthcheck.py http://localhost:8000/healthz`.
 - Tests: `pytest -q --cov=src --cov-report=xml` and `pnpm test`.
 - Lint/type: `ruff check . && mypy src` and `pnpm lint && pnpm typecheck`.
+

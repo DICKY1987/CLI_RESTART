@@ -23,7 +23,7 @@
 ## Testing Guidelines
 - Framework: `pytest`; coverage gate: ≥ 85% (enforced in CI).
 - Naming: files `tests/test_*.py`, classes `Test*`, functions `test_*`.
-- Contract tests live under `tests/contracts/`; see `docs/contracts/INTERFACE_GUIDE.md` for models.
+- Contract tests live under `tests/contracts/`; see `docs/reference/cli-vscode-interface-contract\.md` for models.
 
 ## Commit & Pull Request Guidelines
 - Use Conventional Commits (e.g., `feat:`, `fix:`, `chore:`) with concise scope.
@@ -37,3 +37,4 @@
 
 ## Agent-Specific Instructions
 - Follow this AGENTS.md across the repo. Validate workflows with dry-runs, respect schemas, and keep outputs reproducible. When in doubt, propose changes in small, reviewable PRs.
+

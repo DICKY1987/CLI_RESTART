@@ -170,3 +170,7 @@ tools/atomic-workflow-system/.venv/
 # Temporary merge artifacts (CI only, don't commit)
 .git/merge-audit.jsonl
 .git/merge-fallback.log
+
+# Local run logs
+run_*.log
+
