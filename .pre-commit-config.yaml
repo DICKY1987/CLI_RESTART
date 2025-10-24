@@ -43,6 +43,13 @@ repos:
 
   - repo: local
     hooks:
+      - id: architecture-tests
+        name: Run architecture tests
+        entry: pytest -m architecture
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-commit]
       - id: generate-contract-models
         name: Generate contract models from JSON Schemas
         entry: python scripts/generate_models.py
