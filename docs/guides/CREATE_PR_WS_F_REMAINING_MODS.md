@@ -26,9 +26,22 @@ The easiest way is to use the provided GitHub Actions workflow:
    - Leave unchecked to actually create the PR
 6. Click **"Run workflow"**
 
-### Method 2: Python Script (Manual)
+### Method 2: Shell Script Wrapper (Quick)
 
-If you prefer to run the script manually with a GitHub token:
+The easiest command-line method using the provided shell script:
+
+```bash
+# Dry run (preview without creating)
+./scripts/create_pr_ws_f.sh
+
+# Create the PR (requires GITHUB_TOKEN)
+export GITHUB_TOKEN=your_token_here
+./scripts/create_pr_ws_f.sh --execute
+```
+
+### Method 3: Python Script (Manual)
+
+If you prefer to run the Python script directly:
 
 ```bash
 # Dry run (preview without creating)
@@ -38,10 +51,10 @@ python scripts/create_pr_ws_f_remaining_mods.py --dry-run
 GITHUB_TOKEN=your_token_here python scripts/create_pr_ws_f_remaining_mods.py
 ```
 
-#### Script Options
+#### Python Script Options
 
 ```bash
-# Full usage
+# Full usage with all options
 python scripts/create_pr_ws_f_remaining_mods.py \
   --repo DICKY1987/CLI_RESTART \
   --title "Merge ws-f-remaining-mods into main" \
@@ -51,7 +64,7 @@ python scripts/create_pr_ws_f_remaining_mods.py \
   --token YOUR_GITHUB_TOKEN
 ```
 
-### Method 3: GitHub CLI
+### Method 4: GitHub CLI
 
 If you have the GitHub CLI installed and authenticated:
 
@@ -64,7 +77,7 @@ gh pr create \
   --body "Open PR to merge ws-f-remaining-mods into main for review and CI validation."
 ```
 
-### Method 4: GitHub Web UI
+### Method 5: GitHub Web UI
 
 1. Navigate to: https://github.com/DICKY1987/CLI_RESTART
 2. Click on **"Pull requests"** tab
@@ -157,6 +170,7 @@ git ls-remote --heads origin | grep -E '(main|ws-f-remaining-mods)'
 
 ## References
 
-- Script: `scripts/create_pr_ws_f_remaining_mods.py`
-- Workflow: `.github/workflows/create-pr-ws-f-remaining-mods.yml`
+- Shell script wrapper: `scripts/create_pr_ws_f.sh`
+- Python script: `scripts/create_pr_ws_f_remaining_mods.py`
+- GitHub Actions workflow: `.github/workflows/create-pr-ws-f-remaining-mods.yml`
 - Repository: https://github.com/DICKY1987/CLI_RESTART
