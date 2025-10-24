@@ -1,0 +1,31 @@
+chunk:
+  max_chars: 1200
+  overlap_chars: 200
+  include_ext:
+    - .ps1
+    - .psm1
+    - .psd1
+    - .py
+    - .ts
+    - .tsx
+    - .js
+    - .json
+    - .md
+    - .yml
+    - .yaml
+    - .sh
+    - .bat
+rank:
+  boost:
+    - "README.md"
+    - "docs/"
+    - "src/"
+    - "tools/"
+    - "scripts/"
+    - "modules/"
+symbol_index:
+  tool: "ctags"
+  flags:
+    - "--languages=PowerShell,Python,JavaScript,TypeScript"
+    - "--fields=+n"
+

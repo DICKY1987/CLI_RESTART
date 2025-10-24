@@ -1,0 +1,18 @@
+{
+  "ollama_url": "http://localhost:11434",
+  "chat_model": "deepseek-coder",
+  "embeddings_model": "mxbai-embed-large",
+  "top_k": 12,
+  "min_score": 0.15,
+  "max_chars": 1200,
+  "overlap_chars": 200,
+  "boost_paths": [
+    "src/cli_multi_rapid/routing/",
+    "src/cli_multi_rapid/router.py",
+    "src/cli_multi_rapid/",
+    "docs/architecture/ROUTING.md",
+    "docs/migration/WS2-ROUTER.md",
+    "docs/how-to/simplified-workflows.md",
+    "docs/concepts/routing-logic.md"
+  ]
+}
