@@ -25,10 +25,10 @@ foreach ($f in $doc.flags) {
     if (-not $f.created) { $errors += "flag '$($f.key)' missing 'created'" }
     if (-not $f.expires) { $errors += "flag '$($f.key)' missing 'expires'" }
 
-    # Date checks
+    # Date checks (robust parsing)
     $createdDt = $null; $expiresDt = $null
-    if ($f.created) { [void][DateTime]::TryParse($f.created, [ref]$createdDt) }
-    if ($f.expires) { [void][DateTime]::TryParse($f.expires, [ref]$expiresDt) }
+    try { if ($f.created) { $createdDt = [DateTime]::Parse($f.created, [System.Globalization.CultureInfo]::InvariantCulture) } } catch {}
+    try { if ($f.expires) { $expiresDt = [DateTime]::Parse($f.expires, [System.Globalization.CultureInfo]::InvariantCulture) } } catch {}
     if (-not $createdDt) { $errors += "flag '$($f.key)' has invalid 'created' date" }
     if (-not $expiresDt) { $errors += "flag '$($f.key)' has invalid 'expires' date" }
     if ($expiresDt) {
