@@ -159,9 +159,9 @@ ignore = [
     "I001",  # import sorting
     "F401",  # unused imports
     ## WS-F tighten: re-enable later\n    # "E722",  # bare except (now enforced)
-    # "UP006", # dict/typing modernizations (now enforced)
+    "UP006", # dict/typing modernizations
     "UP015", # unnecessary open mode
-    # "UP035", # typing.Type -> type (now enforced)
+    "UP035", # typing.Type -> type
     "UP045", # Optional/Union modern syntax
     # "E741",  # ambiguous variable name (enforced selectively)
     "B017",  # blind exception assertion
@@ -186,4 +186,5 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
 
