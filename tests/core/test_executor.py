@@ -5,15 +5,15 @@ Tests for core.executor module
 Test coverage for StepExecutor class and step execution logic.
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock, patch
 from dataclasses import dataclass
+from unittest.mock import MagicMock, Mock, patch
 
-from src.cli_multi_rapid.core.executor import StepExecutor, StepExecutionResult
+import pytest
+
 from src.cli_multi_rapid.adapters.base_adapter import AdapterResult
-from src.cli_multi_rapid.router import Router
+from src.cli_multi_rapid.core.executor import StepExecutionResult, StepExecutor
 from src.cli_multi_rapid.cost_tracker import CostTracker
-
+from src.cli_multi_rapid.router import Router
 
 # Fixtures
 

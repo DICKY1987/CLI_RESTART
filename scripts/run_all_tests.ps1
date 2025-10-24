@@ -86,6 +86,12 @@ else {
 
 if (-not $SkipPowerShell) {
     Write-Host '=== PowerShell suite ===' -ForegroundColor Cyan
+    # Detect Pester tests; skip if none found
+    $psTestFiles = Get-ChildItem -Path $repoRoot -Recurse -Include *.Tests.ps1, *.tests.ps1 -ErrorAction SilentlyContinue
+    if (-not $psTestFiles) {
+        Add-SummaryLine '- PowerShell: skipped (no tests found)'
+    }
+    else {
     try {
         $pesterModule = Get-Module -ListAvailable -Name Pester | Sort-Object Version -Descending | Select-Object -First 1
         if (-not $pesterModule -or $pesterModule.Version.Major -lt 5) {
@@ -121,6 +127,7 @@ if (-not $SkipPowerShell) {
     catch {
         $overallSuccess = $false
         Add-SummaryLine "- PowerShell: exception $($_.Exception.Message)"
+    }
     }
 }
 else {

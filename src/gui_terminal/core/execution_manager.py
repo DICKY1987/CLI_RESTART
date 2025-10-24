@@ -9,8 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 try:
     from PyQt6 import QtCore
@@ -101,8 +100,8 @@ if PyQt6Available:
             Returns:
                 Execution ID
             """
-            from datetime import datetime
             import secrets
+            from datetime import datetime
 
             execution_id = f"exec_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(4)}"
 

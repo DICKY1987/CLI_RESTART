@@ -1,0 +1,231 @@
+Generate SBOM and Scan (Grype)	Set up job	∩╗┐2025-10-24T00:17:38.5204647Z Current runner version: '2.329.0'
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5229889Z ##[group]Runner Image Provisioner
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5230679Z Hosted Compute Agent
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5231310Z Version: 20250912.392
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5231912Z Commit: d921fda672a98b64f4f82364647e2f10b2267d0b
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5232602Z Build Date: 2025-09-12T15:23:14Z
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5233238Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5234042Z ##[group]Operating System
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5234639Z Ubuntu
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5235072Z 24.04.3
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5235625Z LTS
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5236061Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5236550Z ##[group]Runner Image
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5237161Z Image: ubuntu-24.04
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5237689Z Version: 20250929.60.1
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5238701Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20250929.60/images/ubuntu/Ubuntu2404-Readme.md
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5240093Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20250929.60
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5241255Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5242451Z ##[group]GITHUB_TOKEN Permissions
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5244578Z Contents: read
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5245330Z Metadata: read
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5245808Z Packages: read
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5246326Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5248564Z Secret source: Actions
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5249368Z Prepare workflow directory
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5693330Z Prepare all required actions
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.5750186Z Getting action download info
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:38.9672937Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:39.1368750Z Download action repository 'anchore/sbom-action@v0' (SHA:8e94d75ddd33f69f691467e42275782e4bfefe84)
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:39.7151360Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:39.8490019Z Download action repository 'anchore/scan-action@v3' (SHA:3343887d815d7b07465f6fdcd395bd66508d486a)
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:40.2194050Z Download action repository 'github/codeql-action@v4' (SHA:16140ae1a102900babc80a33c44059580f687047)
+Generate SBOM and Scan (Grype)	Set up job	2025-10-24T00:17:41.0246443Z Complete job name: Generate SBOM and Scan (Grype)
+Generate SBOM and Scan (Grype)	Checkout	∩╗┐2025-10-24T00:17:41.1065026Z ##[group]Run actions/checkout@v4
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1066381Z with:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1067152Z   repository: DICKY1987/CLI_RESTART
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1068490Z   token: ***
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1069240Z   ssh-strict: true
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1070014Z   ssh-user: git
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1070809Z   persist-credentials: true
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1071667Z   clean: true
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1072459Z   sparse-checkout-cone-mode: true
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1073415Z   fetch-depth: 1
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1074344Z   fetch-tags: false
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1075138Z   show-progress: true
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1075948Z   lfs: false
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1076692Z   submodules: false
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1077508Z   set-safe-directory: true
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.1078635Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2220774Z Syncing repository: DICKY1987/CLI_RESTART
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2223504Z ##[group]Getting Git version info
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2225130Z Working directory is '/home/runner/work/CLI_RESTART/CLI_RESTART'
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2226936Z [command]/usr/bin/git version
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2296546Z git version 2.51.0
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2324725Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2342236Z Temporarily overriding HOME='/home/runner/work/_temp/0edeacac-12ed-4d10-8498-e36e64c3b40f' before making global git config changes
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2346489Z Adding repository directory to the temporary git global config as a safe directory
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2349978Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/CLI_RESTART/CLI_RESTART
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2391339Z Deleting the contents of '/home/runner/work/CLI_RESTART/CLI_RESTART'
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2396502Z ##[group]Initializing the repository
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2401439Z [command]/usr/bin/git init /home/runner/work/CLI_RESTART/CLI_RESTART
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2526429Z hint: Using 'master' as the name for the initial branch. This default branch name
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2529702Z hint: is subject to change. To configure the initial branch name to use in all
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2531853Z hint: of your new repositories, which will suppress this warning, call:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2533036Z hint:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2534514Z hint: 	git config --global init.defaultBranch <name>
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2536017Z hint:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2537033Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2538567Z hint: 'development'. The just-created branch can be renamed via this command:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2539789Z hint:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2540525Z hint: 	git branch -m <name>
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2541482Z hint:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2542813Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2544721Z Initialized empty Git repository in /home/runner/work/CLI_RESTART/CLI_RESTART/.git/
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2547780Z [command]/usr/bin/git remote add origin https://github.com/DICKY1987/CLI_RESTART
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2586270Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2587661Z ##[group]Disabling automatic garbage collection
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2590645Z [command]/usr/bin/git config --local gc.auto 0
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2623389Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2625188Z ##[group]Setting up auth
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2631020Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.2665778Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.3021816Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.3053145Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.3279334Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.3327948Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.3329375Z ##[group]Fetching the repository
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.3338520Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +057c731bc6142ad77dc75ac9c0d07e932eceb7a8:refs/remotes/pull/115/merge
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8053106Z From https://github.com/DICKY1987/CLI_RESTART
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8054374Z  * [new ref]         057c731bc6142ad77dc75ac9c0d07e932eceb7a8 -> pull/115/merge
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8086728Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8087307Z ##[group]Determining the checkout info
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8089118Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8094128Z [command]/usr/bin/git sparse-checkout disable
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8135557Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8165256Z ##[group]Checking out the ref
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8169245Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/115/merge
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8839703Z Note: switching to 'refs/remotes/pull/115/merge'.
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8840359Z 
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8840689Z You are in 'detached HEAD' state. You can look around, make experimental
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8841489Z changes and commit them, and you can discard any commits you make in this
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8842257Z state without impacting any branches by switching back to a branch.
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8842743Z 
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8843053Z If you want to create a new branch to retain commits you create, you may
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8843987Z do so (now or later) by using -c with the switch command. Example:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8844392Z 
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8844548Z   git switch -c <new-branch-name>
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8844760Z 
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8844878Z Or undo this operation with:
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8845060Z 
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8845445Z   git switch -
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8845614Z 
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8845844Z Turn off this advice by setting config variable advice.detachedHead to false
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8846161Z 
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8846516Z HEAD is now at 057c731 Merge 25d01f7f92d6322bab8a8bf8ff53d2fc1bc0f11c into fa539fe91e406868f365b8cb7053243cbabf9575
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8848739Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8889945Z [command]/usr/bin/git log -1 --format=%H
+Generate SBOM and Scan (Grype)	Checkout	2025-10-24T00:17:41.8916960Z 057c731bc6142ad77dc75ac9c0d07e932eceb7a8
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	∩╗┐2025-10-24T00:17:41.9201385Z ##[group]Run anchore/sbom-action@v0
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9201721Z with:
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9201894Z   path: .
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9202064Z   format: spdx-json
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9202264Z   output-file: sbom.spdx.json
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9202666Z   github-token: ***
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9202880Z   dependency-snapshot: false
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9203111Z   upload-artifact: true
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9203337Z   upload-artifact-retention: 0
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9203575Z   upload-release-assets: true
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:41.9204067Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.1315614Z ------------------------------ Running SBOM Action -----------------------------
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.1935992Z [command]/usr/bin/sh /home/runner/work/_temp/fc4ca17d-6118-42f9-8093-1fbcc637347b -d -b /home/runner/work/_temp/fc4ca17d-6118-42f9-8093-1fbcc637347b_syft v1.36.0
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.1990570Z [info] checking github for release tag='v1.36.0' 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.2032045Z [debug] http_download(url=https://github.com/anchore/syft/releases/v1.36.0) 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.4538731Z [info] fetching release script for tag='v1.36.0' 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.4568986Z [debug] http_download(url=https://get.anchore.io/syft/v1.36.0/install.sh) 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.5916676Z [info] checking github for release tag='v1.36.0' 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.5960071Z [debug] http_download(url=https://github.com/anchore/syft/releases/v1.36.0) 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.6933411Z [info] using release tag='v1.36.0' version='1.36.0' os='linux' arch='amd64' 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.6958730Z [debug] downloading files into /tmp/tmp.7MbIQMmuGS 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.6998231Z [debug] http_download(url=https://github.com/anchore/syft/releases/download/v1.36.0/syft_1.36.0_checksums.txt) 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:42.8927474Z [debug] http_download(url=https://github.com/anchore/syft/releases/download/v1.36.0/syft_1.36.0_linux_amd64.tar.gz) 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:43.6961288Z [info] installed /home/runner/work/_temp/fc4ca17d-6118-42f9-8093-1fbcc637347b_syft/syft 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:43.7750137Z [command]/opt/hostedtoolcache/syft/1.36.0/x64/syft scan dir:. -o spdx-json
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:43.7752388Z ##[group]Executing Syft...
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:43.8018110Z [0000]  WARN no explicit name and version provided for directory source, deriving artifact ID from the given path (which is not ideal)
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:43.8018819Z 
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:44.8522827Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:44.8523867Z SBOM scan completed in: 2.72s
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:44.8647756Z ------------------------- Uploading workflow artifacts -------------------------
+Generate SBOM and Scan (Grype)	Generate SBOM (SPDX JSON)	2025-10-24T00:17:44.8648665Z /tmp/sbom-action-2UBlwU/CLI_RESTART-sbom_and_scan-sbom.spdx.json
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	∩╗┐2025-10-24T00:17:45.2560799Z ##[group]Run actions/upload-artifact@v4
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2561131Z with:
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2561353Z   name: sbom-spdx
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2561555Z   path: sbom.spdx.json
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2561764Z   if-no-files-found: warn
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2561985Z   compression-level: 6
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2562206Z   overwrite: false
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2562398Z   include-hidden-files: false
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2562611Z env:
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2562900Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: CLI_RESTART-sbom_and_scan-sbom.spdx.json
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.2563251Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.4770220Z With the provided path, there will be 1 file uploaded
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.4776807Z Artifact name is valid!
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.4777862Z Root directory input is valid!
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.6098178Z Beginning upload of artifact content to blob storage
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.7440121Z Uploaded bytes 14675
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.7795752Z Finished uploading artifact content to blob storage!
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.7798853Z SHA256 digest of uploaded artifact zip is 0bcae2ff558500d95a2ea7b313cea97410d46a737f84a16e9f74854de178dc0a
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.7801198Z Finalizing artifact upload
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.8654495Z Artifact sbom-spdx.zip successfully finalized. Artifact ID 4358188406
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.8655718Z Artifact sbom-spdx has been successfully uploaded! Final size is 14675 bytes. Artifact ID is 4358188406
+Generate SBOM and Scan (Grype)	Upload SBOM artifact	2025-10-24T00:17:45.8662759Z Artifact download URL: https://github.com/DICKY1987/CLI_RESTART/actions/runs/18765585028/artifacts/4358188406
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	∩╗┐2025-10-24T00:17:45.8789197Z ##[warning]Unexpected input(s) 'acs-report-enable', 'output-file', valid inputs are ['image', 'path', 'sbom', 'fail-build', 'output-format', 'severity-cutoff', 'only-fixed', 'add-cpes-if-none', 'by-cve', 'grype-version', 'vex']
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8801177Z ##[group]Run anchore/scan-action@v3
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8801432Z with:
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8801621Z   path: .
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8801795Z   fail-build: true
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8801982Z   severity-cutoff: high
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8802198Z   output-format: sarif
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8802400Z   acs-report-enable: true
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8802619Z   output-file: grype.sarif
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8802828Z   only-fixed: false
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8803020Z   add-cpes-if-none: false
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8803210Z   by-cve: false
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8803385Z env:
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8803835Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: CLI_RESTART-sbom_and_scan-sbom.spdx.json
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.8804199Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.9873276Z [command]/usr/bin/chmod +x /home/runner/work/_temp/ac373dc4-ba87-40a0-bfbd-e68c5d4fe6bd
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.9915801Z [command]/home/runner/work/_temp/ac373dc4-ba87-40a0-bfbd-e68c5d4fe6bd -b /home/runner/work/_temp/ac373dc4-ba87-40a0-bfbd-e68c5d4fe6bd_grype v0.74.4
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:45.9950865Z [info] checking github for release tag='v0.74.4' 
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:46.2249895Z [info] fetching release script for tag='v0.74.4' 
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:46.3451302Z [info] checking github for release tag='v0.74.4' 
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:46.4338646Z [info] using release tag='v0.74.4' version='0.74.4' os='linux' arch='amd64' 
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:47.2782524Z [info] installed /home/runner/work/_temp/ac373dc4-ba87-40a0-bfbd-e68c5d4fe6bd_grype/grype 
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:47.3390844Z ##[group]grype output...
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:17:47.3391598Z Executing: grype -o sarif --fail-on high dir:.
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:18:00.4709350Z 1 error occurred:
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:18:00.4710041Z 	* discovered vulnerabilities at or above the severity threshold
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:18:00.4710467Z 
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:18:00.4738386Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Scan dependencies (Grype)	2025-10-24T00:18:00.4751340Z ##[error]Failed minimum severity level. Found vulnerabilities with level 'high' or higher
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	∩╗┐2025-10-24T00:18:00.4884583Z ##[group]Run github/codeql-action/upload-sarif@v4
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4884926Z with:
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4885117Z   sarif_file: grype.sarif
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4885415Z   checkout_path: /home/runner/work/CLI_RESTART/CLI_RESTART
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4885866Z   token: ***
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4886052Z   matrix: null
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4886245Z   wait-for-processing: true
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4886460Z env:
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4886746Z   ANCHORE_SBOM_ACTION_PRIOR_ARTIFACT: CLI_RESTART-sbom_and_scan-sbom.spdx.json
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:00.4887123Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Upload Grype SARIF	2025-10-24T00:18:01.4801387Z ##[error]Path does not exist: grype.sarif
+Generate SBOM and Scan (Grype)	Post Upload Grype SARIF	∩╗┐2025-10-24T00:18:01.6734968Z Post job cleanup.
+Generate SBOM and Scan (Grype)	Post Upload Grype SARIF	2025-10-24T00:18:01.8834158Z (node:2618) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Generate SBOM and Scan (Grype)	Post Upload Grype SARIF	2025-10-24T00:18:01.8835027Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Generate SBOM and Scan (Grype)	Post Upload Grype SARIF	2025-10-24T00:18:01.8839511Z ##[group]Uploading combined SARIF debug artifact
+Generate SBOM and Scan (Grype)	Post Upload Grype SARIF	2025-10-24T00:18:01.8840739Z ##[endgroup]
+Generate SBOM and Scan (Grype)	Post Checkout	∩╗┐2025-10-24T00:18:01.8989370Z Post job cleanup.
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:01.9996204Z [command]/usr/bin/git version
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0039562Z git version 2.51.0
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0098159Z Temporarily overriding HOME='/home/runner/work/_temp/ea5ef792-ed65-4ce1-b459-91fa4b19c795' before making global git config changes
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0099463Z Adding repository directory to the temporary git global config as a safe directory
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0105399Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/CLI_RESTART/CLI_RESTART
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0146305Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0185932Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0445715Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0471065Z http.https://github.com/.extraheader
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0485640Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Generate SBOM and Scan (Grype)	Post Checkout	2025-10-24T00:18:02.0519736Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Generate SBOM and Scan (Grype)	Complete job	∩╗┐2025-10-24T00:18:02.0863851Z Cleaning up orphan processes
+

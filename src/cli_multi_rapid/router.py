@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 CLI Orchestrator Router System
 
@@ -10,7 +10,6 @@ eliminating circular dependencies and enabling runtime adapter extension.
 """
 
 import glob
-import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -388,16 +387,16 @@ class Router:
                         try:
                             size = Path(file_path).stat().st_size
                             estimated_size += size * (len(matched_files) / len(sample_files))
-                        except:
+                        except Exception:
                             estimated_size += 1000  # Default estimate
                 else:
                     # Single file
                     file_count += 1
                     try:
                         estimated_size += Path(pattern).stat().st_size
-                    except:
+                    except Exception:
                         estimated_size += 1000
-            except:
+            except Exception:
                 # Pattern matching failed, estimate conservatively
                 file_count += 5
                 estimated_size += 5000
@@ -953,3 +952,4 @@ class Router:
             groups.append(priority_groups[priority])
 
         return groups
+

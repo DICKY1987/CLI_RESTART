@@ -6,12 +6,11 @@ Handles execution and validation of verification gates to ensure
 workflow quality and compliance.
 """
 
+import json
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
-
-import json
 
 
 class GateType(Enum):

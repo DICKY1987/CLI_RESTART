@@ -7,12 +7,12 @@ execution, helping identify bottlenecks and optimize parallel execution.
 
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
 import json
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Callable, Optional
 
 
 @dataclass

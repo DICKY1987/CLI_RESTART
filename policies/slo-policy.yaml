@@ -1,0 +1,45 @@
+version: 1
+service_owner: platform-engineering
+
+policy:
+  error_budget_window: 30d
+  burn_rates:
+    - window: 1h
+      factor: 14   # page quickly on fast burns
+    - window: 6h
+      factor: 6
+    - window: 24h
+      factor: 3
+
+services:
+  - name: cli-orchestrator
+    tier: 1
+    objectives:
+      availability:
+        target: 99.9
+        window: 30d
+      latency:
+        p50_ms: 100
+        p95_ms: 400
+    alerts:
+      page_on:
+        - availability_breach
+        - burn_rate_exceeded
+      ticket_on:
+        - latency_regression
+    dashboards:
+      - url: https://grafana.example.local/d/cli-orchestrator
+    runbooks:
+      - url: docs/runbooks/cli-orchestrator.md
+
+  - name: scripts-automation
+    tier: 2
+    objectives:
+      job_success_rate:
+        target: 99.0
+        window: 30d
+      mttr_minutes: 30
+    dashboards:
+      - url: https://grafana.example.local/d/scripts-automation
+    runbooks:
+      - url: docs/runbooks/scripts-automation.md

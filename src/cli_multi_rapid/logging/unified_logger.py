@@ -367,7 +367,7 @@ class UnifiedLogger:
             return conversation
 
         try:
-            with open(self.conversation_log_path, "r", encoding="utf-8") as f:
+            with open(self.conversation_log_path, encoding="utf-8") as f:
                 for line in f:
                     entry = json.loads(line)
                     if entry.get("conversation_id") == conversation_id:

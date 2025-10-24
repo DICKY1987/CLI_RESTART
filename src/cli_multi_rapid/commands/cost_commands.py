@@ -6,14 +6,13 @@ Provides commands for tracking token usage, costs, and budget enforcement.
 Part of Phase 3 CLI modularization.
 """
 
-import typer
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
-from datetime import datetime, timedelta
 
+import typer
 from rich.console import Console
 from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn
 
 app = typer.Typer(help="Cost tracking and budget management commands")
 console = Console()
@@ -76,7 +75,7 @@ def cost_report(
         total_cost_usd = _calculate_cost_usd(total_tokens)
 
         # Display summary
-        console.print(f"\n[bold]Summary:[/bold]")
+        console.print("\n[bold]Summary:[/bold]")
         console.print(f"  Total runs: {len(cost_data)}")
         console.print(f"  Total tokens: {total_tokens:,}")
         console.print(f"  Estimated cost: ${total_cost_usd:.2f} USD")
@@ -89,7 +88,7 @@ def cost_report(
                 tokens = entry.get("tokens", 0)
                 adapter_costs[adapter] = adapter_costs.get(adapter, 0) + tokens
 
-            console.print(f"\n[bold]Cost by Adapter:[/bold]")
+            console.print("\n[bold]Cost by Adapter:[/bold]")
             table = Table()
             table.add_column("Adapter", style="cyan")
             table.add_column("Tokens", justify="right")
@@ -124,7 +123,7 @@ def cost_report(
                     f"${cost_usd:.2f}"
                 )
 
-            console.print(f"\n[bold]Recent Runs:[/bold]")
+            console.print("\n[bold]Recent Runs:[/bold]")
             console.print(table)
 
             if len(cost_data) > 20:
@@ -184,7 +183,6 @@ def check_budget(
     console.print(f"[bold]Budget Check ({period})[/bold]")
 
     try:
-        from ..cost_tracker import CostTracker
 
         # Load cost data for period
         since_date = _get_period_start_date(period)
@@ -208,7 +206,7 @@ def check_budget(
         usage_pct = (current_tokens / budget_limit * 100) if budget_limit > 0 else 0
 
         # Display results
-        console.print(f"\n[bold]Current Usage:[/bold]")
+        console.print("\n[bold]Current Usage:[/bold]")
         console.print(f"  Tokens: {current_tokens:,} / {budget_limit:,} ({usage_pct:.1f}%)")
         console.print(f"  Cost: ${current_cost_usd:.2f} USD")
 
@@ -224,7 +222,7 @@ def check_budget(
         # Remaining budget
         remaining_tokens = budget_limit - current_tokens
         remaining_usd = _calculate_cost_usd(remaining_tokens)
-        console.print(f"\n[bold]Remaining:[/bold]")
+        console.print("\n[bold]Remaining:[/bold]")
         console.print(f"  Tokens: {remaining_tokens:,}")
         console.print(f"  Cost: ${remaining_usd:.2f} USD")
 
@@ -292,7 +290,7 @@ def show_trend(
         # Summary stats
         total_tokens = sum(daily_costs.values())
         avg_tokens = total_tokens / len(daily_costs) if daily_costs else 0
-        console.print(f"\n[bold]Statistics:[/bold]")
+        console.print("\n[bold]Statistics:[/bold]")
         console.print(f"  Total: {total_tokens:,} tokens")
         console.print(f"  Average: {avg_tokens:,.0f} tokens/day")
         console.print(f"  Peak: {max_tokens:,} tokens")

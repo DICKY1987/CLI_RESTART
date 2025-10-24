@@ -11,8 +11,6 @@ Refactored to use unified GitHubClient from domain layer.
 from __future__ import annotations
 
 import json
-import os
-import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path

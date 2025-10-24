@@ -6,17 +6,15 @@ Provides comprehensive validation for all configuration options.
 Part of Phase 3 configuration consolidation.
 """
 
-import os
 from pathlib import Path
-from typing import Optional, Dict, List, Any
+from typing import Any, Dict, List, Optional
 
-from .settings import OrchestratorSettings, get_settings
 from .defaults import (
+    BUDGET_TIERS,
     LOG_LEVELS,
     MAX_TOKEN_BUDGET,
-    BUDGET_TIERS,
-    AI_MODELS,
 )
+from .settings import OrchestratorSettings, get_settings
 
 
 class ValidationResult:
