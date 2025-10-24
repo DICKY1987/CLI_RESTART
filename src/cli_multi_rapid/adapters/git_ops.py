@@ -701,7 +701,7 @@ class GitOpsAdapter(BaseAdapter):
             # Clean up shadow worktree
             try:
                 self._git(['worktree', 'remove', '--force', str(shadow_path)])
-            except:
+ Exception:
                 pass  # Best effort cleanup
 
     def _get_quality_gates(self, verification_level: str) -> list[str]:
@@ -873,3 +873,4 @@ class GitOpsAdapter(BaseAdapter):
         """Check if there are uncommitted changes."""
         result = self._git(['status', '--porcelain'])
         return result.success and len(result.stdout.strip()) > 0
+

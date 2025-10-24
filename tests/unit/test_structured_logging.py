@@ -11,7 +11,8 @@ def test_structlog_emits_json(tmp_path, capsys):
     # Capture stdout via capsys
     out, _ = capsys.readouterr()
     # Ensure last non-empty line is valid JSON
-    line = [l for l in out.splitlines() if l.strip()][-1]
-    obj = json.loads(line)
+    line = [line_str for line_str in out.splitlines() if l.strip()][-1]
+    obj = json.loads(line_str)
     assert obj["level"] in ("info", "INFO")
     assert obj["event"] == "hello world"
+
