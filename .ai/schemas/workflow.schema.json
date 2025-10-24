@@ -4,6 +4,51 @@
   "type": "object",
   "additionalProperties": true,
   "$defs": {
+    "step": {
+      "title": "Workflow Step",
+      "type": "object",
+      "required": ["id", "name", "actor"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { 
+          "type": "string",
+          "description": "Unique identifier for the step (e.g., '1.001')"
+        },
+        "name": { 
+          "type": "string",
+          "description": "Human-readable name for the step"
+        },
+        "actor": { 
+          "type": "string",
+          "description": "Adapter to execute this step"
+        },
+        "with": {
+          "type": "object",
+          "description": "Parameters for the adapter"
+        },
+        "when": {
+          "type": "string",
+          "description": "Conditional expression for step execution"
+        },
+        "retry": {
+          "type": "object",
+          "properties": {
+            "max": { "type": "integer", "minimum": 1 },
+            "backoff": { "type": "string", "enum": ["linear", "exponential"] }
+          }
+        },
+        "emits": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Artifacts produced by this step"
+        },
+        "on_fail": {
+          "type": "string",
+          "enum": ["pause_for_review", "abort", "continue", "stop"],
+          "description": "Action to take on step failure"
+        }
+      }
+    },
     "simplified_operation": {
       "title": "Simplified Operation",
       "type": "object",
@@ -45,7 +90,11 @@
     "framework_version": { "type": ["string", "null"], "enum": ["simplified-25ops", null] },
     "policy": { "$ref": "#/$defs/cost_enforcement" },
     "role_assignments": { "$ref": "#/$defs/role_assignments" },
-    "steps": { "type": ["array", "null"] },
+    "steps": { 
+      "type": ["array", "null"],
+      "items": { "$ref": "#/$defs/step" },
+      "description": "Workflow steps to execute in order"
+    },
     "operations": {
       "type": ["array", "null"],
       "items": { "$ref": "#/$defs/simplified_operation" }
