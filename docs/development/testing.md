@@ -52,7 +52,7 @@ pwsh -File scripts/run_all_tests.ps1 -SkipPowerShell          # Python + Node
 
 ## Coverage Expectations
 
-- **Python:** ≥85% for the measured security modules. Broader packages currently fall below this bar—see `docs/test-gap-report.md` for remediation priorities.
+- **Python:** ≥85% for the measured security modules. Broader packages currently fall below this bar—see `docs/development/test-gap-report\.md` for remediation priorities.
 - **PowerShell:** ≥85% for the TradingOps module.
 - **Node:** No JavaScript coverage gate is configured yet because the workspace lacks an automated test script.
 
@@ -87,3 +87,4 @@ Coverage XML (Cobertura/JaCoCo) and JUnit XML are produced for every suite and a
 ```
 
 The runner overwrites artifacts on each invocation. If you need historical trends, copy the relevant files into a timestamped directory under `.reports/baseline/` before re-running.
+
