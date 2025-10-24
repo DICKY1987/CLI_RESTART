@@ -701,7 +701,7 @@ class GitOpsAdapter(BaseAdapter):
             # Clean up shadow worktree
             try:
                 self._git(['worktree', 'remove', '--force', str(shadow_path)])
- Exception:
+            except Exception:
                 pass  # Best effort cleanup
 
     def _get_quality_gates(self, verification_level: str) -> list[str]:
