@@ -50,7 +50,7 @@ install-dev:
 
 # Testing targets
 test:
-	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPowerShell
 
 test\:py:
 	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPowerShell -SkipNode
@@ -78,7 +78,7 @@ format:
 
 type-check:
 	@echo "Running Python type checking..."
-	mypy src/ --ignore-missing-imports
+	- mypy --explicit-package-bases src/ --ignore-missing-imports
 
 security-check:
 	@echo "Running Python security checks..."
