@@ -43,7 +43,6 @@ jobs:
 
       - name: Run PowerShell tests (Pester)
         shell: pwsh
-        continue-on-error: true
         run: |
           if (Test-Path .\scripts\run_all_tests.ps1) {
             .\scripts\run_all_tests.ps1 -SkipPython -SkipNode

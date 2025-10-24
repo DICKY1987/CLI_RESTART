@@ -1,5 +1,5 @@
 param(
-    [string]$RegistryPath = "flags/registry.yaml",
+    [string]$RegistryPath = "config/policies/flags.yaml",
     [int]$WarnDays = 14
 )
 $ErrorActionPreference = 'Stop'
@@ -50,4 +50,3 @@ if ($errors.Count -gt 0) {
 }
 
 Write-Host "Flags registry validation passed" -ForegroundColor Green
-

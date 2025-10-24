@@ -45,7 +45,15 @@ function Test-SecretsPolicy {
     }
 }
 
-Test-SloPolicy -Path 'policies/slo-policy.yaml'
-Test-SecretsPolicy -Path 'policies/secrets-policy.yaml'
-Write-Host 'Policy validation passed' -ForegroundColor Green
+function Resolve-PolicyPath {
+    param([string]$NewPath, [string]$LegacyPath)
+    if (Test-Path -LiteralPath $NewPath) { return $NewPath }
+    return $LegacyPath
+}
 
+$sloPath = Resolve-PolicyPath -NewPath 'config/policies/slo-policy.yaml' -LegacyPath 'policies/slo-policy.yaml'
+$secretsPath = Resolve-PolicyPath -NewPath 'config/policies/secrets-policy.yaml' -LegacyPath 'policies/secrets-policy.yaml'
+
+Test-SloPolicy -Path $sloPath
+Test-SecretsPolicy -Path $secretsPath
+Write-Host 'Policy validation passed' -ForegroundColor Green
