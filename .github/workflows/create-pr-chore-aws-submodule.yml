@@ -1,0 +1,96 @@
+name: Create PR - chore/update-submodule-aws-duplicate-workflows
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run - print PR details without creating'
+        type: boolean
+        default: false
+  push:
+    branches:
+      - 'copilot/merge-chore-update-submodule-aws'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Pull Request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const headBranch = 'chore/update-submodule-aws-duplicate-workflows';
+            const baseBranch = 'main';
+            const title = 'Merge chore/update-submodule-aws-duplicate-workflows into main';
+            const body = 'Open PR to merge chore/update-submodule-aws-duplicate-workflows into main for review and CI validation.';
+            
+            const dryRun = ${{ inputs.dry_run || 'false' }};
+            
+            // Check if branch exists
+            try {
+              await github.rest.repos.getBranch({
+                owner,
+                repo,
+                branch: headBranch
+              });
+              core.info(`✓ Branch ${headBranch} exists`);
+            } catch (error) {
+              core.setFailed(`Branch ${headBranch} does not exist`);
+              return;
+            }
+            
+            // Check if PR already exists
+            const { data: existingPRs } = await github.rest.pulls.list({
+              owner,
+              repo,
+              head: `${owner}:${headBranch}`,
+              base: baseBranch,
+              state: 'open'
+            });
+            
+            if (existingPRs.length > 0) {
+              core.info(`PR already exists: #${existingPRs[0].number}`);
+              core.info(`URL: ${existingPRs[0].html_url}`);
+              return;
+            }
+            
+            if (dryRun) {
+              core.info('DRY RUN - Would create PR with:');
+              core.info(`  Title: ${title}`);
+              core.info(`  Base: ${baseBranch}`);
+              core.info(`  Head: ${headBranch}`);
+              core.info(`  Body: ${body}`);
+              return;
+            }
+            
+            // Create the PR
+            try {
+              const { data: pr } = await github.rest.pulls.create({
+                owner,
+                repo,
+                title,
+                body,
+                head: headBranch,
+                base: baseBranch
+              });
+              
+              core.info(`✓ Pull request created successfully!`);
+              core.info(`  Number: #${pr.number}`);
+              core.info(`  URL: ${pr.html_url}`);
+              
+              // Set output for potential downstream jobs
+              core.setOutput('pr_number', pr.number);
+              core.setOutput('pr_url', pr.html_url);
+            } catch (error) {
+              core.setFailed(`Failed to create PR: ${error.message}`);
+            }
