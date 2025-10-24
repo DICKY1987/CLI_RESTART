@@ -1,12 +1,10 @@
 """Tests for workflow browser component."""
 
-from pathlib import Path
-
 import pytest
+from pathlib import Path
 
 try:
     from PyQt6 import QtWidgets
-
     from gui_terminal.ui.workflow_browser import WorkflowBrowser
 
     PyQt6Available = True

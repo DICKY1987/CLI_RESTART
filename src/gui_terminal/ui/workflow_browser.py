@@ -7,10 +7,9 @@ search, and metadata display.
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Dict, Optional
-
 import yaml
+from pathlib import Path
+from typing import Dict, List, Optional
 
 try:
     from PyQt6 import QtCore, QtGui, QtWidgets
@@ -117,7 +116,7 @@ if PyQt6Available:
             for workflow_file in workflow_files:
                 try:
                     # Load workflow metadata
-                    with open(workflow_file, encoding="utf-8") as f:
+                    with open(workflow_file, "r", encoding="utf-8") as f:
                         workflow_data = yaml.safe_load(f)
 
                     if not workflow_data:
@@ -152,7 +151,7 @@ if PyQt6Available:
 
                     self._workflows[str(workflow_file)] = workflow_data
 
-                except Exception:
+                except Exception as e:
                     # Skip invalid workflows
                     continue
 
@@ -239,17 +238,17 @@ Steps: {len(steps)}
 """
 
             if inputs:
-                details += "\nInputs:\n"
+                details += f"\nInputs:\n"
                 for key, value in inputs.items():
                     details += f"  • {key}: {value}\n"
 
             if policy:
-                details += "\nPolicy:\n"
+                details += f"\nPolicy:\n"
                 for key, value in policy.items():
                     details += f"  • {key}: {value}\n"
 
             if steps:
-                details += "\nStep Overview:\n"
+                details += f"\nStep Overview:\n"
                 for i, step in enumerate(steps[:5], 1):  # Show first 5 steps
                     step_name = step.get("name", "Unnamed step")
                     actor = step.get("actor", "unknown")

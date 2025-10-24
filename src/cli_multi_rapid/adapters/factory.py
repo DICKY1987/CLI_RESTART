@@ -9,7 +9,8 @@ until adapters are actually needed.
 
 import importlib
 import logging
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Type
 
 from .base_adapter import BaseAdapter
 
@@ -28,7 +29,7 @@ class AdapterFactory:
 
     def __init__(self):
         self._instances: dict[str, BaseAdapter] = {}
-        self._classes: dict[str, type[BaseAdapter]] = {}
+        self._classes: dict[str, Type[BaseAdapter]] = {}
         self._module_paths: dict[str, str] = {}
         self._failed_adapters: set[str] = set()
 
@@ -105,7 +106,7 @@ class AdapterFactory:
         self._instances[name] = adapter
         logger.debug(f"Registered adapter instance: {name}")
 
-    def register_class(self, name: str, adapter_class: type[BaseAdapter]) -> None:
+    def register_class(self, name: str, adapter_class: Type[BaseAdapter]) -> None:
         """Register an adapter class for lazy instantiation."""
         self._classes[name] = adapter_class
         logger.debug(f"Registered adapter class: {name}")
@@ -250,4 +251,3 @@ class AdapterFactory:
 
 # Global factory instance
 factory = AdapterFactory()
-

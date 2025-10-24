@@ -11,10 +11,10 @@ from rich.console import Console
 
 # Import command modules
 from .commands import (
-    cost_commands,
-    pr_commands,
-    verify_commands,
     workflow_commands,
+    verify_commands,
+    pr_commands,
+    cost_commands,
 )
 
 # Create main app
@@ -90,7 +90,7 @@ def config(
             console.print(f"  Logs Dir: {settings.logs_dir}")
 
             # API keys (masked)
-            console.print("\n[bold]API Keys:[/bold]")
+            console.print(f"\n[bold]API Keys:[/bold]")
             console.print(f"  GitHub Token: {' Set' if settings.github_token else ' Not set'}")
             console.print(f"  Anthropic API Key: {' Set' if settings.anthropic_api_key else ' Not set'}")
             console.print(f"  OpenAI API Key: {' Set' if settings.openai_api_key else ' Not set'}")

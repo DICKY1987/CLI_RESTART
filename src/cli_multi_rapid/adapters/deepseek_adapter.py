@@ -572,7 +572,7 @@ class DeepSeekAdapter(BaseAdapter):
                 validation_results.append("✅ Aider available")
             else:
                 validation_results.append("⚠️ Aider not available (optional)")
-        except Exception:
+        except:
             validation_results.append("⚠️ Aider not found (optional tool)")
 
         # Check opencode availability (optional)
@@ -587,7 +587,7 @@ class DeepSeekAdapter(BaseAdapter):
                 validation_results.append("✅ OpenCode available")
             else:
                 validation_results.append("⚠️ OpenCode not available (optional)")
-        except Exception:
+        except:
             validation_results.append("⚠️ OpenCode not found (optional tool)")
 
         # Log validation results
@@ -631,7 +631,7 @@ class DeepSeekAdapter(BaseAdapter):
                     ]
                     if deepseek_models:
                         health["model_info"] = deepseek_models[0]
-            except Exception:
+            except:
                 pass
 
         return health
@@ -650,4 +650,3 @@ class DeepSeekAdapter(BaseAdapter):
             "document",  # Documentation
             "test",  # Test generation
         ]
-

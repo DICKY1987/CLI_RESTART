@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from sanity_checks import FlagSummary, check_even_numbers, summarize_flags
+from sanity_checks import check_even_numbers, summarize_flags, FlagSummary
 
 
 def test_check_even_numbers_passes_for_even_inputs():

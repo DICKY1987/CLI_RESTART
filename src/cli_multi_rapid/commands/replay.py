@@ -291,6 +291,7 @@ def cleanup(
 
         # Preview files that would be deleted
         import datetime
+        from pathlib import Path
 
         cutoff_date = datetime.datetime.now() - datetime.timedelta(days=days)
 

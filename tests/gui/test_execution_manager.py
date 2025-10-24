@@ -1,12 +1,10 @@
 """Tests for execution manager."""
 
-from pathlib import Path
-
 import pytest
+from pathlib import Path
 
 try:
     from PyQt6 import QtWidgets
-
     from gui_terminal.core.execution_manager import ExecutionManager, ExecutionState
 
     PyQt6Available = True
