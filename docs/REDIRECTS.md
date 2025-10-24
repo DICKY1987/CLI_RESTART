@@ -52,6 +52,4 @@ Entries
 - `docs/concepts/workflow-enhancements\.md` -> `docs/concepts/workflow-enhancements.md`
 - `docs/how-to/getting-started\.md` -> `docs/how-to/getting-started.md`
 
-- `docs/contracts/INTERFACE_GUIDE.md` -> `docs/reference/cli-vscode-interface-contract.md`
-- `docs/guides/INTERFACE_GUIDE.md` -> `docs/how-to/interface-selection.md`
 
