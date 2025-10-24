@@ -158,12 +158,12 @@ ignore = [
     # Temporary relaxations to pass CI; will be re-enabled incrementally
     "I001",  # import sorting
     "F401",  # unused imports
-    "E722",  # bare except
-    "UP006", # dict/typing modernizations
+    ## WS-F tighten: re-enable later\n    # "E722",  # bare except (now enforced)
+    # "UP006", # dict/typing modernizations (now enforced)
     "UP015", # unnecessary open mode
-    "UP035", # typing.Type -> type
+    # "UP035", # typing.Type -> type (now enforced)
     "UP045", # Optional/Union modern syntax
-    "E741",  # ambiguous variable name
+    # "E741",  # ambiguous variable name (enforced selectively)
     "B017",  # blind exception assertion
     "B027",  # empty abstract method without decorator
     "B904",  # raise from in except
@@ -186,3 +186,4 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
