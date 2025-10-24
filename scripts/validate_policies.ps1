@@ -1,9 +1,16 @@
 param()
 $ErrorActionPreference = 'Stop'
 
+function Has-Field {
+    param([object]$obj, [string]$name)
+    if ($null -eq $obj) { return $false }
+    if ($obj -is [hashtable]) { return $obj.ContainsKey($name) }
+    return ($obj.PSObject.Properties.Name -contains $name)
+}
+
 function Assert-Field {
     param([object]$obj, [string]$name, [string]$context)
-    if (-not ($obj.PSObject.Properties.Name -contains $name)) {
+    if (-not (Has-Field -obj $obj -name $name)) {
         throw "$context missing required field '$name'"
     }
 }
@@ -20,8 +27,8 @@ function Test-SloPolicy {
         Assert-Field $svc 'objectives' 'service'
         $obj = $svc.objectives
         if (-not $obj) { throw "service '$($svc.name)' missing 'objectives'" }
-        # At least one objective present
-        if (-not ($obj.PSObject.Properties.Name | Where-Object { $_ -match 'availability|latency|job_success_rate' })) {
+        $keys = if ($obj -is [hashtable]) { $obj.Keys } else { $obj.PSObject.Properties.Name }
+        if (-not ($keys | Where-Object { $_ -in @('availability','latency','job_success_rate') })) {
             throw "service '$($svc.name)' objectives must include availability/latency/job_success_rate"
         }
     }
@@ -36,7 +43,7 @@ function Test-SecretsPolicy {
     Assert-Field $yaml 'audit' 'secrets-policy'
     $rot = $yaml.rotation
     foreach ($field in 'default_interval_days','grace_period_days') {
-        if (-not ($rot.PSObject.Properties.Name -contains $field)) { throw "secrets-policy.rotation missing '$field'" }
+        if (-not (Has-Field -obj $rot -name $field)) { throw "secrets-policy.rotation missing '$field'" }
     }
     $auditPath = $yaml.audit.'append_only_ledger'
     if (-not $auditPath) { throw "secrets-policy.audit.append_only_ledger missing" }
