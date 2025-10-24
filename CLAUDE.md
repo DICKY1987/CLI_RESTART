@@ -43,7 +43,10 @@ This ensures consistent path resolution across all tools and workflows.
   - **Note**: The WorkflowRunner is now a backward-compatible facade that delegates to new core modules
   - New code should use `core.coordinator.WorkflowCoordinator` directly
   - Core modules: `core.executor.StepExecutor`, `core.gate_manager.GateManager`, `core.artifact_manager.ArtifactManager`
-- **Router System**: Routes steps between deterministic tools and AI adapters (`src/cli_multi_rapid/router.py:1`)
+- **Router System**: Routes steps between deterministic tools and AI adapters
+  - New modular home: `src/cli_multi_rapid/routing/`
+    - `router.py` (core), `complexity_analyzer.py`, `parallel_planner.py`, `resource_allocator.py`, `models.py`
+  - Backward-compat shim remains at `src/cli_multi_rapid/router.py` (re-exports `Router` and models)
   - Uses `AdapterFactory` for lazy loading and plugin discovery
   - Eliminates circular dependencies and enables runtime adapter extension
 - **Adapter Framework**: Unified interface for tools and AI services (`src/cli_multi_rapid/adapters/`)

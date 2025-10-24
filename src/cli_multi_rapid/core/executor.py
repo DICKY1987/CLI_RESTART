@@ -8,6 +8,7 @@ Isolated from orchestration logic for better testability.
 
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+import time
 
 from ..adapters.base_adapter import AdapterResult
 from ..cost_tracker import CostTracker
@@ -74,17 +75,27 @@ class StepExecutor:
         Returns:
             StepExecutionResult with execution details
         """
-        import time
-
         step_id = step.get("id", "unknown")
-        start_time = time.time()
+        actor = step.get("actor")
+        start_time = time.perf_counter()
 
         try:
+            # Dry run mode
+            if self.dry_run:
+                return StepExecutionResult(
+                    step_id=step_id,
+                    success=True,
+                    output=f"[DRY RUN] Would execute {actor}",
+                    artifacts=step.get("emits", []),
+                    tokens_used=0,
+                    execution_time_seconds=max(time.perf_counter() - start_time, 1e-6),
+                    metadata={"dry_run": True}
+                )
+
             # Validate step definition
             self._validate_step(step)
 
             # Get adapter
-            actor = step.get("actor")
             if not actor:
                 raise ValueError(f"Step {step_id} missing 'actor' field")
 
@@ -95,18 +106,6 @@ class StepExecutor:
             # Check adapter availability
             if not adapter.is_available():
                 raise RuntimeError(f"Adapter '{actor}' is not available")
-
-            # Dry run mode
-            if self.dry_run:
-                return StepExecutionResult(
-                    step_id=step_id,
-                    success=True,
-                    output=f"[DRY RUN] Would execute {actor}",
-                    artifacts=step.get("emits", []),
-                    tokens_used=0,
-                    execution_time_seconds=time.time() - start_time,
-                    metadata={"dry_run": True}
-                )
 
             # Execute step
             result: AdapterResult = adapter.execute(step, context, files)
@@ -122,7 +121,7 @@ class StepExecutor:
                 output=result.output or "",
                 artifacts=result.artifacts or [],
                 tokens_used=result.tokens_used,
-                execution_time_seconds=time.time() - start_time,
+                execution_time_seconds=max(time.perf_counter() - start_time, 1e-6),
                 error=result.error,
                 metadata=result.metadata
             )
@@ -134,7 +133,7 @@ class StepExecutor:
                 output="",
                 artifacts=[],
                 tokens_used=0,
-                execution_time_seconds=time.time() - start_time,
+                execution_time_seconds=max(time.perf_counter() - start_time, 1e-6),
                 error=str(e)
             )
 

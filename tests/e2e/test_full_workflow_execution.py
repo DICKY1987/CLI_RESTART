@@ -161,3 +161,4 @@ def test_workflow_cleanup_on_completion(temp_workspace: Path):
 
     # Allow for some temp files but not excessive
     assert len(temp_files_after) - len(temp_files_before) < 10, "Temp files not cleaned up"
+
