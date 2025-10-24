@@ -28,3 +28,27 @@ Curation Checklist
 Front-Matter Template
 Use the template in docs/_templates/front_matter.md at the top of each document.
 
+Curated Links
+- Concepts
+  - docs/concepts/framework-overview.md
+  - docs/concepts/cli-system-overview.md
+  - docs/concepts/execution-model.md
+  - docs/concepts/routing-logic.md
+
+- How-To
+  - docs/how-to/getting-started.md
+  - docs/how-to/setup.md
+  - docs/how-to/workflows.md
+  - docs/how-to/simplified-workflows.md
+  - docs/how-to/vscode-cockpit.md
+  - docs/how-to/ai-tools.md
+
+- Reference
+  - docs/reference/configuration.md
+  - docs/reference/cli-vscode-interface-contract.md
+  - docs/reference/event-bus-topics.md
+  - docs/reference/tool-registry.md
+  - docs/reference/verification-framework.md
+  - docs/reference/sql-standards.md
+  - docs/reference/policies/cost-policies.md
+  - docs/reference/policies/merge-policies.md
