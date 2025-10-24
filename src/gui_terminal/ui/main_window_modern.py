@@ -19,14 +19,14 @@ except ImportError:
 
 
 if PyQt6Available:
-    from ..core.execution_manager import ExecutionManager
-    from ..gui_bridge import WorkflowExecutor
     from .artifact_viewer import ArtifactViewer
-    from .cli_interface import CLIExecutionInterface
     from .cost_dashboard import CostDashboard
     from .execution_dashboard import ExecutionDashboard
     from .workflow_browser import WorkflowBrowser
     from .workflow_config import WorkflowConfigPanel
+    from .cli_interface import CLIExecutionInterface
+    from ..core.execution_manager import ExecutionManager
+    from ..gui_bridge import WorkflowExecutor
 
 
 if PyQt6Available:

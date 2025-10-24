@@ -8,7 +8,7 @@ from .performance_profiler import (
     ExecutionMetrics,
     ParallelExecutionReport,
     PerformanceProfiler,
-    create_benchmark_operations,
+    create_benchmark_operations
 )
 
 __all__ = [

@@ -5,17 +5,12 @@ Tests for Enhanced AdapterRegistry
 Verifies factory integration, backward compatibility, and deprecation warnings.
 """
 
+import pytest
 import warnings
 from unittest.mock import Mock, patch
 
-import pytest
-
 from cli_multi_rapid.adapters.adapter_registry import AdapterRegistry
-from cli_multi_rapid.adapters.base_adapter import (
-    AdapterResult,
-    AdapterType,
-    BaseAdapter,
-)
+from cli_multi_rapid.adapters.base_adapter import BaseAdapter, AdapterType, AdapterResult
 
 
 class MockAdapter(BaseAdapter):
@@ -273,9 +268,9 @@ class TestAdapterRegistryIntegration:
         # This test verifies that importing doesn't cause circular import errors
 
         try:
-            from cli_multi_rapid.adapters import AdapterRegistry
-            from cli_multi_rapid.adapters.factory import AdapterFactory
             from cli_multi_rapid.router import Router
+            from cli_multi_rapid.adapters.factory import AdapterFactory
+            from cli_multi_rapid.adapters import AdapterRegistry
 
             # Should import successfully without circular dependency errors
             router = Router()

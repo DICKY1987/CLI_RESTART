@@ -13,8 +13,8 @@ jobs:
         with:
           script: |
             const requiredWorkflows = [
-              '.github/workflows/ci-powershell.yml',
-              '.github/workflows/supply-chain.yml',
+              'ci-powershell.yml',
+              'supply-chain.yml',
             ];
             const owner = context.repo.owner;
             const repo = context.repo.repo;
@@ -54,4 +54,3 @@ jobs:
               await sleep(intervalMs);
             }
             core.setFailed('Timeout waiting for required workflows to succeed.');
-

@@ -5,14 +5,14 @@ Tests for core.coordinator module
 Test coverage for WorkflowCoordinator class and workflow orchestration logic.
 """
 
+import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, MagicMock, patch
 
 from src.cli_multi_rapid.core.coordinator import WorkflowCoordinator, WorkflowResult
-from src.cli_multi_rapid.core.executor import StepExecutionResult, StepExecutor
+from src.cli_multi_rapid.core.executor import StepExecutor, StepExecutionResult
+
 
 # Fixtures
 

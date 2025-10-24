@@ -481,7 +481,7 @@ class SecurityFramework:
                 "sha256", password.encode(), secrets.token_bytes(32), 100000
             )
             return test_hash.hex() == stored_hash
-        except Exception:
+        except:
             return False
 
     def _is_user_locked_out(self, user_id: str) -> bool:
@@ -562,4 +562,3 @@ class SecurityFramework:
                 "rate_limit_per_minute": self.policy.rate_limit_per_minute,
             },
         }
-

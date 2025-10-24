@@ -211,7 +211,7 @@ if PyQt6Available:
 
             try:
                 # Read file content
-                with open(file_path, encoding="utf-8") as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 # Detect file type and apply syntax highlighting
@@ -329,7 +329,7 @@ Type: {file_path.suffix or 'No extension'}"""
                 try:
                     import jsonschema
 
-                    with open(schema_path) as f:
+                    with open(schema_path, "r") as f:
                         schema = json.load(f)
 
                     data = json.loads(content)

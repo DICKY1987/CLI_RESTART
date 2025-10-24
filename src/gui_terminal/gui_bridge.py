@@ -7,6 +7,7 @@ cost tracking, and real-time updates via signals/slots.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any, Optional
 

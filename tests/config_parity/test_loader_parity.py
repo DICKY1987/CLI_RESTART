@@ -11,6 +11,7 @@ from cli_multi_rapid.config.loader import (
     UnknownEnvironmentError,
 )
 
+
 HERE = Path(__file__).parent
 GOLDEN = HERE / "golden"
 
@@ -64,3 +65,4 @@ def test_legacy_profiles_path_shim(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
         if backup and backup.exists():
             backup.replace(primary)
         legacy_file.unlink(missing_ok=True)
+

@@ -5,8 +5,8 @@ Integration Test Runner
 Runs all integration tests with appropriate markers and generates a report.
 """
 
-import subprocess
 import sys
+import subprocess
 from pathlib import Path
 
 

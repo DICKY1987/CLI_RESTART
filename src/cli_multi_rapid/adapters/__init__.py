@@ -16,7 +16,6 @@ from .adapter_registry import AdapterRegistry
 from .base_adapter import AdapterResult, AdapterType, BaseAdapter
 from .factory import AdapterFactory, factory
 
-
 # Legacy exports for backward compatibility (deprecated)
 # These trigger eager loading and should be avoided in new code
 def __getattr__(name: str):

@@ -18,10 +18,7 @@ except ImportError:
     PyQt6Available = False
 
 if PyQt6Available:
-    from ..core.execution_manager import (
-        ExecutionManager,
-        ExecutionState,
-    )
+    from ..core.execution_manager import ExecutionManager, ExecutionState, WorkflowExecution
 
 
 if PyQt6Available:

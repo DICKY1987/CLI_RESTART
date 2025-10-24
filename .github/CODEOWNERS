@@ -6,7 +6,6 @@
 
 # Expanded ownership rules (add teams as appropriate)
 # Replace placeholder team handles with actual org teams if different
-.github/workflows/ @DICKY1987 @secops-team @platform-team
-scripts/            @DICKY1987 @secops-team @platform-team
-policies/           @secops-team @platform-team
-flags/              @platform-team @product-team
+.github/workflows/ @DICKY1987
+scripts/            @DICKY1987
+config/policies/    @DICKY1987
