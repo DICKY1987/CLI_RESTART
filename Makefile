@@ -50,19 +50,19 @@ install-dev:
 
 # Testing targets
 test:
-        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1
 
 test\:py:
-        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPowerShell -SkipNode
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPowerShell -SkipNode
 
 test\:ps:
-        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipNode
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipNode
 
 test\:js:
-        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipPowerShell
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipPowerShell
 
 test-integration:
-        pytest tests/integration/ -v --tb=short -m "not slow"
+	pytest tests/integration/ -v --tb=short -m "not slow"
 
 coverage: test
 
