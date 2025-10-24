@@ -1,0 +1,18 @@
+name: Feature Flags Governance
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: ["**"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate flags registry
+        shell: pwsh
+        run: |
+          ./scripts/validate_flags.ps1 -RegistryPath 'flags/registry.yaml' -WarnDays 14
+

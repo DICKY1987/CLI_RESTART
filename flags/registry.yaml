@@ -1,0 +1,31 @@
+version: 1
+owner: platform-engineering
+defaults:
+  lifecycle_days: 90
+  cleanup_required: true
+
+flags:
+  - key: cli.new_parser
+    description: "Enable the experimental CLI argument parser"
+    owners: ["@DICKY1987", "@platform-team"]
+    created: "2025-10-24"
+    expires: "2026-01-22"
+    rollout:
+      stage: canary
+      exposure: 10%
+      environments: ["dev", "staging"]
+    links:
+      change_spec: docs/CHANGES/cli-new-parser.md
+
+  - key: scripts.safe_merge
+    description: "Require additional checks before auto-merge runs"
+    owners: ["@secops-team", "@release-engineering"]
+    created: "2025-10-24"
+    expires: "2026-02-01"
+    rollout:
+      stage: enabled
+      exposure: 100%
+      environments: ["staging", "prod"]
+    links:
+      runbook: docs/runbooks/merge-guardrails.md
+
