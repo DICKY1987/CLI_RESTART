@@ -114,11 +114,8 @@ pip install -e .[ai]
 # Install with all development tools
 pip install -e .[dev,ai,test]
 
-# Set up development environment (includes pre-commit hooks)
-nox -s dev_setup
-
-# Install VS Code extension dependencies
-cd tools/vscode-extension && npm ci
+# Set up pre-commit hooks
+pre-commit install
 ```
 
 ### CLI Usage
@@ -165,34 +162,10 @@ make lint format
 make ci
 ```
 
-#### Task (Go Task)
-```bash
-# Quick local validation (lint + tests)
-task local
-
-# Run CI checks
-task ci
-
-# Run Docker Compose smoke test
-task e2e
-
-# Create .env from template
-task dotenv
-```
-
 #### Nox (Python sessions)
 ```bash
 # Run tests across Python versions
 nox -s tests
-
-# Run integration tests (cost-controlled)
-nox -s integration_tests
-
-# Run linting and formatting
-nox -s lint
-
-# Run security checks
-nox -s security
 ```
 
 ### Development Tools
