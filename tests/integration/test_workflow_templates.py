@@ -6,13 +6,15 @@ execute correctly and produce expected results.
 """
 
 import json
-import pytest
 from pathlib import Path
 from typing import Any, Dict
 
+import pytest
+
+from src.cli_multi_rapid.router import Router
+
 # Import workflow runner and related components
 from src.cli_multi_rapid.workflow_runner import WorkflowRunner
-from src.cli_multi_rapid.router import Router
 
 
 class TestWorkflowTemplates:
@@ -53,7 +55,7 @@ if __name__ == "__main__":
         if not template_path.exists():
             pytest.skip(f"Workflow template not found: {template_path}")
 
-        with open(template_path, 'r') as f:
+        with open(template_path) as f:
             return yaml.safe_load(f)
 
     # ===== Test Individual Workflow Templates =====
@@ -267,7 +269,7 @@ if __name__ == "__main__":
 
         for template_path in templates:
             try:
-                with open(template_path, 'r') as f:
+                with open(template_path) as f:
                     workflow = yaml.safe_load(f)
 
                 # Basic validation

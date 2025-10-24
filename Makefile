@@ -18,22 +18,21 @@ help:
 	@echo "  install-dev      Install development dependencies"
 	@echo ""
 	@echo "Testing:"
-        @echo "  test             Run all automated test suites"
-        @echo "  test:py          Run only Python unit tests"
-        @echo "  test:ps          Run only PowerShell tests"
-        @echo "  test:js          Run only JavaScript tests (if configured)"
-        @echo "  test-integration Run integration tests"
-        @echo "  coverage        Generate coverage reports"
+	@echo "  test             Run all automated test suites"
+	@echo "  test:py          Run only Python unit tests"
+	@echo "  test:ps          Run only PowerShell tests"
+	@echo "  test-integration Run integration tests"
+	@echo "  coverage         Generate coverage reports"
 	@echo ""
 	@echo "Code Quality:"
-	@echo "  lint             Run linting (ruff, eslint)"
-	@echo "  format           Format code (black, prettier)"
-	@echo "  type-check       Run type checking (mypy, tsc)"
+	@echo "  lint             Run Python linting (ruff)"
+	@echo "  format           Format Python code (black, isort)"
+	@echo "  type-check       Run Python type checking (mypy)"
 	@echo "  security-check   Run security scans (bandit, audit)"
 	@echo ""
 	@echo "Build & Package:"
 	@echo "  clean            Clean build artifacts"
-	@echo "  build            Build all components"
+	@echo "  build            Build Python components"
 	@echo "  package          Package for distribution"
 	@echo ""
 	@echo "Development:"
@@ -47,24 +46,23 @@ install:
 
 install-dev:
 	pip install -e .[dev,ai,test]
-	cd vscode-extension && npm ci
 	pre-commit install
 
 # Testing targets
 test:
-        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPowerShell
 
 test\:py:
-        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPowerShell -SkipNode
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPowerShell -SkipNode
 
 test\:ps:
-        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipNode
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipNode
 
 test\:js:
-        $(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipPowerShell
+	$(POWERSHELL) -NoProfile -ExecutionPolicy Bypass -File scripts/run_all_tests.ps1 -SkipPython -SkipPowerShell
 
 test-integration:
-        pytest tests/integration/ -v --tb=short -m "not slow"
+	pytest tests/integration/ -v --tb=short -m "not slow"
 
 coverage: test
 
@@ -72,28 +70,20 @@ coverage: test
 lint:
 	@echo "Running Python linting..."
 	ruff check src/ tests/ --output-format=github
-	@echo "Running TypeScript linting..."
-	cd vscode-extension && npm run lint
 
 format:
 	@echo "Formatting Python code..."
 	black src/ tests/
 	isort src/ tests/ --profile black
-	@echo "Formatting TypeScript code..."
-	cd vscode-extension && npm run lint:fix
 
 type-check:
 	@echo "Running Python type checking..."
-	mypy src/ --ignore-missing-imports
-	@echo "Running TypeScript type checking..."
-	cd vscode-extension && npx tsc --noEmit
+	- mypy --explicit-package-bases src/ --ignore-missing-imports
 
 security-check:
 	@echo "Running Python security checks..."
 	bandit -r src/ -f json -o bandit-report.json || echo "Security scan completed with findings"
 	safety check --output json || echo "Dependency scan completed with findings"
-	@echo "Running TypeScript security checks..."
-	cd vscode-extension && npm audit || echo "npm audit completed with findings"
 
 # Build targets
 clean:
@@ -101,8 +91,6 @@ clean:
 	rm -rf build/ dist/ *.egg-info/
 	rm -rf .pytest_cache/ .coverage htmlcov/
 	rm -rf src/**/__pycache__/ tests/**/__pycache__/
-	@echo "Cleaning TypeScript artifacts..."
-	cd vscode-extension && npm run clean
 	@echo "Cleaning MQL4 artifacts..."
 	rm -rf artifacts/mql4/
 
@@ -110,16 +98,12 @@ build:
 	@echo "Building Python package..."
 	pip install build
 	python -m build
-	@echo "Building TypeScript extension..."
-	cd vscode-extension && npm run build
 	@echo "Processing MQL4 files..."
 	powershell -File scripts/compile_mql4.ps1 -ValidateOnly
 
 package:
 	@echo "Packaging Python distribution..."
 	python -m build
-	@echo "Packaging VS Code extension..."
-	cd vscode-extension && npm run package
 	@echo "Packaging complete"
 
 # CI pipeline

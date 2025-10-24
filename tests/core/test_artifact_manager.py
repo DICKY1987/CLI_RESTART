@@ -5,22 +5,22 @@ Tests for core.artifact_manager module
 Test coverage for ArtifactManager class and artifact tracking logic.
 """
 
-import pytest
 import json
 import tempfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
-from src.cli_multi_rapid.core.artifact_manager import ArtifactManager, Artifact
+import pytest
 
+from src.cli_multi_rapid.core.artifact_manager import Artifact, ArtifactManager
 
 # Fixtures
 
 @pytest.fixture
 def temp_dir():
     """Create a temporary directory for test artifacts."""
-    import tempfile
     import shutil
+    import tempfile
 
     temp_path = tempfile.mkdtemp()
     yield temp_path

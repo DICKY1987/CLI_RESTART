@@ -7,9 +7,10 @@ configuration before execution.
 
 from __future__ import annotations
 
-import yaml
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+import yaml
 
 try:
     from PyQt6 import QtCore, QtWidgets
@@ -98,7 +99,7 @@ if PyQt6Available:
 
             try:
                 # Load workflow
-                with open(workflow_path, "r", encoding="utf-8") as f:
+                with open(workflow_path, encoding="utf-8") as f:
                     self._workflow_data = yaml.safe_load(f)
 
                 if not self._workflow_data:

@@ -19,7 +19,8 @@ def test_conversation_logging_to_jsonl(tmp_path):
         base_dir=base_dir,
     )
     assert p.exists()
-    data = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    data = [json.loads(line_str) for line_str in p.read_text(encoding="utf-8").splitlines() if l.strip()]
     assert data[-1]["correlation_id"] == "cid-test"
     assert data[-1]["actor"] == "ai_editor"
     assert data[-1]["tokens_used"] == 7
+

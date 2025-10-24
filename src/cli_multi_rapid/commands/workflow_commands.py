@@ -6,10 +6,10 @@ Provides commands for running and listing workflows using the new core modules.
 Part of Phase 3 CLI modularization.
 """
 
-import typer
 from pathlib import Path
 from typing import Optional
 
+import typer
 from rich.console import Console
 from rich.table import Table
 
@@ -41,8 +41,8 @@ def run_workflow(
     # Import core modules
     from ..core.coordinator import WorkflowCoordinator
     from ..core.executor import StepExecutor
-    from ..router import Router
     from ..cost_tracker import CostTracker
+    from ..router import Router
 
     # Display execution info
     console.print(f"[bold]Executing workflow:[/bold] {workflow_path.name}")
@@ -81,18 +81,18 @@ def run_workflow(
         else:
             console.print(f"[red]Workflow failed: {result.error}[/red]")
 
-        console.print(f"\n[bold]Summary:[/bold]")
+        console.print("\n[bold]Summary:[/bold]")
         console.print(f"  Steps: {result.steps_succeeded}/{result.steps_executed} succeeded")
         console.print(f"  Tokens: {result.total_tokens_used:,}")
         console.print(f"  Time: {result.total_execution_time_seconds:.2f}s")
 
         if result.artifacts:
-            console.print(f"\n[bold]Artifacts generated:[/bold]")
+            console.print("\n[bold]Artifacts generated:[/bold]")
             for artifact in result.artifacts:
                 console.print(f"  - {artifact}")
 
         if verbose and result.step_results:
-            console.print(f"\n[bold]Step Details:[/bold]")
+            console.print("\n[bold]Step Details:[/bold]")
             for step_result in result.step_results:
                 status = "[green]OK[/green]" if step_result.success else "[red]FAILED[/red]"
                 console.print(f"  {step_result.step_id}: {status}")
@@ -215,7 +215,7 @@ def validate_workflow(
             console.print(f"  Steps: {validation_result.get('steps_count', 0)}")
             console.print(f"  Policy defined: {validation_result.get('has_policy', False)}")
         else:
-            console.print(f"[red]Workflow is invalid[/red]")
+            console.print("[red]Workflow is invalid[/red]")
             if "errors" in validation_result:
                 console.print("\n[bold]Validation errors:[/bold]")
                 for error in validation_result["errors"]:
@@ -260,12 +260,12 @@ def estimate_cost(
         # Estimate cost
         cost_estimate = coordinator.estimate_workflow_cost(str(workflow_path))
 
-        console.print(f"\n[bold]Cost Estimate:[/bold]")
+        console.print("\n[bold]Cost Estimate:[/bold]")
         console.print(f"  Total tokens: {cost_estimate['total_tokens']:,}")
         console.print(f"  Steps analyzed: {cost_estimate['steps_analyzed']}")
 
         if "steps" in cost_estimate:
-            console.print(f"\n[bold]Per-step breakdown:[/bold]")
+            console.print("\n[bold]Per-step breakdown:[/bold]")
             for step in cost_estimate["steps"]:
                 console.print(f"  {step['step_id']}: {step['estimated_tokens']:,} tokens")
 

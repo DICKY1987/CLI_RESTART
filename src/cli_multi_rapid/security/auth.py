@@ -65,7 +65,7 @@ class JWTManager:
             return jwt.decode(
                 token, options={"verify_signature": False, "verify_exp": False}
             )
-        except:
+        except Exception:
             return None
 
 
@@ -199,3 +199,4 @@ class APIKeyManager:
             "expired_keys": expired_keys,
             "revoked_keys": total_keys - active_keys - expired_keys,
         }
+

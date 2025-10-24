@@ -43,7 +43,10 @@ This ensures consistent path resolution across all tools and workflows.
   - **Note**: The WorkflowRunner is now a backward-compatible facade that delegates to new core modules
   - New code should use `core.coordinator.WorkflowCoordinator` directly
   - Core modules: `core.executor.StepExecutor`, `core.gate_manager.GateManager`, `core.artifact_manager.ArtifactManager`
-- **Router System**: Routes steps between deterministic tools and AI adapters (`src/cli_multi_rapid/router.py:1`)
+- **Router System**: Routes steps between deterministic tools and AI adapters
+  - New modular home: `src/cli_multi_rapid/routing/`
+    - `router.py` (core), `complexity_analyzer.py`, `parallel_planner.py`, `resource_allocator.py`, `models.py`
+  - Backward-compat shim remains at `src/cli_multi_rapid/router.py` (re-exports `Router` and models)
   - Uses `AdapterFactory` for lazy loading and plugin discovery
   - Eliminates circular dependencies and enables runtime adapter extension
 - **Adapter Framework**: Unified interface for tools and AI services (`src/cli_multi_rapid/adapters/`)
@@ -114,11 +117,8 @@ pip install -e .[ai]
 # Install with all development tools
 pip install -e .[dev,ai,test]
 
-# Set up development environment (includes pre-commit hooks)
-nox -s dev_setup
-
-# Install VS Code extension dependencies
-cd tools/vscode-extension && npm ci
+# Set up pre-commit hooks
+pre-commit install
 ```
 
 ### CLI Usage
@@ -165,34 +165,10 @@ make lint format
 make ci
 ```
 
-#### Task (Go Task)
-```bash
-# Quick local validation (lint + tests)
-task local
-
-# Run CI checks
-task ci
-
-# Run Docker Compose smoke test
-task e2e
-
-# Create .env from template
-task dotenv
-```
-
 #### Nox (Python sessions)
 ```bash
 # Run tests across Python versions
 nox -s tests
-
-# Run integration tests (cost-controlled)
-nox -s integration_tests
-
-# Run linting and formatting
-nox -s lint
-
-# Run security checks
-nox -s security
 ```
 
 ### Development Tools

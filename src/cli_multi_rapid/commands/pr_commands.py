@@ -6,10 +6,10 @@ Provides commands for creating and managing pull requests from workflow artifact
 Part of Phase 3 CLI modularization.
 """
 
-import typer
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
 
+import typer
 from rich.console import Console
 from rich.table import Table
 
@@ -277,7 +277,7 @@ def pr_status(
         # Checks status
         checks = pr_data.get("checks", {})
         if checks:
-            console.print(f"\n[bold]Checks:[/bold]")
+            console.print("\n[bold]Checks:[/bold]")
             console.print(f"  Total: {checks.get('total', 0)}")
             console.print(f"  Passed: {checks.get('passed', 0)}")
             console.print(f"  Failed: {checks.get('failed', 0)}")
@@ -286,7 +286,7 @@ def pr_status(
         # Reviews
         reviews = pr_data.get("reviews", {})
         if reviews:
-            console.print(f"\n[bold]Reviews:[/bold]")
+            console.print("\n[bold]Reviews:[/bold]")
             console.print(f"  Approved: {reviews.get('approved', 0)}")
             console.print(f"  Changes requested: {reviews.get('changes_requested', 0)}")
             console.print(f"  Pending: {reviews.get('pending', 0)}")

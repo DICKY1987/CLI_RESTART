@@ -20,4 +20,4 @@ jobs:
       - name: Validate flags registry
         shell: pwsh
         run: |
-          ./scripts/validate_flags.ps1 -RegistryPath 'config/policies/flags.yaml' -WarnDays 14
+          ./scripts/validate_flags.ps1 -RegistryPath 'flags/registry.yaml' -WarnDays 14

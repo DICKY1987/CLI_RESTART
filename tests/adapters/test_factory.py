@@ -5,11 +5,16 @@ Tests for AdapterFactory
 Verifies lazy loading, plugin discovery, and adapter lifecycle management.
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
+import pytest
+
+from cli_multi_rapid.adapters.base_adapter import (
+    AdapterResult,
+    AdapterType,
+    BaseAdapter,
+)
 from cli_multi_rapid.adapters.factory import AdapterFactory
-from cli_multi_rapid.adapters.base_adapter import BaseAdapter, AdapterType, AdapterResult
 
 
 class MockAdapter(BaseAdapter):
