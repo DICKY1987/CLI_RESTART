@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "cli-multi-rapid",
+    "log_level": "INFO",
+    "debug": false,
+    "api_port": 8000
+  },
+  "workflow": {
+    "enabled": true,
+    "max_concurrent": 4,
+    "timeout_seconds": 3600
+  },
+  "cost": {
+    "daily_limit_usd": 10.0,
+    "weekly_limit_usd": 50.0,
+    "monthly_limit_usd": 200.0,
+    "alerts_enabled": true
+  },
+  "observability": {
+    "prometheus_enabled": true,
+    "prometheus_port": 9090
+  },
+  "redis": {
+    "url": "redis://test:6379/0"
+  }
+}
+
