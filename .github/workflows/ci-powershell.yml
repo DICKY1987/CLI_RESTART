@@ -1,0 +1,70 @@
+name: PowerShell CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  lint_and_test:
+    name: Lint (PSScriptAnalyzer) and Pester
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PSScriptAnalyzer and Pester
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+          # Install PSScriptAnalyzer
+          $psa = Get-Module -ListAvailable -Name PSScriptAnalyzer | Sort-Object Version -Descending | Select-Object -First 1
+          if (-not $psa) { Install-Module PSScriptAnalyzer -Scope CurrentUser -Force }
+          Import-Module PSScriptAnalyzer -Force
+
+          # Install Pester >= 5.4
+          $pester = Get-Module -ListAvailable -Name Pester | Sort-Object Version -Descending | Select-Object -First 1
+          if (-not $pester -or $pester.Version -lt [Version]'5.4.0') {
+            Install-Module Pester -MinimumVersion 5.4.0 -Scope CurrentUser -Force
+          }
+          Import-Module Pester -Force
+
+      - name: Run PSScriptAnalyzer (fail on Error)
+        shell: pwsh
+        run: |
+          $results = Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error -ReportSummary
+          if ($null -ne $results -and $results.Count -gt 0) {
+            $results | Format-Table | Out-String | Write-Host
+            Write-Error "PSScriptAnalyzer found $($results.Count) errors"; exit 1
+          } else {
+            Write-Host "No PSScriptAnalyzer errors found"
+          }
+
+      - name: Run PowerShell tests (Pester)
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          if (Test-Path .\scripts\run_all_tests.ps1) {
+            .\scripts\run_all_tests.ps1 -SkipPython -SkipNode
+          } else {
+            $config = New-PesterConfiguration
+            $config.Run.Path = '.'
+            $config.Run.PassThru = $true
+            $config.Output.Verbosity = 'Detailed'
+            $config.TestResult.Enabled = $true
+            $config.TestResult.OutputFormat = 'NUnitXml'
+            $config.TestResult.OutputPath = '.reports/powershell/junit/pester-results.xml'
+            $result = Invoke-Pester -Configuration $config
+            if ($result.FailedCount -gt 0) { exit 1 }
+          }
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: powershell-ci-reports
+          path: |
+            .reports/powershell
+            TestResults.xml
+          if-no-files-found: warn

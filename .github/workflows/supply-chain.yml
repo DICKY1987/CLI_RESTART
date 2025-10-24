@@ -1,0 +1,38 @@
+name: Supply Chain Security
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  sbom_and_scan:
+    name: Generate SBOM and Scan (Grype)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate SBOM (SPDX JSON)
+        id: sbom
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-spdx
+          path: sbom.spdx.json
+
+      - name: Scan dependencies (Grype)
+        id: grype
+        uses: anchore/scan-action@v3
+        with:
+          path: .
+          fail-build: true
+          severity-cutoff: critical
+          output-format: table
