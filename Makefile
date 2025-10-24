@@ -1,7 +1,7 @@
 # CLI Multi-Rapid Development Makefile
 # Cross-platform development commands for Python/TypeScript/MQL4
 
-.PHONY: help install install-dev test test\:py test\:ps test\:js test-integration lint format type-check security-check clean build package ci docs coverage
+.PHONY: help install install-dev test test\:py test\:ps test\:js test-integration lint format type-check security-check clean build package ci docs coverage pr-create-ws-f pr-create-ws-f-dry-run
 
 POWERSHELL := pwsh
 ifeq ($(OS),Windows_NT)
@@ -39,6 +39,10 @@ help:
 	@echo "  ci               Run full CI pipeline locally"
 	@echo "  pre-commit       Run pre-commit hooks"
 	@echo "  docs             Generate documentation"
+	@echo ""
+	@echo "GitHub PR Creation:"
+	@echo "  pr-create-ws-f-dry-run  Preview PR for ws-f-remaining-mods → main"
+	@echo "  pr-create-ws-f          Create PR (requires GITHUB_TOKEN)"
 
 # Installation targets
 install:
@@ -117,6 +121,22 @@ pre-commit:
 docs:
 	@echo "Documentation generation not implemented yet"
 	@echo "Future: Generate API docs, workflow schemas, etc."
+
+# GitHub PR creation helpers
+.PHONY: pr-create-ws-f pr-create-ws-f-dry-run
+
+pr-create-ws-f-dry-run:
+	@echo "Preview PR creation for ws-f-remaining-mods → main"
+	@./scripts/create_pr_ws_f.sh
+
+pr-create-ws-f:
+	@echo "Creating PR: ws-f-remaining-mods → main"
+	@if [ -z "$(GITHUB_TOKEN)" ]; then \
+		echo "Error: GITHUB_TOKEN not set"; \
+		echo "Usage: GITHUB_TOKEN=your_token make pr-create-ws-f"; \
+		exit 1; \
+	fi
+	@./scripts/create_pr_ws_f.sh --execute
 
 # Windows-specific targets (PowerShell)
 ifeq ($(OS),Windows_NT)

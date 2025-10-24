@@ -1,0 +1,56 @@
+name: Create PR for ws-f-remaining-mods
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (preview without creating)'
+        type: boolean
+        default: false
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Create Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "Running in dry-run mode..."
+            python scripts/create_pr_ws_f_remaining_mods.py --dry-run
+          else
+            echo "Creating pull request..."
+            python scripts/create_pr_ws_f_remaining_mods.py
+          fi
+
+      - name: Summary
+        run: |
+          echo "## Pull Request Creation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Repository**: DICKY1987/CLI_RESTART" >> $GITHUB_STEP_SUMMARY
+          echo "- **Base Branch**: main" >> $GITHUB_STEP_SUMMARY
+          echo "- **Head Branch**: ws-f-remaining-mods" >> $GITHUB_STEP_SUMMARY
+          echo "- **Title**: Merge ws-f-remaining-mods into main" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "✓ Dry run completed - no PR created" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✓ PR creation executed" >> $GITHUB_STEP_SUMMARY
+          fi

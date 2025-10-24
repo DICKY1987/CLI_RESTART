@@ -41,6 +41,12 @@ Quick Index (primary entrypoints)
   - `scripts/check_schema_compatibility.py` — schema compatibility check.
   - `scripts/check_doc_coverage.py` — docs coverage check.
 
+- Git integration
+  - `scripts/create_pr_ws_f.sh` — quick shell wrapper to create PR for ws-f-remaining-mods merge.
+  - `scripts/create_pr_ws_f_remaining_mods.py` — Python script to create PR via GitHub API.
+  - `scripts/create_github_issues.py` — create GitHub milestones and issues from roadmap docs.
+  - `scripts/gh_seed_issues.py` — seed GitHub issues from templates.
+
 - Maintenance
   - `scripts/cleanup_archive_and_obsolete.ps1` — cleanup helpers.
   - `scripts/cleanup_orphans.ps1` — remove orphan artifacts.
