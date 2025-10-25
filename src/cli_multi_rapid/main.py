@@ -15,6 +15,7 @@ from .commands import (
     pr_commands,
     verify_commands,
     workflow_commands,
+    agentic_commands,
 )
 
 # Create main app
@@ -51,6 +52,12 @@ app.add_typer(
     cost_commands.app,
     name="cost",
     help="Cost tracking and budget management"
+)
+
+app.add_typer(
+    agentic_commands.app,
+    name="agentic",
+    help="Agentic development and code-intel"
 )
 
 
