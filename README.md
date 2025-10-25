@@ -15,6 +15,21 @@ pip install -e .[dev,ai,test]
 cli-orchestrator run .ai/workflows/PY_EDIT_TRIAGE.yaml --files "src/**/*.py"
 ```
 
+### Agentic Code-Intel (Aider + DeepSeek via Ollama)
+
+- Initialize in the current repo (adds `.code-intel/`, builds index):
+  - `cli-orchestrator agentic init`
+
+- Analyze with retrieval (and ask model):
+  - `cli-orchestrator agentic analyze "How does routing work?"`
+
+- Agentic dev loop with validations:
+  - `cli-orchestrator agentic dev --task "Add feature X" --fix`
+
+Notes:
+- Requires Ollama running locally with `deepseek-coder` and an embeddings model (e.g. `mxbai-embed-large`).
+- `.code-intel/db/` and `.code-intel/cache/` are generated and should be ignored in Git.
+
 ## Documentation
 
 - [CLAUDE.md](CLAUDE.md) - Development guide and project overview

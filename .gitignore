@@ -26,6 +26,10 @@ htmlcov/
 build/
 dist/
 
+# Agentic code-intel (generated)
+.code-intel/db/
+.code-intel/cache/
+
 # Node/TS
 node_modules/
 dist/
@@ -173,4 +177,3 @@ tools/atomic-workflow-system/.venv/
 
 # Local run logs
 run_*.log
-
