@@ -1,0 +1,36 @@
+name: Create PR for ws-f-build-system-consolidation
+
+on:
+  workflow_dispatch:
+    inputs:
+      head_branch:
+        description: 'Head branch to merge from'
+        required: false
+        default: 'ws-f-build-system-consolidation'
+      base_branch:
+        description: 'Base branch to merge into'
+        required: false
+        default: 'main'
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --title "Merge ws-f-build-system-consolidation into main" \
+            --body "Open PR to merge ws-f-build-system-consolidation into main for review and CI validation." \
+            --base "${{ inputs.base_branch }}" \
+            --head "${{ inputs.head_branch }}"
