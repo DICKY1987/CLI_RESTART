@@ -30,7 +30,7 @@ jobs:
 
       - name: Scan dependencies (Grype)
         id: grype
-        uses: anchore/scan-action@v3
+        uses: anchore/scan-action@v7
         with:
           path: .
           fail-build: true
