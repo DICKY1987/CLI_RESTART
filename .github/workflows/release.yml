@@ -63,7 +63,7 @@ jobs:
         cyclonedx-bom -o sbom.json
 
     - name: Upload Python artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: python-package
         path: |
@@ -102,7 +102,7 @@ jobs:
         vsce package
 
     - name: Upload VS Code extension artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: vscode-extension
         path: tools/vscode-extension/*.vsix
@@ -139,7 +139,7 @@ jobs:
         Compress-Archive -Path $outputPath -DestinationPath "mql4-package-$version.zip"
 
     - name: Upload MQL4 artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: mql4-package
         path: mql4-package-*.zip

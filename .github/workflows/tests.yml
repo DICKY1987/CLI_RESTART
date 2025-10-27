@@ -34,7 +34,7 @@ jobs:
 
       - name: Upload Python artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: python-${{ matrix.python-version }}-reports
           path: |
@@ -54,7 +54,7 @@ jobs:
 
       - name: Upload PowerShell artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: powershell-reports
           path: |
@@ -80,7 +80,7 @@ jobs:
 
       - name: Upload Node artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: node-reports
           path: |
