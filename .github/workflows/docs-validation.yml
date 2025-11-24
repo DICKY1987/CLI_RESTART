@@ -10,7 +10,7 @@ jobs:
   validate-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           # Fetch all history for git log to work correctly
           fetch-depth: 0
